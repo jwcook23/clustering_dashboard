@@ -1,4 +1,4 @@
-# bokeh serve --show clustering_dashboard/dashboard.py
+# bokeh serve --show dashboard.py
 
 import json
 import os
