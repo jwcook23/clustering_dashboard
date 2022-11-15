@@ -1,0 +1,10 @@
+{
+    "column_names": {
+        "latitude": "pickup_latitude",
+        "longitude": "pickup_longitude",  
+        "date": "pickup_datetime"
+    },
+    "additional_summary": {
+        "fare_amount": "max"
+    }
+}
