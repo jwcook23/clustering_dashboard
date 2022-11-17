@@ -39,6 +39,9 @@ class dashboard(updates):
         self.cluster_detail()
         self.page_layout()
 
+        # display all clusters
+        self.table_callback(None, None, self.cluster_summary.index)
+
     def calculate_defaults(self):
 
         self.selected_cluster = None
@@ -126,7 +129,7 @@ class dashboard(updates):
 
         # render address points
         source_points = ColumnDataSource(data=dict(x=[], y=[]))
-        self.render_points = self.plot_map.circle('x','y', source=source_points, fill_color='blue', line_color=None, size=10, legend_label='Location')
+        self.render_points = self.plot_map.circle('x','y', source=source_points, fill_color='red', line_color=None, size=10, legend_label='Location')
         features, formatters = self.format_hover()
         self.plot_map.add_tools(HoverTool(
             tooltips=features,
@@ -135,7 +138,7 @@ class dashboard(updates):
         )
 
         # render boundary of clusters
-        self.render_boundary = self.plot_map.multi_polygons(xs=[],ys=[], line_color=None, alpha=0.1, color='blue', legend_label='Cluster')
+        self.render_boundary = self.plot_map.multi_polygons(xs=[],ys=[], line_color=None, alpha=0.3, color='red', legend_label='Cluster')
 
         self.plot_map.legend.location = "top_right"
 
@@ -201,7 +204,7 @@ if args.debug:
     from bokeh.plotting import output_file, show
 
     # plot largest
-    page.table_callback(None, None, [0])
+    # page.table_callback(None, None, [0])
 
     # # enable date clustering
     # page.date_callback([0])

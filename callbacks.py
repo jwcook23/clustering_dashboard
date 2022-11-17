@@ -44,6 +44,8 @@ class updates():
     def update_map(self):
         '''Plot location point and boundary when making a selection in the summary table.'''
 
+        show_ids = self.selected_cluster.index
+
         data_boundary = {
             'xs': [],
             'ys': []
@@ -53,16 +55,13 @@ class updates():
             'y': [],
         }
 
-        zoom = self.default_zoom
-        if self.selected_cluster is not None:
-            show_ids = self.selected_cluster.index
+        unique_clusters = self.selected_cluster.dropna().drop_duplicates()
+        data_boundary.update({
+            'xs': self.cluster_boundary.loc[unique_clusters, 'Longitude_mercator'].tolist(),
+            'ys': self.cluster_boundary.loc[unique_clusters, 'Latitude_mercator'].tolist()
+        })
 
-            # update data for selected cluster
-            unique_clusters = self.selected_cluster.dropna().drop_duplicates()
-            data_boundary.update({
-                'xs': self.cluster_boundary.loc[unique_clusters, 'Longitude_mercator'].tolist(),
-                'ys': self.cluster_boundary.loc[unique_clusters, 'Latitude_mercator'].tolist()
-            })
+        if len(unique_clusters)==1:
 
             # update address using selected cluster
             longitude = self.columns['longitude']
@@ -80,13 +79,6 @@ class updates():
                 col: self.address.loc[show_ids, col].values for col in self.address.columns.drop([longitude,latitude,date])
             })
 
-            # zoom map based on range of points shown
-            points = pd.DataFrame({
-                'x': data_point['x'],
-                'y': data_point['y']
-            })
-            zoom = self.zoom_window(points)
-
         # update map title
         self.update_titles()
 
@@ -95,10 +87,10 @@ class updates():
         self.render_points.data_source.data = data_point
 
         # update range to selected
-        self.plot_map.x_range.start = zoom.at['x','min']
-        self.plot_map.x_range.end = zoom.at['x','max']
-        self.plot_map.y_range.start = zoom.at['y','min']
-        self.plot_map.y_range.end = zoom.at['y','max']
+        self.plot_map.x_range.start = self.address.loc[show_ids,'Longitude_mercator'].min()
+        self.plot_map.x_range.end = self.address.loc[show_ids,'Longitude_mercator'].max()
+        self.plot_map.y_range.start = self.address.loc[show_ids,'Latitude_mercator'].min()
+        self.plot_map.y_range.end = self.address.loc[show_ids,'Latitude_mercator'].max()
 
 
     def update_detail(self):
@@ -126,9 +118,14 @@ class updates():
         if self.selected_cluster is None:
             selected_list = 'select cluster summary to display'
         else:
+
             selected_list = self.selected_cluster.drop_duplicates().sort_values()
-            selected_list = selected_list.astype('str').replace('<NA>','None').tolist()
-            selected_list = 'ClusterID = '+', '.join(selected_list)
+
+            if len(selected_list)==len(self.cluster_summary):
+                selected_list = 'All Clusters'
+            else:
+                selected_list = selected_list.astype('str').replace('<NA>','None').tolist()
+                selected_list = 'ClusterID = '+', '.join(selected_list)
 
         self.title_map.text = f"Location Clusters: {selected_list}"
 
@@ -202,7 +199,5 @@ class updates():
             self.columns['latitude'], self.columns['longitude'], self.columns['date'], self.parameters['date_range'],
             self.additional_summary
         )
-        self.selected_cluster = None
         self.update_summary()
-        self.update_map()
-        self.update_detail()
+        self.table_callback(None, None, self.cluster_summary.index)
