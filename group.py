@@ -50,7 +50,7 @@ def get_clusters(address, max_cluster_distance_miles, min_cluster_size, distance
     cluster_id = assign_id(cluster_id, address, min_cluster_size)
 
     # summerize cluster
-    cluster_summary = summary.get_summary(cluster_id, column_date, additional_summary)
+    cluster_summary = summary.get_summary(cluster_id, distance, column_date, additional_summary)
 
     # calculate cluster boundary for map zoom
     cluster_boundary = cluster_id.groupby('ClusterID')

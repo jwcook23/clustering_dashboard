@@ -1,9 +1,10 @@
-from numpy import isnan
+import numpy as np
+import pandas as pd
 
 def _min(series):
 
     val = series.min()
-    if isnan(val):
+    if np.isnan(val):
         val = ''
     else:
         val = str(val)
@@ -12,7 +13,7 @@ def _min(series):
 def _max(series):
 
     val = series.max()
-    if isnan(val):
+    if np.isnan(val):
         val = ''
     else:
         val = str(val)
@@ -29,14 +30,27 @@ def _unique(series):
 
     return series
 
+def distance_id(cluster_id, distance):
+    
+    # set self references (distance of zero) as nan
+    np.fill_diagonal(distance, np.nan)
+    
+    # assign cluster id to distance values
+    distance = distance.reshape(distance.size, 1)
+    distance = pd.DataFrame(distance, columns=['Distance'])
+    distance['ClusterID1'] = cluster_id['ClusterID'].repeat(len(cluster_id)).reset_index(drop=True)
+    distance['ClusterID2'] = cluster_id['ClusterID'].tolist() * len(cluster_id)
 
-def get_summary(cluster_id, column_date, distance, additional_summary):
+    return distance
+
+def get_summary(cluster_id, distance, column_date, additional_summary):
 
     cluster_summary = calcualte_simple(cluster_id, column_date, additional_summary)
 
     cluster_summary = find_nearby(cluster_summary, cluster_id)
 
-    cluster_summary = calculate_spread(cluster_summary, cluster_id)
+    distance = distance_id(cluster_id, distance)
+    cluster_summary = calculate_distance(cluster_summary, distance)
 
 
     return cluster_summary
@@ -82,9 +96,27 @@ def find_nearby(cluster_summary, cluster_id):
     return cluster_summary
 
 
-def calculate_spread(cluster_summary, cluster_id):
-    pass
+def calculate_distance(cluster_summary, distance):
+    
+    # calculate min and max distances for each combination
+    grouped = distance.groupby(['ClusterID1','ClusterID2'])
+    grouped = grouped.agg(['min','max'])
+    grouped.columns = ['min', 'max']
+    grouped = grouped.reset_index()
 
+    # convert to miles
+    grouped[['min','max']] = grouped[['min','max']]*3958.756
 
-def calculate_nearest():
-    pass
+    # calculate max spread within a cluster
+    spread = grouped.loc[grouped['ClusterID1']==grouped['ClusterID2'],['ClusterID1','max']]
+    spread = spread.rename(columns={'ClusterID1': 'ClusterID', 'max': 'Cluster Spread (miles)'})
+    cluster_summary = cluster_summary.merge(spread, on='ClusterID')
+
+    # calculate min distance to another cluster
+    nearest = grouped.loc[grouped['ClusterID1']!=grouped['ClusterID2'],['ClusterID1','min']]
+    nearest = nearest.sort_values(by=['ClusterID1','min'], ascending=True)
+    nearest = nearest.drop_duplicates(subset='ClusterID1', keep='first')
+    nearest = nearest.rename(columns={'ClusterID1': 'ClusterID', 'min': 'Next Cluster (miles)'})
+    cluster_summary = cluster_summary.merge(nearest, on='ClusterID')
+
+    return cluster_summary
