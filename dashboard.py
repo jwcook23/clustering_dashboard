@@ -32,6 +32,7 @@ class dashboard(updates):
         updates.__init__(self)
 
         self.address = geo.convert_to_mercator(self.address, self.columns['latitude'], self.columns['longitude'])
+        self.distance = geo.calc_distance(self.address, self.columns['latitude'], self.columns['longitude'])
 
         self.calculate_defaults()
         self.map_plot()
@@ -53,7 +54,7 @@ class dashboard(updates):
         # summary based on parameters
         self.cluster_summary, self.cluster_boundary, self.cluster_id = group.get_clusters(
             self.address, self.parameters['max_cluster_distance_miles'], self.parameters['min_cluster_size'],
-            self.columns['latitude'], self.columns['longitude'], self.columns['date'], self.parameters['date_range'],
+            self.distance, self.columns['date'], self.parameters['date_range'],
             self.additional_summary
         )
 

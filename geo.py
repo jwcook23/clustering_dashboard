@@ -1,6 +1,13 @@
 import numpy as np
 import pandas as pd
+from sklearn.metrics.pairwise import haversine_distances
 
+def calc_distance(df, column_latitude, column_longitude):
+    
+    coords = np.radians(df[[column_latitude, column_longitude]].values)
+    distance = haversine_distances(coords, coords)
+
+    return distance
 
 def convert_to_mercator(df, latitude, longitude):
     """Converts wgs94 decimal longitude/latitude to web mercator format."""

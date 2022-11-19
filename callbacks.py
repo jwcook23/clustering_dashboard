@@ -196,7 +196,7 @@ class updates():
         # recalculate after parameters have changed
         self.cluster_summary, self.cluster_boundary, self.cluster_id = group.get_clusters(
             self.address, self.parameters['max_cluster_distance_miles'], self.parameters['min_cluster_size'],
-            self.columns['latitude'], self.columns['longitude'], self.columns['date'], self.parameters['date_range'],
+            self.distance, self.columns['date'], self.parameters['date_range'],
             self.additional_summary
         )
         self.update_summary()
