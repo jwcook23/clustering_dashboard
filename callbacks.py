@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from bokeh.models import Slider, Dropdown, CheckboxGroup
 
 import group
@@ -106,6 +107,11 @@ class updates():
         self.update_titles()
 
 
+    def update_evaluation(self):
+        
+        self._plot_histogram(self.next_cluster, self.cluster_summary['Next Cluster (miles)'])
+
+
     def update_summary(self):
 
         cols = [x.field for x in self.table_summary.columns]
@@ -199,5 +205,6 @@ class updates():
             self.distance, self.columns['date'], self.parameters['date_range'],
             self.additional_summary
         )
+        self.update_evaluation()
         self.update_summary()
         self.table_callback(None, None, self.cluster_summary.index)

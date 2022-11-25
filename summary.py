@@ -31,15 +31,16 @@ def _unique(series):
     return series
 
 def distance_id(cluster_id, distance):
-    
-    # set self references (distance of zero) as nan
-    np.fill_diagonal(distance, np.nan)
-    
+
     # assign cluster id to distance values
     distance = distance.reshape(distance.size, 1)
     distance = pd.DataFrame(distance, columns=['Distance'])
     distance['ClusterID1'] = cluster_id['ClusterID'].repeat(len(cluster_id)).reset_index(drop=True)
     distance['ClusterID2'] = cluster_id['ClusterID'].tolist() * len(cluster_id)
+
+    # remove same index distance
+    size = len(cluster_id)
+    distance = distance.drop(distance.index[range(0, size**2, size+1)])
 
     return distance
 

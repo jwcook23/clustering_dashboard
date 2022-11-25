@@ -4,13 +4,17 @@ import json
 import os
 import argparse
 import ast
-from itertools import chain
 
 import pandas as pd
+import numpy as np
 from bokeh.plotting import figure, curdoc
 from bokeh.tile_providers import CARTODBPOSITRON, get_provider
 from bokeh.layouts import row, column
-from bokeh.models import (ColumnDataSource, DataTable, TableColumn, Div, HoverTool, DateFormatter, StringFormatter, NumberFormatter, Panel, Tabs)
+from bokeh.models import (
+    ColumnDataSource, DataTable, TableColumn, HoverTool, Div,
+    DateFormatter, StringFormatter, NumberFormatter, 
+    Panel, Tabs
+)
 
 from callbacks import updates
 import data
@@ -35,8 +39,9 @@ class dashboard(updates):
         self.distance = geo.calc_distance(self.address, self.columns['latitude'], self.columns['longitude'])
 
         self.calculate_defaults()
-        self.map_plot()
+        self.cluster_evaluation()
         self.summary_table()
+        self.map_plot()
         self.cluster_detail()
         self.page_layout()
 
@@ -58,9 +63,26 @@ class dashboard(updates):
             self.additional_summary
         )
 
+
     def is_date(self, values):
 
         return (values.dt.hour==0).all()
+
+
+    def _plot_histogram(self, fig, vals):
+
+        hist, edges = np.histogram(vals)
+
+        fig.quad(top=hist, bottom=0, left=edges[:-1], right=edges[1:],
+                fill_color="skyblue", line_color="white"
+        )
+
+    def cluster_evaluation(self):
+
+        self.next_cluster = figure(width=225, height=200, toolbar_location=None,
+                title="Distance Between Clusters")
+
+        self._plot_histogram(self.next_cluster, self.cluster_summary['Next Cluster (miles)'])
 
 
     def format_table(self, df):
@@ -163,6 +185,7 @@ class dashboard(updates):
         self.source_detail = ColumnDataSource(data=dict())
         self.table_detail = DataTable(source=self.source_detail, columns=columns, autosize_mode='fit_columns', height=625, width=900)        
 
+
     def page_layout(self):
 
         self.title_map = Div(style={'font-size': '150%'}, width=450)
@@ -179,6 +202,7 @@ class dashboard(updates):
                     self.parameters['min_cluster_size'], 
                     self.parameters['date_range']
                 ),
+                self.next_cluster,
                 row(title_summary, self.options['display']),
                 self.table_summary
             ),
@@ -215,9 +239,9 @@ if args.debug:
     # dropdown.item = '1) Display nearby points in any cluster.'
     # page.display_callback(dropdown)
 
-    # # adjuster parameter
-    # page.parameters['max_cluster_distance_miles'].value = 0.5
-    # page.reset_callback(None, None, None)
+    # adjuster parameter
+    page.parameters['max_cluster_distance_miles'].value = 0.5
+    page.reset_callback(None, None, None)
 
     # # plot second largest
     # page.table_callback(None, None, [1])
