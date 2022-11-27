@@ -69,20 +69,27 @@ class dashboard(updates):
         return (values.dt.hour==0).all()
 
 
-    def _plot_histogram(self, fig, vals):
-
-        hist, edges = np.histogram(vals)
-
-        fig.quad(top=hist, bottom=0, left=edges[:-1], right=edges[1:],
-                fill_color="skyblue", line_color="white"
-        )
-
     def cluster_evaluation(self):
 
-        self.next_cluster = figure(width=225, height=200, toolbar_location=None,
-                title="Distance Between Clusters")
+        self.next_cluster = figure(
+            title="Distance Between Clusters", width=225, height=200,
+            toolbar_location=None
+        )
 
-        self._plot_histogram(self.next_cluster, self.cluster_summary['Next Cluster (miles)'])
+        hist, edges = np.histogram(self.cluster_summary['Next Cluster (miles)'])
+
+        source = ColumnDataSource(dict(
+                left=edges[:-1],
+                right=edges[1:],
+                top=hist,
+                bottom=[0]*len(hist),
+            )
+        )
+
+        self.render_evaluation = self.next_cluster.quad(
+            'left', 'right', 'top', 'bottom', source=source, 
+            fill_color="skyblue", line_color="white"
+        )
 
 
     def format_table(self, df):

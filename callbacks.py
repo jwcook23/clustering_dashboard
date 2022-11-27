@@ -109,7 +109,14 @@ class updates():
 
     def update_evaluation(self):
         
-        self._plot_histogram(self.next_cluster, self.cluster_summary['Next Cluster (miles)'])
+        hist, edges = np.histogram(self.cluster_summary['Next Cluster (miles)'])
+
+        self.render_evaluation.data_source.data = {
+            'left': edges[:-1],
+            'right': edges[1:],
+            'top': hist,
+            'bottom': [0]*len(hist)
+        }
 
 
     def update_summary(self):
