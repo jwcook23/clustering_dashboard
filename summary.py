@@ -50,6 +50,7 @@ def get_summary(cluster_id, distance, column_date, additional_summary):
 
     cluster_summary = find_nearby(cluster_summary, cluster_id)
 
+    # TODO: use distance matrix directly to calculate
     distance = distance_id(cluster_id, distance)
     cluster_summary = calculate_distance(cluster_summary, distance)
 

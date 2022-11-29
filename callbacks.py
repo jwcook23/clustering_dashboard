@@ -12,10 +12,10 @@ class updates():
         self.options = {}
 
         self.parameters['max_cluster_distance_miles'] = Slider(start=0.01, end=1, value=0.01, step=0.01, title="Point Distance (miles)", height=50, width=160)
-        self.parameters['max_cluster_distance_miles'].on_change('value_throttled', self.reset_callback)
+        self.parameters['max_cluster_distance_miles'].on_change('value_throttled', self.parameter_callback)
 
         self.parameters['date_range'] = Slider(start=1, end=10, value=1, step=1, title=f"{self.columns['date']} (days between)", height=50, width=160)
-        self.parameters['date_range'].on_change('value_throttled', self.reset_callback)
+        self.parameters['date_range'].on_change('value_throttled', self.parameter_callback)
         self.parameters['date_range'].visible = True
 
         menu = [("1) Reset display.", "reset display"), ("2) Display nearby points in any cluster.", "nearby points")]
@@ -155,7 +155,7 @@ class updates():
     def display_callback(self, event):
         
         if event.item=='reset display':
-            self.reset_callback(None, None, None)
+            self.parameter_callback(None, None, None)
         elif event.item=='nearby points':
 
             self.same_location()
@@ -173,7 +173,7 @@ class updates():
         else:
             self.parameters['date_range'].visible = False
 
-        self.reset_callback(None, None, None)
+        self.parameter_callback(None, None, None)
 
 
     def same_location(self):
@@ -201,9 +201,8 @@ class updates():
         self.cluster_id = self.cluster_id.loc[self.selected_cluster.index]
 
 
-    def reset_callback(self, attr, old, new):
+    def parameter_callback(self, attr, old, new):
 
-        # recalculate after parameters have changed
         self.cluster_summary, self.cluster_boundary, self.cluster_id = group.get_clusters(
             self.address, self.parameters['max_cluster_distance_miles'],
             self.distance, self.columns['date'], self.parameters['date_range'],
