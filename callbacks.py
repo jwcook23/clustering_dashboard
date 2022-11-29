@@ -11,21 +11,18 @@ class updates():
         self.parameters = {}
         self.options = {}
 
-        self.parameters['max_cluster_distance_miles'] = Slider(start=0.1, end=2, value=0.1, step=0.1, title="Point Distance (miles)", height=50, width=160)
+        self.parameters['max_cluster_distance_miles'] = Slider(start=0.01, end=1, value=0.01, step=0.01, title="Point Distance (miles)", height=50, width=160)
         self.parameters['max_cluster_distance_miles'].on_change('value_throttled', self.reset_callback)
 
-        self.parameters['min_cluster_size'] = Slider(start=1, end=10, value=2, step=1, title="Cluster Points (count)", height=50, width=160)
-        self.parameters['min_cluster_size'].on_change('value_throttled', self.reset_callback)
-
-        self.parameters['date_range'] = Slider(start=1, end=10, value=2, step=1, title=f"{self.columns['date']} (days after first)", height=50, width=160)
+        self.parameters['date_range'] = Slider(start=1, end=10, value=1, step=1, title=f"{self.columns['date']} (days between)", height=50, width=160)
         self.parameters['date_range'].on_change('value_throttled', self.reset_callback)
-        self.parameters['date_range'].visible = False
+        self.parameters['date_range'].visible = True
 
         menu = [("1) Reset display.", "reset display"), ("2) Display nearby points in any cluster.", "nearby points")]
         self.options['display'] = Dropdown(label="Display Options", button_type="default", menu=menu, height=25, width=160)
         self.options['display'].on_click(self.display_callback)
 
-        self.options['date'] = CheckboxGroup(labels=['include date clustering'], active=[])
+        self.options['date'] = CheckboxGroup(labels=['include date clustering'], active=[0], height=20, width=160)
         self.options['date'].on_click(self.date_callback)
 
 
@@ -208,7 +205,7 @@ class updates():
 
         # recalculate after parameters have changed
         self.cluster_summary, self.cluster_boundary, self.cluster_id = group.get_clusters(
-            self.address, self.parameters['max_cluster_distance_miles'], self.parameters['min_cluster_size'],
+            self.address, self.parameters['max_cluster_distance_miles'],
             self.distance, self.columns['date'], self.parameters['date_range'],
             self.additional_summary
         )

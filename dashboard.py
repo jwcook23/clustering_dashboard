@@ -69,7 +69,7 @@ class dashboard(updates):
 
         # summary based on parameters
         self.cluster_summary, self.cluster_boundary, self.cluster_id = group.get_clusters(
-            self.address, self.parameters['max_cluster_distance_miles'], self.parameters['min_cluster_size'],
+            self.address, self.parameters['max_cluster_distance_miles'],
             self.distance, self.columns['date'], self.parameters['date_range'],
             self.additional_summary
         )
@@ -209,17 +209,12 @@ class dashboard(updates):
         self.title_map = Div(style={'font-size': '150%'}, width=450)
         self.update_titles()
 
-        title_parameter = Div(text="Cluster Parameters: adjust to recalculate clusters", style={'font-size': '100%'})
+        title_parameter = Div(text="Cluster Parameters", height=20, width=160)
         title_summary = Div(text="Cluster Summary")
 
         self.layout = row(
             column(
-                row(title_parameter, self.options['date']),
-                row(
-                    self.parameters['max_cluster_distance_miles'], 
-                    self.parameters['min_cluster_size'], 
-                    self.parameters['date_range']
-                ),
+                row(column(title_parameter, self.options['date']), self.parameters['max_cluster_distance_miles'], self.parameters['date_range']),
                 self.next_cluster,
                 row(title_summary, self.options['display']),
                 self.table_summary
@@ -258,7 +253,7 @@ if args.debug:
     # page.display_callback(dropdown)
 
     # adjuster parameter
-    page.parameters['max_cluster_distance_miles'].value = 0.5
+    page.parameters['max_cluster_distance_miles'].value = 0.01
     page.reset_callback(None, None, None)
 
     # # plot second largest

@@ -5,7 +5,7 @@ from sklearn.cluster import DBSCAN
 
 import summary
 
-def assign_id(cluster_id, address, min_cluster_size):
+def assign_id(cluster_id, address):
 
     # combine geo and date cluster ids
     overall = cluster_id.groupby(['ClusterDate','ClusterLocation']).ngroup()
@@ -20,9 +20,6 @@ def assign_id(cluster_id, address, min_cluster_size):
     size.index.name = 'Grouped'
     size = size.reset_index()
 
-    # remove geo clusters smaller than parameter that were split by date cluster
-    size = size[size['Count']>=min_cluster_size.value]
-
     # assign 0 as the largest sized cluster
     size['ClusterID'] = range(0,len(size))
     overall = overall.merge(size, on='Grouped', how='left')
@@ -34,7 +31,7 @@ def assign_id(cluster_id, address, min_cluster_size):
     return cluster_id
 
 
-def get_clusters(address, max_cluster_distance_miles, min_cluster_size, distance, column_date, date_range, additional_summary):
+def get_clusters(address, max_cluster_distance_miles, distance, column_date, date_range, additional_summary):
 
     # group dates
     # date_id, grouped = cluster_date(address, column_latitude, column_longitude, column_date)
@@ -43,11 +40,11 @@ def get_clusters(address, max_cluster_distance_miles, min_cluster_size, distance
 
     # group addresses
     # geo_id = grouped.apply(lambda x: cluster_geo(x, max_cluster_distance_miles, min_cluster_size, column_latitude, column_longitude))
-    geo_id = cluster_geo(address, max_cluster_distance_miles, min_cluster_size, distance)
+    geo_id = cluster_geo(address, max_cluster_distance_miles, distance)
     cluster_id = cluster_id.merge(geo_id, left_index=True, right_index=True)
 
     # assign an overall id desc with largest size
-    cluster_id = assign_id(cluster_id, address, min_cluster_size)
+    cluster_id = assign_id(cluster_id, address)
 
     # summerize cluster
     cluster_summary = summary.get_summary(cluster_id, distance, column_date, additional_summary)
@@ -74,13 +71,13 @@ def cluster_date(address, column_date, date_range):
     return cluster_id
 
 
-def cluster_geo(df, max_cluster_distance_miles, min_cluster_size, distance):
+def cluster_geo(df, max_cluster_distance_miles, distance):
 
     # convert to kilometers then radians
     eps = max_cluster_distance_miles.value*1.60934/6371
 
     # identify geographic clusters
-    clusters = DBSCAN(metric='precomputed', eps=eps, min_samples=min_cluster_size.value)
+    clusters = DBSCAN(metric='precomputed', eps=eps, min_samples=2)
     clusters = clusters.fit(distance)
     cluster_id = clusters.labels_.astype('float')
     cluster_id[cluster_id==-1] = np.nan
