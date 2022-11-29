@@ -1,10 +1,11 @@
 {
+    "file_path": "C:/Users/jacoo/Desktop/Temp/CombinedData.gzip",
     "column_names": {
-        "latitude": "pickup_latitude",
-        "longitude": "pickup_longitude",  
-        "date": "pickup_datetime"
+        "latitude": "Latitude",
+        "longitude": "Longitude",  
+        "date": "ReportedDate"
     },
     "additional_summary": {
-        "fare_amount": "max"
+        "NearestEventMiles": "min"
     }
 }

@@ -17,21 +17,16 @@ from bokeh.models import (
 )
 
 from callbacks import updates
-import data
 import group
 import geo
 
 class dashboard(updates):
 
     def __init__(self):
-        
-        self.address = data.address
 
-        self.column_id = self.address.index.name
-        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)),'settings.json')) as fh:
-            settings = json.load(fh)
-        self.columns = pd.Series(settings['column_names'])
-        self.additional_summary = settings['additional_summary']
+
+        self.load_settings()
+        self.load_data()
 
         updates.__init__(self)
 
@@ -47,6 +42,22 @@ class dashboard(updates):
 
         # display all clusters
         self.table_callback(None, None, self.cluster_summary.index)
+
+    def load_settings(self):
+
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)),'settings.json')) as fh:
+            settings = json.load(fh)
+
+        self.file_path = settings['file_path']
+        self.columns = pd.Series(settings['column_names'])
+        self.additional_summary = settings['additional_summary']
+
+
+    def load_data(self):
+
+        self.address = pd.read_parquet(self.file_path)
+        self.column_id = self.address.index.name
+
 
     def calculate_defaults(self):
 
