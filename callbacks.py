@@ -11,7 +11,7 @@ class updates():
         self.parameters = {}
         self.options = {}
 
-        self.parameters['max_cluster_distance_miles'] = Slider(start=0.01, end=1, value=0.01, step=0.01, title="Point Distance (miles)", height=50, width=160)
+        self.parameters['max_cluster_distance_miles'] = Slider(start=0.01, end=1, value=0.1, step=0.01, title="Point Distance (miles)", height=50, width=160)
         self.parameters['max_cluster_distance_miles'].on_change('value_throttled', self.parameter_callback)
 
         self.parameters['date_range'] = Slider(start=1, end=10, value=1, step=1, title=f"{self.columns['date']} (days between)", height=50, width=160)

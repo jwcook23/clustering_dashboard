@@ -83,6 +83,7 @@ def cluster_geo(df, max_cluster_distance_miles, distance):
     cluster_id[cluster_id==-1] = np.nan
 
     cluster_id = pd.Series(cluster_id, name='ClusterLocation', index=df.index.values, dtype='Int64')
+    cluster_id.index.name = df.index.name
 
     return cluster_id
 

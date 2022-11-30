@@ -1,4 +1,5 @@
 import numpy as np
+import numpy.ma as ma
 import pandas as pd
 from sklearn.metrics.pairwise import haversine_distances
 
@@ -6,6 +7,7 @@ def calc_distance(df, column_latitude, column_longitude):
     
     coords = np.radians(df[[column_latitude, column_longitude]].values)
     distance = haversine_distances(coords, coords)
+    distance = ma.array(distance)
 
     return distance
 

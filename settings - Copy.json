@@ -1,12 +1,11 @@
 {
-    "file_path": "tests/Sample.gzip",
+    "file_path": "C:/Users/jacoo/Desktop/Temp/CombinedData.gzip",
     "column_names": {
         "latitude": "Latitude",
         "longitude": "Longitude",  
-        "date": "Timestamp"
+        "date": "ReportedDate"
     },
     "additional_summary": {
-        "LocationGroup": "min",
-        "GroupDate": "min"
+        "NearestEventMiles": "min"
     }
 }
