@@ -1,4 +1,5 @@
 import numpy as np
+import numpy.ma as ma
 import pandas as pd
 from scipy.spatial import ConvexHull
 from sklearn.cluster import DBSCAN
@@ -46,8 +47,11 @@ def get_clusters(address, max_cluster_distance_miles, distance, column_date, dat
     # assign an overall id desc with largest size
     cluster_id = assign_id(cluster_id, address)
 
+    # determine distance of points to other points
+    cluster_id = point_distance(cluster_id, distance)
+
     # summerize cluster
-    cluster_summary = summary.get_summary(cluster_id, distance, column_date, additional_summary)
+    cluster_summary = summary.get_summary(cluster_id, column_date, additional_summary)
 
     # calculate cluster boundary for map zoom
     cluster_boundary = cluster_id.groupby('ClusterID')
@@ -108,3 +112,27 @@ def get_boundary(group):
     boundary = pd.Series({'Latitude_mercator': [[list(boundary[:,0])]], 'Longitude_mercator': [[list(boundary[:,1])]]})
 
     return boundary
+
+def point_distance(cluster_id, distance):
+
+    grouped = pd.DataFrame(cluster_id['ClusterID'])
+    grouped['index'] = range(0, len(grouped))
+    grouped = grouped.groupby('ClusterID')
+    grouped = grouped.agg({'index': list})
+    grouped['index'] = grouped['index'].apply(lambda x: np.array(x))
+    grouped['row'] = grouped['index'].apply(lambda x: x.repeat(len(x)))
+    grouped['col'] = grouped['index'].apply(lambda x: np.tile(x,len(x)))
+    row = np.concatenate(grouped['row'].values)
+    col = np.concatenate(grouped['col'].values)
+
+    distance.mask = np.eye(distance.shape[0], dtype=bool)
+    distance[row, col] = ma.masked
+    cluster_id['Nearest Different Cluster Point (miles)'] = distance.min(axis=0)
+
+    distance.mask = True
+    distance.mask[row, col] = False
+    cluster_id['Farthest Same Cluster Point (miles)'] = distance.max(axis=0)
+
+    distance.mask = False
+
+    return cluster_id

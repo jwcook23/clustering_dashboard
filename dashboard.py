@@ -87,7 +87,7 @@ class dashboard(updates):
             toolbar_location=None
         )
 
-        hist, edges = np.histogram(self.cluster_summary['Next Cluster (miles)'])
+        hist, edges = np.histogram(self.cluster_summary['Nearest Different Cluster Point (miles)'])
 
         source = ColumnDataSource(dict(
                 left=edges[:-1],
@@ -253,8 +253,8 @@ if args.debug:
     # page.display_callback(dropdown)
 
     # adjuster parameter
-    page.parameters['max_cluster_distance_miles'].value = 0.01
-    page.reset_callback(None, None, None)
+    # page.parameters['max_cluster_distance_miles'].value = 0.01
+    # page.parameter_callback(None, None, None)
 
     # # plot second largest
     # page.table_callback(None, None, [1])
