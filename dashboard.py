@@ -87,7 +87,7 @@ class dashboard(updates):
             toolbar_location=None
         )
 
-        hist, edges = np.histogram(self.cluster_summary['Nearest Different Cluster Point (miles)'])
+        hist, edges = np.histogram(self.cluster_summary['Next Cluster (miles)'])
 
         source = ColumnDataSource(dict(
                 left=edges[:-1],
@@ -107,7 +107,7 @@ class dashboard(updates):
 
         formatters = {
             'int': NumberFormatter(nan_format='-'),
-            'float': NumberFormatter(nan_format='-'),
+            'float': NumberFormatter(nan_format='-', format='0.00'),
             'date': DateFormatter(format="%m/%d/%Y", nan_format='-'),
             'timestamp': DateFormatter(format="%m/%d/%Y %H:%M:%S", nan_format='-'),
             'string': StringFormatter(nan_format='-')

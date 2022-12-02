@@ -115,9 +115,9 @@ def get_boundary(group):
 
 def point_distance(cluster_id, distance):
 
-    grouped = pd.DataFrame(cluster_id['ClusterID'])
+    grouped = pd.DataFrame(cluster_id['ClusterLocation'])
     grouped['index'] = range(0, len(grouped))
-    grouped = grouped.groupby('ClusterID')
+    grouped = grouped.groupby('ClusterLocation')
     grouped = grouped.agg({'index': list})
     grouped['index'] = grouped['index'].apply(lambda x: np.array(x))
     grouped['row'] = grouped['index'].apply(lambda x: x.repeat(len(x)))
@@ -127,11 +127,11 @@ def point_distance(cluster_id, distance):
 
     distance.mask = np.eye(distance.shape[0], dtype=bool)
     distance[row, col] = ma.masked
-    cluster_id['Nearest Different Cluster Point (miles)'] = distance.min(axis=0)
+    cluster_id['Next Cluster (miles)'] = distance.min(axis=0) * 3958
 
     distance.mask = True
     distance.mask[row, col] = False
-    cluster_id['Farthest Same Cluster Point (miles)'] = distance.max(axis=0)
+    cluster_id['Cluster Span (miles)'] = distance.max(axis=0) * 3958
 
     distance.mask = False
 

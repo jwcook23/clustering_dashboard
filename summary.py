@@ -54,7 +54,7 @@ def calculate_simple(cluster_id, column_date, additional_summary):
     cluster_summary = cluster_id.reset_index().groupby('ClusterID')
     plan = {
         cluster_id.index.name: 'count', column_date: 'max',
-         'Nearest Different Cluster Point (miles)': min, 'Farthest Same Cluster Point (miles)': max
+         'Next Cluster (miles)': min, 'Cluster Span (miles)': max
     }
     additional_summary = {key:agg_options[val] for key,val in additional_summary.items()}
     plan = {**plan, **additional_summary}

@@ -18,4 +18,9 @@ df['pickup_datetime'] = pd.to_datetime(df['pickup_datetime'])
 
 df = df.head(10000)
 
+df = df.rename(columns={
+    'pickup_latitude': 'Latitude', 'pickup_longitude': 'Longitude',
+    'pickup_datetime': 'Pickup Time', 'fare_amount': 'Fare Amount'
+})
+
 df.to_parquet('C:/Users/jacoo/Desktop/Temp/CabData.gzip')
