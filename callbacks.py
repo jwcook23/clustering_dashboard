@@ -11,7 +11,7 @@ class updates():
         self.parameters = {}
         self.options = {}
 
-        self.parameters['max_cluster_distance_miles'] = Slider(start=0.01, end=1, value=0.1, step=0.01, title="Point Distance (miles)", height=50, width=160)
+        self.parameters['max_cluster_distance_miles'] = Slider(start=0.01, end=1, value=0.01, step=0.01, title="Point Distance (miles)", height=50, width=160)
         self.parameters['max_cluster_distance_miles'].on_change('value_throttled', self.parameter_callback)
 
         self.parameters['date_range'] = Slider(start=1, end=10, value=1, step=1, title=f"{self.columns['date']} (days between)", height=50, width=160)
@@ -85,10 +85,11 @@ class updates():
         self.render_points.data_source.data = data_point
 
         # update range to selected
-        self.plot_map.x_range.start = self.address.loc[show_ids,'Longitude_mercator'].min()
-        self.plot_map.x_range.end = self.address.loc[show_ids,'Longitude_mercator'].max()
-        self.plot_map.y_range.start = self.address.loc[show_ids,'Latitude_mercator'].min()
-        self.plot_map.y_range.end = self.address.loc[show_ids,'Latitude_mercator'].max()
+        zoom = self.zoom_window(self.address.loc[show_ids,['Longitude_mercator','Latitude_mercator']])
+        self.plot_map.x_range.start = zoom.at['Longitude_mercator','min']
+        self.plot_map.x_range.end = zoom.at['Longitude_mercator','max']
+        self.plot_map.y_range.start = zoom.at['Latitude_mercator','min']
+        self.plot_map.y_range.end = zoom.at['Latitude_mercator','max']
 
 
     def update_detail(self):

@@ -242,7 +242,7 @@ if args.debug:
     from bokeh.plotting import output_file, show
 
     # plot largest
-    # page.table_callback(None, None, [0])
+    page.table_callback(None, None, [0])
 
     # # enable date clustering
     # page.date_callback([0])

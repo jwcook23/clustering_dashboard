@@ -6,6 +6,6 @@
         "date": "Pickup Time"
     },
     "additional_summary": {
-        "Fare Amount": "sum"
+        "Fare Amount": "max"
     }
 }
