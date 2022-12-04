@@ -193,7 +193,7 @@ class dashboard(updates):
         self.source_summary = ColumnDataSource(data=dict())
         self.source_summary.data = self.cluster_summary.to_dict(orient='list')
         self.table_summary = DataTable(
-            source=self.source_summary, columns=columns, index_header='ClusterID',
+            source=self.source_summary, columns=columns, index_header='Cluster ID',
             autosize_mode='fit_columns', height=300, width=550)
         self.source_summary.selected.on_change('indices', self.table_callback)
 
@@ -251,10 +251,10 @@ if args.debug:
     # # enable date clustering
     # page.date_callback([0])
 
-    # # display nearby points
-    # dropdown = Event()
-    # dropdown.item = '1) Display nearby points in any cluster.'
-    # page.display_callback(dropdown)
+    # display nearby points
+    dropdown = Event()
+    dropdown.item = 'same location'
+    page.display_callback(dropdown)
 
     # adjuster parameter
     # page.parameters['max_cluster_distance_miles'].value = 0.01

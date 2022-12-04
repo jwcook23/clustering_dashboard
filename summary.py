@@ -34,7 +34,8 @@ def get_summary(cluster_id, column_date, additional_summary):
 
     cluster_summary = calculate_simple(cluster_id, column_date, additional_summary)
 
-    # cluster_summary = find_nearby(cluster_summary, cluster_id)
+    cluster_summary = find_overlap(cluster_summary, cluster_id, 'Location')
+    cluster_summary = find_overlap(cluster_summary, cluster_id, 'Date')
 
     # TODO: use distance matrix directly to calculate
     # distance = distance_id(cluster_id, distance)
@@ -51,7 +52,7 @@ def calculate_simple(cluster_id, column_date, additional_summary):
         'unique': _unique
     }
 
-    cluster_summary = cluster_id.reset_index().groupby('ClusterID')
+    cluster_summary = cluster_id.reset_index().groupby('Cluster ID')
     plan = {
         cluster_id.index.name: 'count', column_date: ['max','min'],
          'Nearest (miles)': min, 'Span (miles)': max
@@ -73,20 +74,19 @@ def calculate_simple(cluster_id, column_date, additional_summary):
     return cluster_summary
 
 
-def find_nearby(cluster_summary, cluster_id):
+def find_overlap(cluster_summary, cluster_id, name_id):
 
-    # TODO: summerize as clusterids with the same cluster location
-    nearby = cluster_id[['ClusterLocation','ClusterID']].reset_index()
-    nearby = nearby.groupby(['ClusterLocation','ClusterID'], dropna=False)
-    nearby = nearby.agg({cluster_id.index.name: 'count'})
-    nearby = nearby.rename(columns={cluster_id.index.name: 'Points'})
-    nearby = nearby.reset_index()
-    other = nearby.groupby('ClusterLocation').agg({'Points': sum})
-    nearby = nearby.merge(other, on='ClusterLocation')
-    nearby = nearby.dropna(subset='ClusterID')
-    nearby['Nearby Points Not In Cluster (count)'] = nearby['Points_y']-nearby['Points_x']
-    nearby = nearby[['ClusterID','Nearby Points Not In Cluster (count)']]
-    cluster_summary = cluster_summary.merge(nearby.set_index('ClusterID'), on='ClusterID')
+    column = f'{name_id} ID'
+    agg = f'{name_id} (count)'
+
+    nearby = cluster_id[[column,'Cluster ID']]
+    nearby = nearby.groupby(column)
+    nearby = nearby.agg({'Cluster ID': 'unique'})
+    nearby[agg] = nearby['Cluster ID'].str.len()-1
+    nearby = nearby.explode('Cluster ID')
+    nearby['Cluster ID'] = nearby['Cluster ID'].astype('Int64')
+    cluster_summary = cluster_summary.merge(nearby, on='Cluster ID')
+    cluster_summary = cluster_summary.set_index('Cluster ID')
 
     return cluster_summary
 

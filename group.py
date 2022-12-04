@@ -9,7 +9,7 @@ import summary
 def assign_id(cluster_id, address):
 
     # combine geo and date cluster ids
-    overall = cluster_id.groupby(['ClusterDate','ClusterLocation']).ngroup()
+    overall = cluster_id.groupby(['Date ID','Location ID']).ngroup()
     overall = overall.astype('Int64')
     overall[overall==-1] = None
     overall.name = 'Grouped'
@@ -21,13 +21,16 @@ def assign_id(cluster_id, address):
     size.index.name = 'Grouped'
     size = size.reset_index()
 
+    # require multiple points for a cluster
+    size = size[size['Count']>1]
+
     # assign 0 as the largest sized cluster
-    size['ClusterID'] = range(0,len(size))
+    size['Cluster ID'] = range(0,len(size))
     overall = overall.merge(size, on='Grouped', how='left')
-    overall['ClusterID'] = overall['ClusterID'].astype('Int64')
+    overall['Cluster ID'] = overall['Cluster ID'].astype('Int64')
     overall = overall.set_index(address.index.name)
 
-    cluster_id = cluster_id.merge(overall['ClusterID'], left_index=True, right_index=True, how='inner')
+    cluster_id = cluster_id.merge(overall['Cluster ID'], left_index=True, right_index=True, how='inner')
 
     return cluster_id
 
@@ -54,7 +57,7 @@ def get_clusters(address, max_cluster_distance_miles, distance, column_date, dat
     cluster_summary = summary.get_summary(cluster_id, column_date, additional_summary)
 
     # calculate cluster boundary for map zoom
-    cluster_boundary = cluster_id.groupby('ClusterID')
+    cluster_boundary = cluster_id.groupby('Cluster ID')
     cluster_boundary = cluster_boundary.apply(get_boundary)
 
     return cluster_summary, cluster_boundary, cluster_id
@@ -70,7 +73,7 @@ def cluster_date(address, column_date, date_range):
         cluster_id = cluster_id.astype('Int64')
         cluster_id[cluster_id==-1] = pd.NA
     
-    cluster_id.name = 'ClusterDate'
+    cluster_id.name = 'Date ID'
 
     return cluster_id
 
@@ -86,7 +89,7 @@ def cluster_geo(df, max_cluster_distance_miles, distance):
     cluster_id = clusters.labels_.astype('float')
     cluster_id[cluster_id==-1] = np.nan
 
-    cluster_id = pd.Series(cluster_id, name='ClusterLocation', index=df.index.values, dtype='Int64')
+    cluster_id = pd.Series(cluster_id, name='Location ID', index=df.index.values, dtype='Int64')
     cluster_id.index.name = df.index.name
 
     return cluster_id
@@ -115,9 +118,9 @@ def get_boundary(group):
 
 def point_distance(cluster_id, distance):
 
-    grouped = pd.DataFrame(cluster_id['ClusterLocation'])
+    grouped = pd.DataFrame(cluster_id['Location ID'])
     grouped['index'] = range(0, len(grouped))
-    grouped = grouped.groupby('ClusterLocation')
+    grouped = grouped.groupby('Location ID')
     grouped = grouped.agg({'index': list})
     grouped['index'] = grouped['index'].apply(lambda x: np.array(x))
     grouped['row'] = grouped['index'].apply(lambda x: x.repeat(len(x)))

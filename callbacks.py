@@ -18,7 +18,11 @@ class updates():
         self.parameters['date_range'].on_change('value_throttled', self.parameter_callback)
         self.parameters['date_range'].visible = True
 
-        menu = [("1) Reset display.", "reset display"), ("2) Display nearby points in any cluster.", "nearby points")]
+        menu = [
+            ("1) Reset display.", "reset display"),
+            ("2) Display clusters at same location.", "same location"),
+            ("3) Display clusters at same date.", "same date")
+        ]
         self.options['display'] = Dropdown(label="Display Options", button_type="default", menu=menu, height=25, width=160)
         self.options['display'].on_click(self.display_callback)
 
@@ -97,7 +101,7 @@ class updates():
         if self.selected_cluster is None:
             data = dict()
         else:
-            cluster = self.cluster_id[self.cluster_id['ClusterID'].isin(self.selected_cluster)].index
+            cluster = self.cluster_id[self.cluster_id['Cluster ID'].isin(self.selected_cluster)].index
             name = [col.field for col in self.table_detail.columns]
             data = self.address.loc[cluster, name]
             
@@ -136,7 +140,7 @@ class updates():
                 selected_list = 'All Clusters'
             else:
                 selected_list = selected_list.astype('str').replace('<NA>','None').tolist()
-                selected_list = 'ClusterID = '+', '.join(selected_list)
+                selected_list = 'Cluster ID = '+', '.join(selected_list)
 
         self.title_map.text = f"Location Clusters: {selected_list}"
 
@@ -144,8 +148,8 @@ class updates():
     def table_callback(self, attr, old, selected_cluster):
 
         self.selected_cluster = self.cluster_id.loc[
-            self.cluster_id['ClusterID'].isin(selected_cluster), 
-            'ClusterID'
+            self.cluster_id['Cluster ID'].isin(selected_cluster), 
+            'Cluster ID'
         ]
         self.update_map()
         self.update_detail()
@@ -155,14 +159,16 @@ class updates():
         
         if event.item=='reset display':
             self.parameter_callback(None, None, None)
-        elif event.item=='nearby points':
-
+            return None
+        elif event.item=='same location':
             self.same_location()
-            self.filter_clusters()
+        elif event.item=='same date':
+            self.same_date()
 
-            self.update_summary()
-            self.update_map()
-            self.update_detail()
+        self.filter_clusters()
+        self.update_summary()
+        self.update_map()
+        self.update_detail()
 
 
     def date_callback(self, event):
@@ -178,19 +184,30 @@ class updates():
     def same_location(self):
             
             same = self.cluster_id.loc[
-                self.cluster_id['ClusterID'].isin(self.selected_cluster),
-                'ClusterLocation'
+                self.cluster_id['Cluster ID'].isin(self.selected_cluster),
+                'Location ID'
             ]
             self.selected_cluster = self.cluster_id.loc[
-                self.cluster_id['ClusterLocation'].isin(same),
-                'ClusterID'
+                self.cluster_id['Location ID'].isin(same),
+                'Cluster ID'
             ]
 
+
+    def same_date(self):
+
+            same = self.cluster_id.loc[
+                self.cluster_id['Cluster ID'].isin(self.selected_cluster),
+                'Date ID'
+            ]
+            self.selected_cluster = self.cluster_id.loc[
+                self.cluster_id['Date ID'].isin(same),
+                'Cluster ID'
+            ]            
 
     def filter_clusters(self):
 
         self.cluster_summary = self.cluster_summary[
-            self.cluster_summary['ClusterID'].isin(self.selected_cluster)
+            self.cluster_summary.index.isin(self.selected_cluster)
         ].reset_index(drop=True)
 
         self.cluster_boundary = self.cluster_boundary[
