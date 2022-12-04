@@ -53,16 +53,21 @@ def calculate_simple(cluster_id, column_date, additional_summary):
 
     cluster_summary = cluster_id.reset_index().groupby('ClusterID')
     plan = {
-        cluster_id.index.name: 'count', column_date: 'max',
-         'Next Cluster (miles)': min, 'Cluster Span (miles)': max
+        cluster_id.index.name: 'count', column_date: ['max','min'],
+         'Nearest (miles)': min, 'Span (miles)': max
     }
-    additional_summary = {key:agg_options[val] for key,val in additional_summary.items()}
+    # TODO: additional summary in another tab?
+    # additional_summary = {key:agg_options[val] for key,val in additional_summary.items()}
     # plan = {**plan, **additional_summary}
     cluster_summary = cluster_summary.agg(plan)
+    duration = cluster_summary['Pickup Time']['max']-cluster_summary['Pickup Time']['min']
+    duration = duration.astype('string')
+    cluster_summary = cluster_summary.drop(columns='Pickup Time')
+    cluster_summary.columns = cluster_summary.columns.droplevel(1)
+    cluster_summary['Length (duration)'] = duration
 
     cluster_summary = cluster_summary.rename(columns={
-        cluster_id.index.name: 'Cluster Size (count)',
-        column_date: f'{column_date} (max)'
+        cluster_id.index.name: 'Size (count)'
     })
 
     return cluster_summary
@@ -70,6 +75,7 @@ def calculate_simple(cluster_id, column_date, additional_summary):
 
 def find_nearby(cluster_summary, cluster_id):
 
+    # TODO: summerize as clusterids with the same cluster location
     nearby = cluster_id[['ClusterLocation','ClusterID']].reset_index()
     nearby = nearby.groupby(['ClusterLocation','ClusterID'], dropna=False)
     nearby = nearby.agg({cluster_id.index.name: 'count'})

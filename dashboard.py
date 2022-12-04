@@ -87,7 +87,7 @@ class dashboard(updates):
             toolbar_location=None
         )
 
-        hist, edges = np.histogram(self.cluster_summary['Next Cluster (miles)'])
+        hist, edges = np.histogram(self.cluster_summary['Nearest (miles)'])
 
         source = ColumnDataSource(dict(
                 left=edges[:-1],
@@ -126,6 +126,8 @@ class dashboard(updates):
                     fmt = formatters['timestamp']
                 columns += [TableColumn(field=col, formatter=fmt)]
             elif pd.api.types.is_string_dtype(values):
+                columns += [TableColumn(field=col, formatter=formatters['string'])]
+            else:
                 columns += [TableColumn(field=col, formatter=formatters['string'])]
 
         return columns

@@ -107,7 +107,7 @@ class updates():
 
     def update_evaluation(self):
         
-        hist, edges = np.histogram(self.cluster_summary['Next Cluster (miles)'])
+        hist, edges = np.histogram(self.cluster_summary['Nearest (miles)'])
 
         self.render_evaluation.data_source.data = {
             'left': edges[:-1],

@@ -127,11 +127,11 @@ def point_distance(cluster_id, distance):
 
     distance.mask = np.eye(distance.shape[0], dtype=bool)
     distance[row, col] = ma.masked
-    cluster_id['Next Cluster (miles)'] = distance.min(axis=0) * 3958
+    cluster_id['Nearest (miles)'] = distance.min(axis=0) * 3958
 
     distance.mask = True
     distance.mask[row, col] = False
-    cluster_id['Cluster Span (miles)'] = distance.max(axis=0) * 3958
+    cluster_id['Span (miles)'] = distance.max(axis=0) * 3958
 
     distance.mask = False
 
