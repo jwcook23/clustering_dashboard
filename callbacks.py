@@ -141,9 +141,7 @@ class updates():
         self.title_map.text = f"Location Clusters: {selected_list}"
 
 
-    def table_callback(self, attr, old, table_row):
-
-        selected_cluster = self.cluster_summary.iloc[table_row]['ClusterID']
+    def table_callback(self, attr, old, selected_cluster):
 
         self.selected_cluster = self.cluster_id.loc[
             self.cluster_id['ClusterID'].isin(selected_cluster), 

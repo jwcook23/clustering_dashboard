@@ -34,7 +34,7 @@ def get_summary(cluster_id, column_date, additional_summary):
 
     cluster_summary = calculate_simple(cluster_id, column_date, additional_summary)
 
-    cluster_summary = find_nearby(cluster_summary, cluster_id)
+    # cluster_summary = find_nearby(cluster_summary, cluster_id)
 
     # TODO: use distance matrix directly to calculate
     # distance = distance_id(cluster_id, distance)
@@ -57,9 +57,8 @@ def calculate_simple(cluster_id, column_date, additional_summary):
          'Next Cluster (miles)': min, 'Cluster Span (miles)': max
     }
     additional_summary = {key:agg_options[val] for key,val in additional_summary.items()}
-    plan = {**plan, **additional_summary}
+    # plan = {**plan, **additional_summary}
     cluster_summary = cluster_summary.agg(plan)
-    cluster_summary = cluster_summary.reset_index()
 
     cluster_summary = cluster_summary.rename(columns={
         cluster_id.index.name: 'Cluster Size (count)',
@@ -81,7 +80,7 @@ def find_nearby(cluster_summary, cluster_id):
     nearby = nearby.dropna(subset='ClusterID')
     nearby['Nearby Points Not In Cluster (count)'] = nearby['Points_y']-nearby['Points_x']
     nearby = nearby[['ClusterID','Nearby Points Not In Cluster (count)']]
-    cluster_summary = cluster_summary.merge(nearby, on='ClusterID')
+    cluster_summary = cluster_summary.merge(nearby.set_index('ClusterID'), on='ClusterID')
 
     return cluster_summary
 

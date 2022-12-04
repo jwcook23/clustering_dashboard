@@ -190,7 +190,9 @@ class dashboard(updates):
 
         self.source_summary = ColumnDataSource(data=dict())
         self.source_summary.data = self.cluster_summary.to_dict(orient='list')
-        self.table_summary = DataTable(source=self.source_summary, columns=columns, autosize_mode='fit_columns', height=300, width=550)
+        self.table_summary = DataTable(
+            source=self.source_summary, columns=columns, index_header='ClusterID',
+            autosize_mode='fit_columns', height=300, width=550)
         self.source_summary.selected.on_change('indices', self.table_callback)
 
 
