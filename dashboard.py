@@ -34,7 +34,8 @@ class dashboard(updates):
         self.distance = geo.calc_distance(self.address, self.columns['latitude'], self.columns['longitude'])
 
         self.calculate_defaults()
-        self.cluster_evaluation()
+        self.next_plot()
+        self.span_plot()
         self.summary_table()
         self.map_plot()
         self.cluster_detail()
@@ -80,11 +81,11 @@ class dashboard(updates):
         return (values.dt.hour==0).all()
 
 
-    def cluster_evaluation(self):
+    def next_plot(self):
 
         self.next_cluster = figure(
             title="Distance Between Clusters", width=225, height=200,
-            toolbar_location=None
+            toolbar_location=None, y_axis_label = '# Clusters', x_axis_label='miles'
         )
 
         hist, edges = np.histogram(self.cluster_summary['Nearest (miles)'])
@@ -97,7 +98,30 @@ class dashboard(updates):
             )
         )
 
-        self.render_evaluation = self.next_cluster.quad(
+        self.render_next = self.next_cluster.quad(
+            'left', 'right', 'top', 'bottom', source=source, 
+            fill_color="skyblue", line_color="white"
+        )
+
+
+    def span_plot(self):
+
+        self.span_cluster = figure(
+            title="Distance in Cluster", width=225, height=200,
+            toolbar_location=None, y_axis_label = '# Clusters', x_axis_label='miles'
+        )
+
+        hist, edges = np.histogram(self.cluster_summary['Span (miles)'])
+
+        source = ColumnDataSource(dict(
+                left=edges[:-1],
+                right=edges[1:],
+                top=hist,
+                bottom=[0]*len(hist),
+            )
+        )
+
+        self.render_span = self.span_cluster.quad(
             'left', 'right', 'top', 'bottom', source=source, 
             fill_color="skyblue", line_color="white"
         )
@@ -218,8 +242,12 @@ class dashboard(updates):
 
         self.layout = row(
             column(
-                row(column(title_parameter, self.options['date']), self.parameters['max_cluster_distance_miles'], self.parameters['date_range']),
-                self.next_cluster,
+                row(
+                    column(title_parameter, self.options['date']), 
+                    self.parameters['max_cluster_distance_miles'], 
+                    self.parameters['date_range']
+                ),
+                row(self.next_cluster, self.span_cluster),
                 row(title_summary, self.options['display']),
                 self.table_summary
             ),
@@ -252,9 +280,9 @@ if args.debug:
     # page.date_callback([0])
 
     # display nearby points
-    dropdown = Event()
-    dropdown.item = 'same location'
-    page.display_callback(dropdown)
+    # dropdown = Event()
+    # dropdown.item = 'same location'
+    # page.display_callback(dropdown)
 
     # adjuster parameter
     # page.parameters['max_cluster_distance_miles'].value = 0.01

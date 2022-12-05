@@ -6,10 +6,13 @@ from sklearn.cluster import DBSCAN
 
 import summary
 
-def assign_id(cluster_id, address):
+def assign_id(cluster_id, input_columns, output_name):
+
+    id_name = f'{output_name} ID'
+    size_name = f'{output_name} (count)'
 
     # combine geo and date cluster ids
-    overall = cluster_id.groupby(['Date ID','Location ID']).ngroup()
+    overall = cluster_id.groupby(input_columns).ngroup()
     overall = overall.astype('Int64')
     overall[overall==-1] = None
     overall.name = 'Grouped'
@@ -17,20 +20,23 @@ def assign_id(cluster_id, address):
 
     # calculate size of each cluster
     size = overall['Grouped'].value_counts()
-    size.name = 'Count'
+    size.name = size_name
     size.index.name = 'Grouped'
     size = size.reset_index()
 
     # require multiple points for a cluster
-    size = size[size['Count']>1]
+    size = size[size[size_name]>1]
 
     # assign 0 as the largest sized cluster
-    size['Cluster ID'] = range(0,len(size))
+    size[id_name] = range(0,len(size))
     overall = overall.merge(size, on='Grouped', how='left')
-    overall['Cluster ID'] = overall['Cluster ID'].astype('Int64')
-    overall = overall.set_index(address.index.name)
+    overall[id_name] = overall[id_name].astype('Int64')
+    overall = overall.set_index(cluster_id.index.name)
 
-    cluster_id = cluster_id.merge(overall['Cluster ID'], left_index=True, right_index=True, how='inner')
+    # add id and size to original input
+    cluster_id = cluster_id.merge(overall[[id_name, size_name]], left_index=True, right_index=True, how='inner', suffixes=('_original',''))
+    if id_name in input_columns:
+        cluster_id = cluster_id.drop(columns=id_name+'_original')
 
     return cluster_id
 
@@ -48,7 +54,7 @@ def get_clusters(address, max_cluster_distance_miles, distance, column_date, dat
     cluster_id = cluster_id.merge(geo_id, left_index=True, right_index=True)
 
     # assign an overall id desc with largest size
-    cluster_id = assign_id(cluster_id, address)
+    cluster_id = assign_id(cluster_id, ['Date ID','Location ID'], 'Cluster')
 
     # determine distance of points to other points
     cluster_id = point_distance(cluster_id, distance)
@@ -66,14 +72,17 @@ def get_clusters(address, max_cluster_distance_miles, distance, column_date, dat
 def cluster_date(address, column_date, date_range):
 
     if not date_range.visible:
-        cluster_id = pd.Series([0]*len(address), index=address.index)
+        cluster_id = pd.DataFrame({
+            'Date ID': [0]*len(address),
+            'Date Count': [len(address)]*len(address)
+        }, index=address.index)
     else:
         grouped = address.groupby(pd.Grouper(key=column_date, freq=f'{date_range.value}D'))
-        cluster_id = grouped.ngroup()
-        cluster_id = cluster_id.astype('Int64')
-        cluster_id[cluster_id==-1] = pd.NA
-    
-    cluster_id.name = 'Date ID'
+        cluster_id = pd.DataFrame(grouped.ngroup(), columns=['Date ID'], index=address.index, dtype='Int64')
+        cluster_id['Date ID'][cluster_id['Date ID']==-1] = None
+
+        # assign ID based on size
+        cluster_id = assign_id(cluster_id, ['Date ID'], 'Date')
 
     return cluster_id
 
@@ -86,11 +95,11 @@ def cluster_geo(df, max_cluster_distance_miles, distance):
     # identify geographic clusters
     clusters = DBSCAN(metric='precomputed', eps=eps, min_samples=2)
     clusters = clusters.fit(distance)
-    cluster_id = clusters.labels_.astype('float')
-    cluster_id[cluster_id==-1] = np.nan
+    cluster_id = pd.DataFrame(clusters.labels_, columns=['Location ID'], index=df.index, dtype='Int64')
+    cluster_id['Location ID'][cluster_id['Location ID']==-1] = None
 
-    cluster_id = pd.Series(cluster_id, name='Location ID', index=df.index.values, dtype='Int64')
-    cluster_id.index.name = df.index.name
+    # assign ID based on size
+    cluster_id = assign_id(cluster_id, ['Location ID'], 'Location')
 
     return cluster_id
 
@@ -115,6 +124,7 @@ def get_boundary(group):
     boundary = pd.Series({'Latitude_mercator': [[list(boundary[:,0])]], 'Longitude_mercator': [[list(boundary[:,1])]]})
 
     return boundary
+
 
 def point_distance(cluster_id, distance):
 

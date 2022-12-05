@@ -35,7 +35,6 @@ def get_summary(cluster_id, column_date, additional_summary):
     cluster_summary = calculate_simple(cluster_id, column_date, additional_summary)
 
     cluster_summary = find_overlap(cluster_summary, cluster_id, 'Location')
-    cluster_summary = find_overlap(cluster_summary, cluster_id, 'Date')
 
     # TODO: use distance matrix directly to calculate
     # distance = distance_id(cluster_id, distance)
@@ -54,22 +53,19 @@ def calculate_simple(cluster_id, column_date, additional_summary):
 
     cluster_summary = cluster_id.reset_index().groupby('Cluster ID')
     plan = {
-        cluster_id.index.name: 'count', column_date: ['max','min'],
-         'Nearest (miles)': min, 'Span (miles)': max
+        'Cluster (count)': 'first', 
+        'Location ID': 'first', 'Location (count)': 'first', 'Nearest (miles)': min, 'Span (miles)': max, 
+        'Date ID': 'first', 'Date (count)': 'first', column_date: ['max','min'],
     }
     # TODO: additional summary in another tab?
     # additional_summary = {key:agg_options[val] for key,val in additional_summary.items()}
     # plan = {**plan, **additional_summary}
     cluster_summary = cluster_summary.agg(plan)
-    duration = cluster_summary['Pickup Time']['max']-cluster_summary['Pickup Time']['min']
+    duration = cluster_summary[column_date]['max']-cluster_summary[column_date]['min']
     duration = duration.astype('string')
-    cluster_summary = cluster_summary.drop(columns='Pickup Time')
+    cluster_summary = cluster_summary.drop(columns=column_date)
     cluster_summary.columns = cluster_summary.columns.droplevel(1)
     cluster_summary['Length (duration)'] = duration
-
-    cluster_summary = cluster_summary.rename(columns={
-        cluster_id.index.name: 'Size (count)'
-    })
 
     return cluster_summary
 

@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from bokeh.models import Slider, Dropdown, CheckboxGroup
+from bokeh.models import Dropdown, CheckboxGroup, NumericInput
 
 import group
 
@@ -11,11 +11,11 @@ class updates():
         self.parameters = {}
         self.options = {}
 
-        self.parameters['max_cluster_distance_miles'] = Slider(start=0.01, end=1, value=0.01, step=0.01, title="Point Distance (miles)", height=50, width=160)
-        self.parameters['max_cluster_distance_miles'].on_change('value_throttled', self.parameter_callback)
+        self.parameters['max_cluster_distance_miles'] = NumericInput(value=0.01, mode='float', title="Point Distance (miles)", height=50, width=160)
+        self.parameters['max_cluster_distance_miles'].on_change('value', self.parameter_callback)
 
-        self.parameters['date_range'] = Slider(start=1, end=10, value=1, step=1, title=f"{self.columns['date']} (days between)", height=50, width=160)
-        self.parameters['date_range'].on_change('value_throttled', self.parameter_callback)
+        self.parameters['date_range'] = NumericInput(value=1, mode='float', title=f"{self.columns['date']} (days between)", height=50, width=160)
+        self.parameters['date_range'].on_change('value', self.parameter_callback)
         self.parameters['date_range'].visible = True
 
         menu = [
@@ -26,7 +26,7 @@ class updates():
         self.options['display'] = Dropdown(label="Display Options", button_type="default", menu=menu, height=25, width=160)
         self.options['display'].on_click(self.display_callback)
 
-        self.options['date'] = CheckboxGroup(labels=['include date clustering'], active=[0], height=20, width=160)
+        self.options['date'] = CheckboxGroup(labels=['date clustering'], active=[0], height=20, width=160)
         self.options['date'].on_click(self.date_callback)
 
 
@@ -109,11 +109,23 @@ class updates():
         self.update_titles()
 
 
-    def update_evaluation(self):
+    def update_next(self):
         
         hist, edges = np.histogram(self.cluster_summary['Nearest (miles)'])
 
-        self.render_evaluation.data_source.data = {
+        self.render_next.data_source.data = {
+            'left': edges[:-1],
+            'right': edges[1:],
+            'top': hist,
+            'bottom': [0]*len(hist)
+        }
+
+
+    def update_span(self):
+
+        hist, edges = np.histogram(self.cluster_summary['Span (miles)'])
+
+        self.render_span.data_source.data = {
             'left': edges[:-1],
             'right': edges[1:],
             'top': hist,
@@ -224,6 +236,7 @@ class updates():
             self.distance, self.columns['date'], self.parameters['date_range'],
             self.additional_summary
         )
-        self.update_evaluation()
+        self.update_next()
+        self.update_span()
         self.update_summary()
         self.table_callback(None, None, self.cluster_summary.index)
