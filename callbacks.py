@@ -20,8 +20,8 @@ class updates():
 
         menu = [
             ("1) Reset display.", "reset display"),
-            ("2) Display clusters at same location.", "same location"),
-            ("3) Display clusters at same date.", "same date")
+            ("2) Display clusters with same Location ID.", "same location"),
+            ("3) Display clusters with same Date ID.", "same date")
         ]
         self.options['display'] = Dropdown(label="Display Options", button_type="default", menu=menu, height=25, width=160)
         self.options['display'].on_click(self.display_callback)
@@ -57,29 +57,29 @@ class updates():
             'y': [],
         }
 
+        date = self.columns['date']
+
         unique_clusters = self.selected_cluster.dropna().drop_duplicates()
         data_boundary.update({
             'xs': self.cluster_boundary.loc[unique_clusters, 'Longitude_mercator'].tolist(),
-            'ys': self.cluster_boundary.loc[unique_clusters, 'Latitude_mercator'].tolist()
+            'ys': self.cluster_boundary.loc[unique_clusters, 'Latitude_mercator'].tolist(),
+            date: self.address.loc[unique_clusters.index, date].tolist()
         })
 
-        if len(unique_clusters)==1:
-
-            # update address using selected cluster
-            longitude = self.columns['longitude']
-            latitude = self.columns['latitude']
-            date = self.columns['date']
-            data_point.update({
-                'x': self.address.loc[show_ids, 'Longitude_mercator'].values,
-                'y': self.address.loc[show_ids, 'Latitude_mercator'].values,
-                self.column_id: show_ids,
-                longitude: self.address.loc[show_ids, longitude].values,
-                latitude: self.address.loc[show_ids, latitude].values,
-                date: self.address.loc[show_ids, date].values
-            })
-            data_point.update({
-                col: self.address.loc[show_ids, col].values for col in self.address.columns.drop([longitude,latitude,date])
-            })
+        # update address using selected cluster
+        longitude = self.columns['longitude']
+        latitude = self.columns['latitude']
+        data_point.update({
+            'x': self.address.loc[show_ids, 'Longitude_mercator'].values,
+            'y': self.address.loc[show_ids, 'Latitude_mercator'].values,
+            self.column_id: show_ids,
+            longitude: self.address.loc[show_ids, longitude].values,
+            latitude: self.address.loc[show_ids, latitude].values,
+            date: self.address.loc[show_ids, date].values
+        })
+        data_point.update({
+            col: self.address.loc[show_ids, col].values for col in self.address.columns.drop([longitude,latitude,date])
+        })
 
         # update map title
         self.update_titles()
@@ -143,18 +143,14 @@ class updates():
     def update_titles(self):
 
         if self.selected_cluster is None:
-            selected_list = 'select cluster summary to display'
+            selected_title = 'select cluster summary to display'
         else:
 
-            selected_list = self.selected_cluster.drop_duplicates().sort_values()
+            selected_count = len(self.selected_cluster.drop_duplicates().sort_values())
 
-            if len(selected_list)==len(self.cluster_summary):
-                selected_list = 'All Clusters'
-            else:
-                selected_list = selected_list.astype('str').replace('<NA>','None').tolist()
-                selected_list = 'Cluster ID = '+', '.join(selected_list)
+            selected_title = f'{selected_count} displayed of {len(self.cluster_summary)} total clusters'
 
-        self.title_map.text = f"Location Clusters: {selected_list}"
+        self.title_map.text = f"Location Clusters: {selected_title}"
 
 
     def table_callback(self, attr, old, selected_cluster):

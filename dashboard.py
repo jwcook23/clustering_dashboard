@@ -10,10 +10,11 @@ import numpy as np
 from bokeh.plotting import figure, curdoc
 from bokeh.tile_providers import CARTODBPOSITRON, get_provider
 from bokeh.layouts import row, column
+from bokeh.transform import transform
 from bokeh.models import (
     ColumnDataSource, DataTable, TableColumn, HoverTool, Div,
     DateFormatter, StringFormatter, NumberFormatter, 
-    Panel, Tabs
+    Panel, Tabs, LinearColorMapper
 )
 
 from callbacks import updates
@@ -195,8 +196,10 @@ class dashboard(updates):
         self.plot_map.add_tile(tile_provider)
 
         # render address points
-        source_points = ColumnDataSource(data=dict(x=[], y=[]))
-        self.render_points = self.plot_map.circle('x','y', source=source_points, fill_color='red', line_color=None, size=10, legend_label='Location')
+        date = self.columns['date']
+        mapper = LinearColorMapper(palette='Viridis256')
+        source = ColumnDataSource(data=dict(x=[], y=[], date=[]))
+        self.render_points = self.plot_map.circle('x','y', source=source, fill_color=transform(date, mapper), line_color=None, size=10, legend_label='Location')
         features, formatters = self.format_hover()
         self.plot_map.add_tools(HoverTool(
             tooltips=features,
@@ -205,7 +208,8 @@ class dashboard(updates):
         )
 
         # render boundary of clusters
-        self.render_boundary = self.plot_map.multi_polygons(xs=[],ys=[], line_color=None, alpha=0.3, color='red', legend_label='Cluster')
+        source = ColumnDataSource(data=dict(x=[], y=[], date=[]))
+        self.render_boundary = self.plot_map.multi_polygons('xs', 'ys', source=source, color=transform(date, mapper), alpha=0.3, line_color=None, legend_label='Cluster')
 
         self.plot_map.legend.location = "top_right"
 
