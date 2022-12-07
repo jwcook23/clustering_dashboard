@@ -63,7 +63,8 @@ class updates():
         data_boundary.update({
             'xs': self.cluster_boundary.loc[unique_clusters, 'Longitude_mercator'].tolist(),
             'ys': self.cluster_boundary.loc[unique_clusters, 'Latitude_mercator'].tolist(),
-            date: self.address.loc[unique_clusters.index, date].tolist()
+            date: self.address.loc[unique_clusters.index, date].tolist(),
+            '_timestamp': self.address.loc[unique_clusters.index, '_timestamp'].tolist()
         })
 
         # update address using selected cluster
@@ -75,11 +76,12 @@ class updates():
             self.column_id: show_ids,
             longitude: self.address.loc[show_ids, longitude].values,
             latitude: self.address.loc[show_ids, latitude].values,
-            date: self.address.loc[show_ids, date].values
+            date: self.address.loc[show_ids, date].values,
+            '_timestamp': self.address.loc[show_ids, '_timestamp'].values
         })
-        data_point.update({
-            col: self.address.loc[show_ids, col].values for col in self.address.columns.drop([longitude,latitude,date])
-        })
+        # data_point.update({
+        #     col: self.address.loc[show_ids, col].values for col in self.address.columns.drop([longitude,latitude,date])
+        # })
 
         # update map title
         self.update_titles()

@@ -10,11 +10,11 @@ import numpy as np
 from bokeh.plotting import figure, curdoc
 from bokeh.tile_providers import CARTODBPOSITRON, get_provider
 from bokeh.layouts import row, column
-from bokeh.transform import transform
+from bokeh.transform import linear_cmap
 from bokeh.models import (
     ColumnDataSource, DataTable, TableColumn, HoverTool, Div,
-    DateFormatter, StringFormatter, NumberFormatter, 
-    Panel, Tabs, LinearColorMapper
+    DateFormatter, StringFormatter, NumberFormatter, DatetimeTickFormatter,
+    Panel, Tabs, ColorBar
 )
 
 from callbacks import updates
@@ -32,6 +32,7 @@ class dashboard(updates):
         updates.__init__(self)
 
         self.address = geo.convert_to_mercator(self.address, self.columns['latitude'], self.columns['longitude'])
+        self.address['_timestamp'] = self.address['Pickup Time'].apply(lambda x: int(x.timestamp()*1000))
         self.distance = geo.calc_distance(self.address, self.columns['latitude'], self.columns['longitude'])
 
         self.calculate_defaults()
@@ -162,20 +163,23 @@ class dashboard(updates):
 
         latitude = self.columns['latitude']
         longitude = self.columns['longitude']
+        date = self.columns['date']
         features = [
-            (self.column_id, f"@{self.column_id}"),
-            (f"({latitude}/{longitude})", f"(@{latitude},@{longitude})"),
+            (self.column_id, "@{"+self.column_id+"}"),
+            (f"({latitude}/{longitude})", "(@{"+latitude+"},@{"+longitude+"})"),
+            (date, "@{"+date+"}{%F}")
         ]
-        formatters = {}
-        for col,values in self.address.drop(columns=[latitude, longitude, 'Latitude_mercator', 'Longitude_mercator']).items():
-            if pd.api.types.is_datetime64_dtype(values):
-                if self.is_date(values):
-                    features += [(col, f'@{col}'+"{%F}")]
-                else:
-                    features += [(col, f'@{col}')]
-                formatters[f"@{col}"] = 'datetime'
-            else:
-                features += [(col, f'@{col}')]
+        formatters = {"@{"+date+"}": 'datetime'}
+        # formatters = {}
+        # for col,values in self.address.drop(columns=[latitude, longitude, 'Latitude_mercator', 'Longitude_mercator']).items():
+        #     if pd.api.types.is_datetime64_dtype(values):
+        #         if self.is_date(values):
+        #             features += [(col, f'@{col}'+"{%F}")]
+        #         else:
+        #             features += [(col, f'@{col}')]
+        #         formatters[f"@{col}"] = 'datetime'
+        #     else:
+        #         features += [(col, f'@{col}')]
 
         return features, formatters
 
@@ -183,7 +187,6 @@ class dashboard(updates):
     def map_plot(self):
 
         # generate map
-        tile_provider = get_provider(CARTODBPOSITRON)
         self.plot_map = figure(
             x_range=self.default_zoom.loc['x'], y_range=self.default_zoom.loc['y'],
             x_axis_type="mercator", y_axis_type="mercator", title=None,
@@ -193,13 +196,17 @@ class dashboard(updates):
             tools='pan, wheel_zoom, zoom_out, zoom_in, tap, reset',
             active_drag = 'pan', active_scroll = 'wheel_zoom', active_tap = 'tap'
         )
+        tile_provider = get_provider(CARTODBPOSITRON)
         self.plot_map.add_tile(tile_provider)
 
+        # add color scale for date
+        cmap = linear_cmap(field_name='_timestamp', palette='Turbo256', low=min(self.address['_timestamp']), high=max(self.address['_timestamp']))
+        color_bar = ColorBar(color_mapper=cmap['transform'], padding=0, formatter=DatetimeTickFormatter())
+        self.plot_map.add_layout(color_bar, 'below')        
+
         # render address points
-        date = self.columns['date']
-        mapper = LinearColorMapper(palette='Viridis256')
-        source = ColumnDataSource(data=dict(x=[], y=[], date=[]))
-        self.render_points = self.plot_map.circle('x','y', source=source, fill_color=transform(date, mapper), line_color=None, size=10, legend_label='Location')
+        source = ColumnDataSource(data=dict(x=[], y=[], date=[], _timestamp=[]))
+        self.render_points = self.plot_map.circle('x','y', source=source, fill_color=cmap, line_color=None, size=10, legend_label='Location')
         features, formatters = self.format_hover()
         self.plot_map.add_tools(HoverTool(
             tooltips=features,
@@ -208,8 +215,8 @@ class dashboard(updates):
         )
 
         # render boundary of clusters
-        source = ColumnDataSource(data=dict(x=[], y=[], date=[]))
-        self.render_boundary = self.plot_map.multi_polygons('xs', 'ys', source=source, color=transform(date, mapper), alpha=0.3, line_color=None, legend_label='Cluster')
+        source = ColumnDataSource(data=dict(x=[], y=[], date=[], _timestamp=[]))
+        self.render_boundary = self.plot_map.multi_polygons('xs', 'ys', source=source, color=cmap, alpha=0.3, line_color=None, legend_label='Cluster')
 
         self.plot_map.legend.location = "top_right"
 
