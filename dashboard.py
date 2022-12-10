@@ -86,7 +86,7 @@ class dashboard(updates):
     def next_plot(self):
 
         self.next_cluster = figure(
-            title="Distance Between Clusters", width=225, height=200,
+            title="Distance Between Clusters", width=250, height=225,
             toolbar_location=None, y_axis_label = '# Clusters', x_axis_label='miles'
         )
 
@@ -109,7 +109,7 @@ class dashboard(updates):
     def span_plot(self):
 
         self.span_cluster = figure(
-            title="Distance in Cluster", width=225, height=200,
+            title="Distance in Cluster", width=250, height=225,
             toolbar_location=None, y_axis_label = '# Clusters', x_axis_label='miles'
         )
 
@@ -190,7 +190,7 @@ class dashboard(updates):
         self.plot_map = figure(
             x_range=self.default_zoom.loc['x'], y_range=self.default_zoom.loc['y'],
             x_axis_type="mercator", y_axis_type="mercator", title=None,
-            height=625, width=900,
+            height=625, width=625,
             toolbar_location='right',
             x_axis_label=self.columns['longitude'], y_axis_label = self.columns['latitude'],
             tools='pan, wheel_zoom, zoom_out, zoom_in, tap, reset',
@@ -201,8 +201,11 @@ class dashboard(updates):
 
         # add color scale for date
         cmap = linear_cmap(field_name='_timestamp', palette='Turbo256', low=min(self.address['_timestamp']), high=max(self.address['_timestamp']))
-        color_bar = ColorBar(color_mapper=cmap['transform'], padding=0, formatter=DatetimeTickFormatter())
-        self.plot_map.add_layout(color_bar, 'below')        
+        color_bar = ColorBar(color_mapper=cmap['transform'], 
+            # title=self.columns['date'], 
+            formatter=DatetimeTickFormatter()
+        )
+        self.plot_map.add_layout(color_bar, 'above')        
 
         # render address points
         source = ColumnDataSource(data=dict(x=[], y=[], date=[], _timestamp=[]))
@@ -229,7 +232,7 @@ class dashboard(updates):
         self.source_summary.data = self.cluster_summary.to_dict(orient='list')
         self.table_summary = DataTable(
             source=self.source_summary, columns=columns, index_header='Cluster ID',
-            autosize_mode='fit_columns', height=300, width=550)
+            autosize_mode='fit_columns', height=300, width=700)
         self.source_summary.selected.on_change('indices', self.table_callback)
 
 
@@ -240,12 +243,12 @@ class dashboard(updates):
         columns = self.format_table(self.address.drop(columns=ignore))
 
         self.source_detail = ColumnDataSource(data=dict())
-        self.table_detail = DataTable(source=self.source_detail, columns=columns, autosize_mode='fit_columns', height=625, width=900)        
+        self.table_detail = DataTable(source=self.source_detail, columns=columns, autosize_mode='fit_columns', height=625, width=625)        
 
 
     def page_layout(self):
 
-        self.title_map = Div(style={'font-size': '150%'}, width=450)
+        self.title_map = Div(style={'font-size': '150%'}, width=625)
         self.update_titles()
 
         title_parameter = Div(text="Cluster Parameters", height=20, width=160)
@@ -254,19 +257,22 @@ class dashboard(updates):
         self.layout = row(
             column(
                 row(
-                    column(title_parameter, self.options['date']), 
-                    self.parameters['max_cluster_distance_miles'], 
-                    self.parameters['date_range']
-                ),
-                row(self.next_cluster, self.span_cluster),
+                    column(
+                        column(title_parameter, self.options['date']), 
+                        self.parameters['max_cluster_distance_miles'], 
+                        self.parameters['date_range']
+                    ),
+                    self.next_cluster, 
+                    self.span_cluster
+),
                 row(title_summary, self.options['display']),
                 self.table_summary
             ),
             column(
                 self.title_map,
                 Tabs(tabs=[
-                    Panel(child=self.plot_map, title='Location Plot'), 
-                    Panel(child=self.table_detail, title='Location Detail')
+                    Panel(child=self.plot_map, title='Location and Time Plot'), 
+                    Panel(child=self.table_detail, title='Record Detail')
                 ])
             )
         )

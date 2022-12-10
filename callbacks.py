@@ -152,7 +152,7 @@ class updates():
 
             selected_title = f'{selected_count} displayed of {len(self.cluster_summary)} total clusters'
 
-        self.title_map.text = f"Location Clusters: {selected_title}"
+        self.title_map.text = f"Location and Time Clusters: {selected_title}"
 
 
     def table_callback(self, attr, old, selected_cluster):
