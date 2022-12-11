@@ -248,17 +248,17 @@ class dashboard(updates):
 
     def page_layout(self):
 
-        self.title_map = Div(style={'font-size': '150%'}, width=625)
+        self.title_map = Div(style={'font-size': '150%', 'font-weight': 'bold'}, width=625)
         self.update_titles()
 
-        title_parameter = Div(text="Cluster Parameters", height=20, width=160)
-        title_summary = Div(text="Cluster Summary")
+        title_parameter = Div(text="Cluster Parameters", style={'font-weight': 'bold'}, height=20, width=160)
+        title_summary = Div(text="Cluster Summary", style={'font-weight': 'bold'})
 
         self.layout = row(
             column(
                 row(
                     column(
-                        column(title_parameter, self.options['date']), 
+                        title_parameter, 
                         self.parameters['max_cluster_distance_miles'], 
                         self.parameters['date_range']
                     ),

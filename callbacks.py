@@ -26,9 +26,6 @@ class updates():
         self.options['display'] = Dropdown(label="Display Options", button_type="default", menu=menu, height=25, width=160)
         self.options['display'].on_click(self.display_callback)
 
-        self.options['date'] = CheckboxGroup(labels=['date clustering'], active=[0], height=20, width=160)
-        self.options['date'].on_click(self.date_callback)
-
 
     def zoom_window(self, df):
         '''Calculate a square zoom window using mercator x and y points.'''
