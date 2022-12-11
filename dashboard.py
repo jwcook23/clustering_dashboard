@@ -36,8 +36,8 @@ class dashboard(updates):
         self.distance = geo.calc_distance(self.address, self.columns['latitude'], self.columns['longitude'])
 
         self.calculate_defaults()
-        self.next_plot()
-        self.span_plot()
+        self.next_cluster, self.render_next = self.cluster_evaluation('Distance Between Clusters', 'miles', 'Nearest (miles)')
+        self.span_cluster, self.render_span = self.cluster_evaluation('Distance in Cluster', 'miles', 'Span (miles)')
         self.summary_table()
         self.map_plot()
         self.cluster_detail()
@@ -83,14 +83,14 @@ class dashboard(updates):
         return (values.dt.hour==0).all()
 
 
-    def next_plot(self):
+    def cluster_evaluation(self, title, units, column):
 
-        self.next_cluster = figure(
-            title="Distance Between Clusters", width=250, height=225,
-            toolbar_location=None, y_axis_label = '# Clusters', x_axis_label='miles'
+        fig = figure(
+            title=title, width=250, height=225,
+            toolbar_location=None, y_axis_label = '# Clusters', x_axis_label=units
         )
 
-        hist, edges = np.histogram(self.cluster_summary['Nearest (miles)'])
+        hist, edges = np.histogram(self.cluster_summary[column])
 
         source = ColumnDataSource(dict(
                 left=edges[:-1],
@@ -100,33 +100,12 @@ class dashboard(updates):
             )
         )
 
-        self.render_next = self.next_cluster.quad(
+        renderer = fig.quad(
             'left', 'right', 'top', 'bottom', source=source, 
             fill_color="skyblue", line_color="white"
         )
 
-
-    def span_plot(self):
-
-        self.span_cluster = figure(
-            title="Distance in Cluster", width=250, height=225,
-            toolbar_location=None, y_axis_label = '# Clusters', x_axis_label='miles'
-        )
-
-        hist, edges = np.histogram(self.cluster_summary['Span (miles)'])
-
-        source = ColumnDataSource(dict(
-                left=edges[:-1],
-                right=edges[1:],
-                top=hist,
-                bottom=[0]*len(hist),
-            )
-        )
-
-        self.render_span = self.span_cluster.quad(
-            'left', 'right', 'top', 'bottom', source=source, 
-            fill_color="skyblue", line_color="white"
-        )
+        return fig, renderer
 
 
     def format_table(self, df):
