@@ -45,7 +45,7 @@ class dashboard(updates):
         self.plot_next_date, self.render_next_date = self.cluster_evaluation(
             'Time between Clusters', 'days', 'Nearest (days)'
         )
-        self.plot_span_date, self.render_next_date = self.cluster_evaluation(
+        self.plot_span_date, self.render_span_date = self.cluster_evaluation(
             'Time in Cluster', 'days', 'Length (days)'
         )
         
@@ -94,6 +94,21 @@ class dashboard(updates):
         return (values.dt.hour==0).all()
 
 
+    def histogram_evaulation(self, data):
+
+        hist, edges = np.histogram(data.dropna())
+
+        bins = dict(
+                left=edges[:-1],
+                right=edges[1:],
+                top=hist,
+                bottom=[0]*len(hist),
+            )
+
+        return bins
+
+
+
     def cluster_evaluation(self, title, units, column):
 
         fig = figure(
@@ -101,15 +116,9 @@ class dashboard(updates):
             toolbar_location=None, y_axis_label = '# Clusters', x_axis_label=units
         )
 
-        hist, edges = np.histogram(self.cluster_summary[column].dropna())
+        bins = self.histogram_evaulation(self.cluster_summary[column])
 
-        source = ColumnDataSource(dict(
-                left=edges[:-1],
-                right=edges[1:],
-                top=hist,
-                bottom=[0]*len(hist),
-            )
-        )
+        source = ColumnDataSource(bins)
 
         renderer = fig.quad(
             'left', 'right', 'top', 'bottom', source=source, 

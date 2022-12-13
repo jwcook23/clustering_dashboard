@@ -108,28 +108,19 @@ class updates():
         self.update_titles()
 
 
-    def update_next(self):
+    def update_evaluation(self):
         
-        hist, edges = np.histogram(self.cluster_summary['Nearest (miles)'])
+        bins = self.histogram_evaulation(self.cluster_summary['Nearest (miles)'])
+        self.render_next_distance.data_source.data = bins
 
-        self.render_next_distance.data_source.data = {
-            'left': edges[:-1],
-            'right': edges[1:],
-            'top': hist,
-            'bottom': [0]*len(hist)
-        }
+        bins = self.histogram_evaulation(self.cluster_summary['Span (miles)'])
+        self.render_span_distance.data_source.data = bins
 
+        bins = self.histogram_evaulation(self.cluster_summary['Nearest (days)'])
+        self.render_next_date.data_source.data = bins
 
-    def update_span(self):
-
-        hist, edges = np.histogram(self.cluster_summary['Span (miles)'])
-
-        self.render_span_distance.data_source.data = {
-            'left': edges[:-1],
-            'right': edges[1:],
-            'top': hist,
-            'bottom': [0]*len(hist)
-        }
+        bins = self.histogram_evaulation(self.cluster_summary['Length (days)'])
+        self.render_span_date.data_source.data = bins
 
 
     def update_summary(self):
@@ -231,7 +222,6 @@ class updates():
             self.distance, self.columns['date'], self.parameters['date_range'],
             self.additional_summary
         )
-        self.update_next()
-        self.update_span()
+        self.update_evaluation()
         self.update_summary()
         self.table_callback(None, None, self.cluster_summary.index)
