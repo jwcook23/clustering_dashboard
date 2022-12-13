@@ -36,8 +36,19 @@ class dashboard(updates):
         self.distance = geo.calc_distance(self.address, self.columns['latitude'], self.columns['longitude'])
 
         self.calculate_defaults()
-        self.next_cluster, self.render_next = self.cluster_evaluation('Distance Between Clusters', 'miles', 'Nearest (miles)')
-        self.span_cluster, self.render_span = self.cluster_evaluation('Distance in Cluster', 'miles', 'Span (miles)')
+        self.plot_next_distance, self.render_next_distance = self.cluster_evaluation(
+            'Distance between Clusters', 'miles', 'Nearest (miles)'
+        )
+        self.plot_span_distance, self.render_span_distance = self.cluster_evaluation(
+            'Distance in Cluster', 'miles', 'Span (miles)'
+        )
+        self.plot_next_date, self.render_next_date = self.cluster_evaluation(
+            'Time between Clusters', 'days', 'Nearest (days)'
+        )
+        self.plot_span_date, self.render_next_date = self.cluster_evaluation(
+            'Time in Cluster', 'days', 'Length (days)'
+        )
+        
         self.summary_table()
         self.map_plot()
         self.cluster_detail()
@@ -90,7 +101,7 @@ class dashboard(updates):
             toolbar_location=None, y_axis_label = '# Clusters', x_axis_label=units
         )
 
-        hist, edges = np.histogram(self.cluster_summary[column])
+        hist, edges = np.histogram(self.cluster_summary[column].dropna())
 
         source = ColumnDataSource(dict(
                 left=edges[:-1],
@@ -241,9 +252,11 @@ class dashboard(updates):
                         self.parameters['max_cluster_distance_miles'], 
                         self.parameters['date_range']
                     ),
-                    self.next_cluster, 
-                    self.span_cluster
-),
+                    Tabs(tabs=[
+                        Panel(child=row(self.plot_next_distance, self.plot_span_distance), title='Distance Evaluation'),
+                        Panel(child=row(self.plot_next_date, self.plot_span_date), title='Date Evalulation')
+                    ])
+            ),
                 row(title_summary, self.options['display']),
                 self.table_summary
             ),

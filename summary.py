@@ -63,15 +63,26 @@ def get_summary(cluster_id, column_date, additional_summary):
 
 def date_summary(cluster_summary, column_date):
 
-    duration = cluster_summary[column_date]['max']-cluster_summary[column_date]['min']
-    duration = duration.astype('string')
+    duration = cluster_summary[(column_date,'max')]-cluster_summary[(column_date,'min')]
+    duration = duration.dt.total_seconds()/60/60/24
 
-    first = cluster_summary[column_date]['min']
+    first = cluster_summary[(column_date,'min')]
+
+    nearest = cluster_summary[['Location ID','Pickup Time']]
+    nearest = nearest.sort_values(by=[('Location ID','first'), ('Pickup Time', 'max')], ascending=[True, False])
+    nearest['Previous (days)'] = nearest[('Pickup Time', 'max')].shift(-1)
+    nearest['Previous (Location ID)'] = nearest['Location ID'].shift(-1)
+    nearest['Previous (Location ID)'] = nearest['Previous (Location ID)'].astype('Int64')
+    nearest['Previous (days)'] = nearest[('Pickup Time', 'max')]-nearest['Previous (days)']
+    nearest.loc[nearest[('Location ID','first')]!=nearest['Previous (Location ID)']] = pd.NA
+    nearest = nearest['Previous (days)']
+    nearest = nearest.dt.total_seconds()/60/60/24
 
     cluster_summary = cluster_summary.drop(columns=column_date)
     cluster_summary.columns = cluster_summary.columns.droplevel(1)
     cluster_summary['Time (first)'] = first
-    cluster_summary['Length (duration)'] = duration
+    cluster_summary['Length (days)'] = duration
+    cluster_summary['Nearest (days)'] = nearest
 
     return cluster_summary
 

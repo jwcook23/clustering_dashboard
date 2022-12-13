@@ -11,10 +11,10 @@ class updates():
         self.parameters = {}
         self.options = {}
 
-        self.parameters['max_cluster_distance_miles'] = NumericInput(value=0.01, mode='float', title="Point Distance (miles)", height=50, width=160)
+        self.parameters['max_cluster_distance_miles'] = NumericInput(value=0.01, mode='float', title="Location Distance (miles)", height=50, width=160)
         self.parameters['max_cluster_distance_miles'].on_change('value', self.parameter_callback)
 
-        self.parameters['date_range'] = NumericInput(value=1, mode='float', title=f"{self.columns['date']} (days between)", height=50, width=160)
+        self.parameters['date_range'] = NumericInput(value=1, mode='float', title="Time Duration (days)", height=50, width=160)
         self.parameters['date_range'].on_change('value', self.parameter_callback)
         self.parameters['date_range'].visible = True
 
@@ -112,7 +112,7 @@ class updates():
         
         hist, edges = np.histogram(self.cluster_summary['Nearest (miles)'])
 
-        self.render_next.data_source.data = {
+        self.render_next_distance.data_source.data = {
             'left': edges[:-1],
             'right': edges[1:],
             'top': hist,
@@ -124,7 +124,7 @@ class updates():
 
         hist, edges = np.histogram(self.cluster_summary['Span (miles)'])
 
-        self.render_span.data_source.data = {
+        self.render_span_distance.data_source.data = {
             'left': edges[:-1],
             'right': edges[1:],
             'top': hist,
