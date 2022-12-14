@@ -96,7 +96,7 @@ class dashboard(updates):
 
     def histogram_evaulation(self, data):
 
-        hist, edges = np.histogram(data.dropna())
+        hist, edges = np.histogram(data.dropna(), bins='fd')
 
         bins = dict(
                 left=edges[:-1],
@@ -113,7 +113,9 @@ class dashboard(updates):
 
         fig = figure(
             title=title, width=250, height=225,
-            toolbar_location=None, y_axis_label = '# Clusters', x_axis_label=units
+            y_axis_label = '# Clusters', x_axis_label=units,
+            toolbar_location='right', tools='pan, box_zoom, reset',
+            active_drag = 'pan',
         )
 
         bins = self.histogram_evaulation(self.cluster_summary[column])
@@ -190,10 +192,9 @@ class dashboard(updates):
             x_range=self.default_zoom.loc['x'], y_range=self.default_zoom.loc['y'],
             x_axis_type="mercator", y_axis_type="mercator", title=None,
             height=625, width=625,
-            toolbar_location='right',
             x_axis_label=self.columns['longitude'], y_axis_label = self.columns['latitude'],
-            tools='pan, wheel_zoom, zoom_out, zoom_in, tap, reset',
-            active_drag = 'pan', active_scroll = 'wheel_zoom', active_tap = 'tap'
+            toolbar_location='right', tools='pan, wheel_zoom, zoom_out, zoom_in, reset',
+            active_drag = 'pan', active_scroll = 'wheel_zoom'
         )
         tile_provider = get_provider(CARTODBPOSITRON)
         self.plot_map.add_tile(tile_provider)
