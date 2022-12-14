@@ -6,10 +6,9 @@ from sklearn.cluster import DBSCAN
 
 import summary
 
-def assign_id(cluster_id, input_columns, output_name):
+def assign_id(cluster_id, input_columns, output_name, include_num_points=False):
 
     id_name = f'{output_name} ID'
-    size_name = f'{output_name} (count)'
 
     # combine geo and date cluster ids
     overall = cluster_id.groupby(input_columns).ngroup()
@@ -20,12 +19,12 @@ def assign_id(cluster_id, input_columns, output_name):
 
     # calculate size of each cluster
     size = overall['Grouped'].value_counts()
-    size.name = size_name
+    size.name = '# Points'
     size.index.name = 'Grouped'
     size = size.reset_index()
 
     # require multiple points for a cluster
-    size = size[size[size_name]>1]
+    size = size[size['# Points']>1]
 
     # assign 0 as the largest sized cluster
     size[id_name] = range(0,len(size))
@@ -34,7 +33,11 @@ def assign_id(cluster_id, input_columns, output_name):
     overall = overall.set_index(cluster_id.index.name)
 
     # add id and size to original input
-    cluster_id = cluster_id.merge(overall[[id_name, size_name]], left_index=True, right_index=True, how='inner', suffixes=('_original',''))
+    if include_num_points:
+        columns = [id_name, '# Points']
+    else:
+        columns = [id_name]
+    cluster_id = cluster_id.merge(overall[columns], left_index=True, right_index=True, how='inner', suffixes=('_original',''))
     if id_name in input_columns:
         cluster_id = cluster_id.drop(columns=id_name+'_original')
 
@@ -54,7 +57,7 @@ def get_clusters(address, max_cluster_distance_miles, distance, column_date, dat
     cluster_id = cluster_id.merge(geo_id, left_index=True, right_index=True)
 
     # assign an overall id desc with largest size
-    cluster_id = assign_id(cluster_id, ['Date ID','Location ID'], 'Cluster')
+    cluster_id = assign_id(cluster_id, ['Date ID','Location ID'], 'Cluster', include_num_points=True)
 
     # determine distance of points to other points
     cluster_id = point_distance(cluster_id, distance)

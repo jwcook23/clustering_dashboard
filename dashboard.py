@@ -114,8 +114,8 @@ class dashboard(updates):
         fig = figure(
             title=title, width=250, height=225,
             y_axis_label = '# Clusters', x_axis_label=units,
-            toolbar_location='right', tools='pan, box_zoom, reset',
-            active_drag = 'pan',
+            toolbar_location='right', tools='pan, wheel_zoom, reset',
+            active_drag = 'pan', active_scroll = 'wheel_zoom'
         )
 
         bins = self.histogram_evaulation(self.cluster_summary[column])
@@ -130,7 +130,7 @@ class dashboard(updates):
         return fig, renderer
 
 
-    def format_table(self, df):
+    def format_table(self, df, column_widths=None):
 
         formatters = {
             'int': NumberFormatter(nan_format='-'),
@@ -142,20 +142,26 @@ class dashboard(updates):
 
         columns = []
         for col,values in df.items():
+
+            if column_widths:
+                width = column_widths[col]
+            else:
+                width = 100
+
             if pd.api.types.is_integer_dtype(values):
-                columns += [TableColumn(field=col, formatter=formatters['int'])]
+                columns += [TableColumn(field=col, formatter=formatters['int'], width=width)]
             elif pd.api.types.is_float_dtype(values):
-                columns += [TableColumn(field=col, formatter=formatters['float'])]
+                columns += [TableColumn(field=col, formatter=formatters['float'], width=width)]
             elif pd.api.types.is_datetime64_dtype(values):
                 if self.is_date(values):
                     fmt = formatters['date']
                 else:
                     fmt = formatters['timestamp']
-                columns += [TableColumn(field=col, formatter=fmt)]
+                columns += [TableColumn(field=col, formatter=fmt, width=width)]
             elif pd.api.types.is_string_dtype(values):
-                columns += [TableColumn(field=col, formatter=formatters['string'])]
+                columns += [TableColumn(field=col, formatter=formatters['string'], width=width)]
             else:
-                columns += [TableColumn(field=col, formatter=formatters['string'])]
+                columns += [TableColumn(field=col, formatter=formatters['string'], width=width)]
 
         return columns
 
@@ -226,13 +232,24 @@ class dashboard(updates):
 
     def summary_table(self):
 
-        columns = self.format_table(self.cluster_summary)
+        column_widths = {
+            '# Points': 50,
+            'Location ID': 70,
+            'Date ID': 50, 
+            'Nearest (miles)': 90, 
+            'Span (miles)': 80, 
+            'Time (first)': 120, 
+            'Length (days)': 80, 
+            'Nearest (days)': 80
+        }
+
+        columns = self.format_table(self.cluster_summary, column_widths)
 
         self.source_summary = ColumnDataSource(data=dict())
         self.source_summary.data = self.cluster_summary.to_dict(orient='list')
         self.table_summary = DataTable(
-            source=self.source_summary, columns=columns, index_header='Cluster ID',
-            autosize_mode='fit_columns', height=300, width=700)
+            source=self.source_summary, columns=columns, index_header='Cluster ID', index_width=60,
+            autosize_mode='none', height=300, width=700)
         self.source_summary.selected.on_change('indices', self.table_callback)
 
 
