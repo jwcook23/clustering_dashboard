@@ -265,6 +265,7 @@ class dashboard(updates):
 
     def page_layout(self):
 
+        self.title_main = Div(style={'font-size': '150%', 'font-weight': 'bold'}, width=160)
         self.title_map = Div(style={'font-size': '150%', 'font-weight': 'bold'}, width=625)
         self.update_titles()
 
@@ -275,6 +276,7 @@ class dashboard(updates):
             column(
                 row(
                     column(
+                        self.title_main,
                         title_parameter, 
                         self.parameters['max_cluster_distance_miles'], 
                         self.parameters['date_range']

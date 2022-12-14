@@ -138,9 +138,11 @@ class updates():
 
             selected_count = len(self.selected_cluster.drop_duplicates().sort_values())
 
-            selected_title = f'{selected_count} displayed of {len(self.cluster_summary)} total clusters'
+            selected_title = f'{selected_count} clusters selected'
 
         self.title_map.text = f"Location and Time Clusters: {selected_title}"
+
+        self.title_main.text = f'{len(self.cluster_summary)} Clusters'
 
 
     def table_callback(self, attr, old, selected_cluster):
