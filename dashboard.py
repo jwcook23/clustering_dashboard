@@ -7,6 +7,7 @@ import ast
 
 import pandas as pd
 import numpy as np
+import numpy.ma as ma
 from bokeh.plotting import figure, curdoc
 from bokeh.tile_providers import CARTODBPOSITRON, get_provider
 from bokeh.layouts import row, column
@@ -33,9 +34,20 @@ class dashboard(updates):
 
         self.address = geo.convert_to_mercator(self.address, self.columns['latitude'], self.columns['longitude'])
         self.address['_timestamp'] = self.address['Pickup Time'].apply(lambda x: int(x.timestamp()*1000))
+
         self.distance = geo.calc_distance(self.address, self.columns['latitude'], self.columns['longitude'])
 
+        self.find_nearest()
+
         self.calculate_defaults()
+
+        self.plot_estimate_distance, self.render_estimate_distance = self.parameter_estimation(
+            'Distance between Clusters', 'miles', 'Nearest Point (miles)'
+        )
+        self.plot_estimate_time, self.render_estimate_time = self.parameter_estimation(
+            'Time between Clusters', 'days', 'Nearest Date (days)'
+        )
+
         self.plot_next_distance, self.render_next_distance = self.cluster_evaluation(
             'Distance between Clusters', 'miles', 'Nearest (miles)'
         )
@@ -71,6 +83,23 @@ class dashboard(updates):
 
         self.address = pd.read_parquet(self.file_path)
         self.column_id = self.address.index.name
+
+    def find_nearest(self):
+
+        # nearest point location
+        self.distance.mask = np.eye(self.distance.shape[0], dtype=bool)
+        np.fill_diagonal(self.distance.mask, True)
+        self.address['Nearest Point (miles)'] = self.distance.min(axis=0) * 3958
+        self.distance.mask = False
+        
+        # nearest date occurance
+        column = self.columns['date']
+        nearest = self.address[[column]].sort_values(column)
+        nearest['Next'] = abs(nearest[column]-nearest[column].shift(1))
+        nearest['Previous'] = abs(nearest[column]-nearest[column].shift(-1))
+        nearest['Nearest Date (days)'] = nearest[['Next','Previous']].min(axis='columns')
+        nearest['Nearest Date (days)'] = nearest['Nearest Date (days)'].dt.total_seconds()/60/60/24
+        self.address = self.address.merge(nearest[['Nearest Date (days)']], left_index=True, right_index=True)
 
 
     def calculate_defaults(self):
@@ -108,8 +137,7 @@ class dashboard(updates):
         return bins
 
 
-
-    def cluster_evaluation(self, title, units, column):
+    def parameter_figure(self, title, units):
 
         fig = figure(
             title=title, width=250, height=225,
@@ -117,6 +145,29 @@ class dashboard(updates):
             toolbar_location='right', tools='pan, wheel_zoom, reset',
             active_drag = 'pan', active_scroll = 'wheel_zoom'
         )
+
+        return fig
+
+
+    def parameter_estimation(self, title, units, column):
+               
+        nearest = self.address[column].sort_values()
+        
+        fig = self.parameter_figure(title, units)
+
+        source = ColumnDataSource({
+            'x': nearest.index,
+            'y': nearest.values
+        })
+
+        renderer = fig.line('x','y', source=source)
+     
+        return fig, renderer
+
+
+    def cluster_evaluation(self, title, units, column):
+
+        fig = self.parameter_figure(title, units)
 
         bins = self.histogram_evaulation(self.cluster_summary[column])
 
@@ -282,8 +333,9 @@ class dashboard(updates):
                         self.parameters['date_range']
                     ),
                     Tabs(tabs=[
-                        Panel(child=row(self.plot_next_distance, self.plot_span_distance), title='Distance Evaluation'),
-                        Panel(child=row(self.plot_next_date, self.plot_span_date), title='Date Evalulation')
+                        Panel(child=row(self.plot_estimate_distance, self.plot_estimate_time), title='Parameter Estimation'),
+                        Panel(child=row(self.plot_next_distance, self.plot_span_distance), title='Distance Parameter Evaluation'),
+                        Panel(child=row(self.plot_next_date, self.plot_span_date), title='Date Parameter Evalulation')
                     ])
             ),
                 row(title_summary, self.options['display']),
