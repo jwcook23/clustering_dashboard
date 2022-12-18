@@ -23,7 +23,7 @@ class updates():
             ("2) Display clusters with same Location ID.", "same location"),
             ("3) Display clusters with same Date ID.", "same date")
         ]
-        self.options['display'] = Dropdown(label="Display Options", button_type="default", menu=menu, height=25, width=160)
+        self.options['display'] = Dropdown(label="display other cluster options", button_type="default", menu=menu, height=25, width=200)
         self.options['display'].on_click(self.display_callback)
 
 
@@ -113,7 +113,7 @@ class updates():
         bins = self.histogram_evaulation(self.cluster_summary['Nearest (miles)'])
         self.render_next_distance.data_source.data = bins
 
-        bins = self.histogram_evaulation(self.cluster_summary['Span (miles)'])
+        bins = self.histogram_evaulation(self.cluster_summary['Length (miles)'])
         self.render_span_distance.data_source.data = bins
 
         bins = self.histogram_evaulation(self.cluster_summary['Nearest (days)'])
@@ -136,13 +136,11 @@ class updates():
             selected_title = 'select cluster summary to display'
         else:
 
-            selected_count = len(self.selected_cluster.drop_duplicates().sort_values())
-
-            selected_title = f'{selected_count} clusters selected'
+            selected_title = f'{self.selected_cluster.nunique()} clusters displayed'
 
         self.title_map.text = f"Location and Time Clusters: {selected_title}"
 
-        self.title_main.text = f'{len(self.cluster_summary)} Clusters'
+        self.title_main.text = f'{len(self.cluster_summary)} Total Clusters'
 
 
     def table_callback(self, attr, old, selected_cluster):

@@ -36,12 +36,17 @@ def get_summary(cluster_id, column_date, additional_summary):
     cluster_summary = cluster_id.reset_index().groupby('Cluster ID')
     plan = {
         '# Points': 'first', 'Location ID': 'first', 'Date ID': 'first',
-        'Nearest (miles)': min, 'Span (miles)': max, 
+        'Nearest (miles)': min, 'Length (miles)': max, 
         column_date: ['max','min'],
     }
     cluster_summary = cluster_summary.agg(plan)
 
     cluster_summary = date_summary(cluster_summary, column_date)
+
+    cluster_summary = cluster_summary[[
+        '# Points', 'Location ID', 'Date ID', 'Time (first)',
+        'Nearest (miles)', 'Length (miles)', 'Nearest (days)', 'Length (days)'
+    ]]
 
     return cluster_summary
 

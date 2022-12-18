@@ -147,7 +147,7 @@ def point_distance(cluster_id, distance):
 
     distance.mask = True
     distance.mask[row, col] = False
-    cluster_id['Span (miles)'] = distance.max(axis=0) * 3958
+    cluster_id['Length (miles)'] = distance.max(axis=0) * 3958
 
     distance.mask = False
 

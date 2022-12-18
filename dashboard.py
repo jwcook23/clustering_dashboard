@@ -7,7 +7,6 @@ import ast
 
 import pandas as pd
 import numpy as np
-import numpy.ma as ma
 from bokeh.plotting import figure, curdoc
 from bokeh.tile_providers import CARTODBPOSITRON, get_provider
 from bokeh.layouts import row, column
@@ -15,7 +14,7 @@ from bokeh.transform import linear_cmap
 from bokeh.models import (
     ColumnDataSource, DataTable, TableColumn, HoverTool, Div,
     DateFormatter, StringFormatter, NumberFormatter, DatetimeTickFormatter,
-    Panel, Tabs, ColorBar
+    Panel, Tabs, ColorBar, Label
 )
 
 from callbacks import updates
@@ -42,23 +41,23 @@ class dashboard(updates):
         self.calculate_defaults()
 
         self.plot_estimate_distance, self.render_estimate_distance = self.parameter_estimation(
-            'Distance between Clusters', 'miles', 'Nearest Point (miles)'
+            'Distance between Clusters', 'Point', 'miles', 'Nearest Point (miles)'
         )
         self.plot_estimate_time, self.render_estimate_time = self.parameter_estimation(
-            'Time between Clusters', 'days', 'Nearest Date (days)'
+            'Time between Clusters', 'Point', 'days', 'Nearest Date (days)'
         )
 
         self.plot_next_distance, self.render_next_distance = self.cluster_evaluation(
-            'Distance between Clusters', 'miles', 'Nearest (miles)'
+            'Distance between Clusters', 'miles', '# Clusters', 'Nearest (miles)'
         )
         self.plot_span_distance, self.render_span_distance = self.cluster_evaluation(
-            'Distance in Cluster', 'miles', 'Span (miles)'
+            'Distance in Cluster', 'miles', '# Clusters', 'Length (miles)'
         )
         self.plot_next_date, self.render_next_date = self.cluster_evaluation(
-            'Time between Clusters', 'days', 'Nearest (days)'
+            'Time between Clusters', 'days', '# Clusters', 'Nearest (days)'
         )
         self.plot_span_date, self.render_span_date = self.cluster_evaluation(
-            'Time in Cluster', 'days', 'Length (days)'
+            'Time in Cluster', 'days', '# Clusters', 'Length (days)'
         )
         
         self.summary_table()
@@ -137,39 +136,57 @@ class dashboard(updates):
         return bins
 
 
-    def parameter_figure(self, title, units):
+    def parameter_figure(self, title, xlabel, ylabel):
 
         fig = figure(
-            title=title, width=250, height=225,
-            y_axis_label = '# Clusters', x_axis_label=units,
-            toolbar_location='right', tools='pan, wheel_zoom, reset',
-            active_drag = 'pan', active_scroll = 'wheel_zoom'
+            title=title, width=275, height=225,
+            y_axis_label = ylabel, x_axis_label=xlabel,
+            toolbar_location='right', tools='pan, box_zoom, reset',
+            active_drag = 'box_zoom'
         )
 
         return fig
 
+    
+    def filter_outliers(self, values):
 
-    def parameter_estimation(self, title, units, column):
+        outliers = values[values > values.mean() + 3 * values.std()]
+
+        values = values[~values.index.isin(outliers.index)]
+
+        outliers = f'{len(outliers)} points\n> {values.max():.3f}'
+
+        return values, outliers
+
+
+    def parameter_estimation(self, title, xlabel, ylabel, column):
                
-        nearest = self.address[column].sort_values()
+        values = self.address[column].sort_values()
         
-        fig = self.parameter_figure(title, units)
+        values, outliers = self.filter_outliers(values)
+
+        fig = self.parameter_figure(title, xlabel, ylabel)
 
         source = ColumnDataSource({
-            'x': nearest.index,
-            'y': nearest.values
+            'x': range(0, len(values)),
+            'y': values.values
         })
 
         renderer = fig.line('x','y', source=source)
+        fig.add_layout(Label(text=outliers, x=len(values), y=values.max(), text_align='right', text_baseline='top'))
      
         return fig, renderer
 
 
-    def cluster_evaluation(self, title, units, column):
+    def cluster_evaluation(self, title, xlabel, ylabel, column):
 
-        fig = self.parameter_figure(title, units)
+        fig = self.parameter_figure(title, xlabel, ylabel)
 
-        bins = self.histogram_evaulation(self.cluster_summary[column])
+        values = self.cluster_summary[column]
+
+        values, outliers = self.filter_outliers(values)
+
+        bins = self.histogram_evaulation(values)
 
         source = ColumnDataSource(bins)
 
@@ -177,6 +194,7 @@ class dashboard(updates):
             'left', 'right', 'top', 'bottom', source=source, 
             fill_color="skyblue", line_color="white"
         )
+        fig.add_layout(Label(text=outliers, x=values.max(), y=bins['top'].max(), text_align='right', text_baseline='top'))
 
         return fig, renderer
 
@@ -250,8 +268,8 @@ class dashboard(updates):
             x_axis_type="mercator", y_axis_type="mercator", title=None,
             height=625, width=625,
             x_axis_label=self.columns['longitude'], y_axis_label = self.columns['latitude'],
-            toolbar_location='right', tools='pan, wheel_zoom, zoom_out, zoom_in, reset',
-            active_drag = 'pan', active_scroll = 'wheel_zoom'
+            toolbar_location='right', tools='pan, box_zoom, zoom_out, zoom_in, reset',
+            active_drag = 'pan'
         )
         tile_provider = get_provider(CARTODBPOSITRON)
         self.plot_map.add_tile(tile_provider)
@@ -288,7 +306,7 @@ class dashboard(updates):
             'Location ID': 70,
             'Date ID': 50, 
             'Nearest (miles)': 90, 
-            'Span (miles)': 80, 
+            'Length (miles)': 80, 
             'Time (first)': 120, 
             'Length (days)': 80, 
             'Nearest (days)': 80
@@ -316,12 +334,13 @@ class dashboard(updates):
 
     def page_layout(self):
 
-        self.title_main = Div(style={'font-size': '150%', 'font-weight': 'bold'}, width=160)
+        self.title_main = Div(style={'font-size': '150%', 'font-weight': 'bold'}, width=170)
         self.title_map = Div(style={'font-size': '150%', 'font-weight': 'bold'}, width=625)
         self.update_titles()
 
         title_parameter = Div(text="Cluster Parameters", style={'font-weight': 'bold'}, height=20, width=160)
-        title_summary = Div(text="Cluster Summary", style={'font-weight': 'bold'})
+        title_summary = Div(text="Cluster Summary*", style={'font-weight': 'bold'})
+        id_description = Div(text="*lower IDs have larger size")
 
         self.layout = row(
             column(
@@ -339,6 +358,7 @@ class dashboard(updates):
                     ])
             ),
                 row(title_summary, self.options['display']),
+                id_description,
                 self.table_summary
             ),
             column(
@@ -363,16 +383,16 @@ if args.debug:
     from bokeh.events import Event
     from bokeh.plotting import output_file, show
 
-    # plot largest
-    page.table_callback(None, None, [0])
+    # plot second largest
+    page.table_callback(None, None, [1])
 
     # # enable date clustering
     # page.date_callback([0])
 
     # display nearby points
-    # dropdown = Event()
-    # dropdown.item = 'same location'
-    # page.display_callback(dropdown)
+    dropdown = Event()
+    dropdown.item = 'same location'
+    page.display_callback(dropdown)
 
     # adjuster parameter
     # page.parameters['max_cluster_distance_miles'].value = 0.01
