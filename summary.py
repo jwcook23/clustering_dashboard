@@ -33,27 +33,27 @@ def _unique(series):
     return series
 
 
-def get_summary(cluster_id, column_date, units_time, additional_summary):
+def get_summary(cluster_id, column_time, units_time, additional_summary):
 
     cluster_summary = cluster_id.reset_index().groupby('Cluster ID')
     plan = {
-        '# Points': 'first', 'Location ID': 'first', 'Date ID': 'first',
+        '# Points': 'first', 'Location ID': 'first', 'Time ID': 'first',
         'Nearest (miles)': min, 'Length (miles)': max, 
-        column_date: ['max','min'],
+        column_time: ['max','min'],
     }
     cluster_summary = cluster_summary.agg(plan)
 
-    cluster_summary = date_summary(cluster_summary, column_date, units_time)
+    cluster_summary = date_summary(cluster_summary, column_time, units_time)
 
     cluster_summary = cluster_summary[[
-        '# Points', 'Location ID', 'Date ID', 'Time (first)',
+        '# Points', 'Location ID', 'Time ID', 'Time (first)',
         'Nearest (miles)', 'Length (miles)', f'Nearest ({units_time})', f'Length ({units_time})'
     ]]
 
     return cluster_summary
 
 
-# def calculate_additional(cluster_id, column_date, additional_summary):
+# def calculate_additional(cluster_id, column_time, additional_summary):
 
     # agg_options = {
     #     'min': _min,
@@ -68,12 +68,12 @@ def get_summary(cluster_id, column_date, units_time, additional_summary):
     # return cluster_summary
 
 
-def date_summary(cluster_summary, column_date, units_time):
+def date_summary(cluster_summary, column_time, units_time):
 
-    duration = cluster_summary[(column_date,'max')]-cluster_summary[(column_date,'min')]
+    duration = cluster_summary[(column_time,'max')]-cluster_summary[(column_time,'min')]
     duration = convert.duration_to_numeric(duration, units_time)
 
-    first = cluster_summary[(column_date,'min')]
+    first = cluster_summary[(column_time,'min')]
 
     nearest = cluster_summary[['Location ID','Pickup Time']]
     nearest = nearest.sort_values(by=[('Location ID','first'), ('Pickup Time', 'max')], ascending=[True, False])
@@ -86,7 +86,7 @@ def date_summary(cluster_summary, column_date, units_time):
     nearest = nearest[column]
     nearest = convert.duration_to_numeric(nearest, units_time)
 
-    cluster_summary = cluster_summary.drop(columns=column_date)
+    cluster_summary = cluster_summary.drop(columns=column_time)
     cluster_summary.columns = cluster_summary.columns.droplevel(1)
     cluster_summary['Time (first)'] = first
     cluster_summary[f'Length ({units_time})'] = duration

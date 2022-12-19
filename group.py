@@ -44,11 +44,11 @@ def assign_id(cluster_id, input_columns, output_name, include_num_points=False):
     return cluster_id
 
 
-def get_clusters(address, max_cluster_distance_miles, distance, column_date, units_time, date_range, additional_summary):
+def get_clusters(address, max_cluster_distance_miles, distance, column_time, units_time, date_range, additional_summary):
 
     # group dates
-    # date_id, grouped = cluster_date(address, column_latitude, column_longitude, column_date)
-    date_id = cluster_date(address, column_date, date_range)
+    # date_id, grouped = cluster_date(address, column_latitude, column_longitude, column_time)
+    date_id = cluster_date(address, column_time, date_range, units_time)
     cluster_id = address.merge(date_id, left_index=True, right_index=True)
 
     # group addresses
@@ -57,13 +57,13 @@ def get_clusters(address, max_cluster_distance_miles, distance, column_date, uni
     cluster_id = cluster_id.merge(geo_id, left_index=True, right_index=True)
 
     # assign an overall id desc with largest size
-    cluster_id = assign_id(cluster_id, ['Date ID','Location ID'], 'Cluster', include_num_points=True)
+    cluster_id = assign_id(cluster_id, ['Time ID','Location ID'], 'Cluster', include_num_points=True)
 
     # determine distance of points to other points
     cluster_id = point_distance(cluster_id, distance)
 
     # summerize cluster
-    cluster_summary = summary.get_summary(cluster_id, column_date, units_time, additional_summary)
+    cluster_summary = summary.get_summary(cluster_id, column_time, units_time, additional_summary)
 
     # calculate cluster boundary for map zoom
     cluster_boundary = cluster_id.groupby('Cluster ID')
@@ -72,20 +72,26 @@ def get_clusters(address, max_cluster_distance_miles, distance, column_date, uni
     return cluster_summary, cluster_boundary, cluster_id
 
 
-def cluster_date(address, column_date, date_range):
+def cluster_date(address, column_time, date_range, units_time):
 
     if not date_range.visible:
         cluster_id = pd.DataFrame({
-            'Date ID': [0]*len(address),
-            'Date Count': [len(address)]*len(address)
+            'Time ID': [0]*len(address),
+            'Time Count': [len(address)]*len(address)
         }, index=address.index)
     else:
-        grouped = address.groupby(pd.Grouper(key=column_date, freq=f'{date_range.value}D'))
-        cluster_id = pd.DataFrame(grouped.ngroup(), columns=['Date ID'], index=address.index, dtype='Int64')
-        cluster_id['Date ID'][cluster_id['Date ID']==-1] = None
+        if units_time == 'days':
+            offset = 'D'
+        elif units_time == 'hours':
+            offset = 'H'
+        elif units_time == 'minutes':
+            offset = 'T'
+        grouped = address.groupby(pd.Grouper(key=column_time, freq=f'{date_range.value}{offset}'))
+        cluster_id = pd.DataFrame(grouped.ngroup(), columns=['Time ID'], index=address.index, dtype='Int64')
+        cluster_id['Time ID'][cluster_id['Time ID']==-1] = None
 
         # assign ID based on size
-        cluster_id = assign_id(cluster_id, ['Date ID'], 'Date')
+        cluster_id = assign_id(cluster_id, ['Time ID'], 'Time')
 
     return cluster_id
 

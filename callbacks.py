@@ -21,7 +21,7 @@ class updates():
         menu = [
             ("1) Reset display.", "reset display"),
             ("2) Display clusters with same Location ID.", "same location"),
-            ("3) Display clusters with same Date ID.", "same time")
+            ("3) Display clusters with same Time ID.", "same time")
         ]
         self.options['display'] = Dropdown(label="display other cluster options", button_type="default", menu=menu, height=25, width=200)
         self.options['display'].on_click(self.display_callback)
@@ -127,6 +127,10 @@ class updates():
 
         cluster_summary = self.filter_clusters()
 
+        # replace values of all empty to avoid ValueError: Out of range float values are not JSON compliant
+        all_empty = cluster_summary.columns[~cluster_summary.any()]
+        cluster_summary[all_empty] = '-'
+
         cols = [x.field for x in self.table_summary.columns]
         data = cluster_summary[cols]
         self.source_summary.data = data.to_dict(orient='list')
@@ -196,10 +200,10 @@ class updates():
 
             same = self.cluster_id.loc[
                 self.cluster_id['Cluster ID'].isin(self.selected_cluster),
-                'Date ID'
+                'Time ID'
             ]
             self.selected_cluster = self.cluster_id.loc[
-                self.cluster_id['Date ID'].isin(same),
+                self.cluster_id['Time ID'].isin(same),
                 'Cluster ID'
             ]            
 

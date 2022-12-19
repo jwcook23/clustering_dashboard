@@ -31,7 +31,7 @@ class dashboard(updates):
         self.load_data()
 
         self.units_distance = 'miles'
-        self.units_time = 'days'
+        self.units_time = 'hours'
 
         updates.__init__(self)
 
@@ -48,7 +48,7 @@ class dashboard(updates):
             'Distance between Clusters', 'Point', 'miles', 'Nearest Point (miles)'
         )
         self.plot_estimate_time, self.render_estimate_time = self.parameter_estimation(
-            'Time between Clusters', 'Point', self.units_time, f'Nearest Date ({self.units_time})'
+            'Time between Clusters', 'Point', self.units_time, f'Nearest Time ({self.units_time})'
         )
 
         self.plot_next_distance, self.render_next_distance = self.cluster_evaluation(
@@ -100,7 +100,7 @@ class dashboard(updates):
         nearest = self.address[[column]].sort_values(column)
         nearest['Next'] = abs(nearest[column]-nearest[column].shift(1))
         nearest['Previous'] = abs(nearest[column]-nearest[column].shift(-1))
-        column = f'Nearest Date ({self.units_time})'
+        column = f'Nearest Time ({self.units_time})'
         nearest[column] = nearest[['Next','Previous']].min(axis='columns')
         nearest[column] = convert.duration_to_numeric(nearest[column], self.units_time)
         self.address = self.address.merge(nearest[[column]], left_index=True, right_index=True)
@@ -159,7 +159,10 @@ class dashboard(updates):
 
         values = values[~values.index.isin(outliers.index)]
 
-        outliers = f'{len(outliers)} points\n> {values.max():.3f}'
+        if values.any():
+            outliers = f'{len(outliers)} points\n> {values.max():.3f}'
+        else:
+            outliers = 'no data'
 
         return values, outliers
 
@@ -199,7 +202,11 @@ class dashboard(updates):
             'left', 'right', 'top', 'bottom', source=source, 
             fill_color="skyblue", line_color="white"
         )
-        fig.add_layout(Label(text=outliers, x=values.max(), y=bins['top'].max(), text_align='right', text_baseline='top'))
+        xloc = values.max()
+        if np.isnan(xloc):
+            xloc = 1
+        yloc = bins['top'].max()
+        fig.add_layout(Label(text=outliers, x=xloc, y=yloc, text_align='right', text_baseline='top'))
 
         return fig, renderer
 
@@ -309,7 +316,7 @@ class dashboard(updates):
         column_widths = {
             '# Points': 50,
             'Location ID': 70,
-            'Date ID': 50, 
+            'Time ID': 50, 
             'Nearest (miles)': 90, 
             'Length (miles)': 80, 
             'Time (first)': 120, 
@@ -320,11 +327,12 @@ class dashboard(updates):
         columns = self.format_table(self.cluster_summary, column_widths)
 
         self.source_summary = ColumnDataSource(data=dict())
-        self.source_summary.data = self.cluster_summary.to_dict(orient='list')
         self.table_summary = DataTable(
             source=self.source_summary, columns=columns, index_header='Cluster ID', index_width=60,
             autosize_mode='none', height=300, width=700)
         self.source_summary.selected.on_change('indices', self.table_callback)
+
+        self.update_summary()
 
 
     def cluster_detail(self):
@@ -359,7 +367,7 @@ class dashboard(updates):
                     Tabs(tabs=[
                         Panel(child=row(self.plot_estimate_distance, self.plot_estimate_time), title='Parameter Estimation'),
                         Panel(child=row(self.plot_next_distance, self.plot_span_distance), title='Distance Parameter Evaluation'),
-                        Panel(child=row(self.plot_next_date, self.plot_span_date), title='Date Parameter Evalulation')
+                        Panel(child=row(self.plot_next_date, self.plot_span_date), title='Time Parameter Evalulation')
                     ])
             ),
                 row(title_summary, self.options['display']),
@@ -389,20 +397,20 @@ if args.debug:
     from bokeh.plotting import output_file, show
 
     # plot second largest
-    page.table_callback(None, None, [1])
+    page.table_callback(None, None, [0])
 
     # # enable time clustering
     # page.date_callback([0])
 
-    # display nearby points
-    dropdown = Event()
-    dropdown.item = 'same location'
-    page.display_callback(dropdown)
+    # # display nearby points
+    # dropdown = Event()
+    # dropdown.item = 'same location'
+    # page.display_callback(dropdown)
 
-    # reset display
-    dropdown = Event()
-    dropdown.item = 'reset display'
-    page.display_callback(dropdown)
+    # # reset display
+    # dropdown = Event()
+    # dropdown.item = 'reset display'
+    # page.display_callback(dropdown)
 
     # adjuster parameter
     # page.parameters['max_cluster_distance_miles'].value = 0.01
