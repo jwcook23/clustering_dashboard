@@ -268,8 +268,8 @@ class dashboard(updates):
             x_axis_type="mercator", y_axis_type="mercator", title=None,
             height=625, width=625,
             x_axis_label=self.columns['longitude'], y_axis_label = self.columns['latitude'],
-            toolbar_location='right', tools='pan, box_zoom, zoom_out, zoom_in, reset',
-            active_drag = 'pan'
+            toolbar_location='right', tools='pan, wheel_zoom, zoom_out, zoom_in, reset',
+            active_drag = 'pan', active_scroll = 'wheel_zoom'
         )
         tile_provider = get_provider(CARTODBPOSITRON)
         self.plot_map.add_tile(tile_provider)
@@ -392,6 +392,11 @@ if args.debug:
     # display nearby points
     dropdown = Event()
     dropdown.item = 'same location'
+    page.display_callback(dropdown)
+
+    # reset display
+    dropdown = Event()
+    dropdown.item = 'reset display'
     page.display_callback(dropdown)
 
     # adjuster parameter

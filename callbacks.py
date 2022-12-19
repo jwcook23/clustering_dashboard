@@ -125,8 +125,10 @@ class updates():
 
     def update_summary(self):
 
+        cluster_summary = self.filter_clusters()
+
         cols = [x.field for x in self.table_summary.columns]
-        data = self.cluster_summary[cols]
+        data = cluster_summary[cols]
         self.source_summary.data = data.to_dict(orient='list')
 
 
@@ -163,7 +165,6 @@ class updates():
         elif event.item=='same date':
             self.same_date()
 
-        self.filter_clusters()
         self.update_summary()
         self.update_map()
         self.update_detail()
@@ -204,15 +205,19 @@ class updates():
 
     def filter_clusters(self):
 
-        self.cluster_summary = self.cluster_summary[
-            self.cluster_summary.index.isin(self.selected_cluster)
-        ].reset_index(drop=True)
+        if self.selected_cluster is None:
+            cluster_summary = self.cluster_summary
+        else:
+            cluster_summary = self.cluster_summary[
+                self.cluster_summary.index.isin(self.selected_cluster)
+            ].reset_index(drop=True)
 
-        self.cluster_boundary = self.cluster_boundary[
-            self.cluster_boundary.index.isin(self.selected_cluster)
-        ]
+            self.cluster_boundary = self.cluster_boundary[
+                self.cluster_boundary.index.isin(self.selected_cluster)
+            ]
+            self.cluster_id = self.cluster_id.loc[self.selected_cluster.index]
 
-        self.cluster_id = self.cluster_id.loc[self.selected_cluster.index]
+        return cluster_summary
 
 
     def parameter_callback(self, attr, old, new):
@@ -222,6 +227,7 @@ class updates():
             self.distance, self.columns['date'], self.parameters['date_range'],
             self.additional_summary
         )
+        self.selected_cluster = None
         self.update_evaluation()
         self.update_summary()
         self.table_callback(None, None, self.cluster_summary.index)
