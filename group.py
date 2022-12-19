@@ -44,7 +44,7 @@ def assign_id(cluster_id, input_columns, output_name, include_num_points=False):
     return cluster_id
 
 
-def get_clusters(address, max_cluster_distance_miles, distance, column_date, date_range, additional_summary):
+def get_clusters(address, max_cluster_distance_miles, distance, column_date, units_time, date_range, additional_summary):
 
     # group dates
     # date_id, grouped = cluster_date(address, column_latitude, column_longitude, column_date)
@@ -63,7 +63,7 @@ def get_clusters(address, max_cluster_distance_miles, distance, column_date, dat
     cluster_id = point_distance(cluster_id, distance)
 
     # summerize cluster
-    cluster_summary = summary.get_summary(cluster_id, column_date, additional_summary)
+    cluster_summary = summary.get_summary(cluster_id, column_date, units_time, additional_summary)
 
     # calculate cluster boundary for map zoom
     cluster_boundary = cluster_id.groupby('Cluster ID')

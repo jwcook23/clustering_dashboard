@@ -20,6 +20,7 @@ from bokeh.models import (
 from callbacks import updates
 import group
 import geo
+import convert
 
 class dashboard(updates):
 
@@ -28,6 +29,9 @@ class dashboard(updates):
 
         self.load_settings()
         self.load_data()
+
+        self.units_distance = 'miles'
+        self.units_time = 'days'
 
         updates.__init__(self)
 
@@ -44,7 +48,7 @@ class dashboard(updates):
             'Distance between Clusters', 'Point', 'miles', 'Nearest Point (miles)'
         )
         self.plot_estimate_time, self.render_estimate_time = self.parameter_estimation(
-            'Time between Clusters', 'Point', 'days', 'Nearest Date (days)'
+            'Time between Clusters', 'Point', 'days', f'Nearest Date ({self.units_time})'
         )
 
         self.plot_next_distance, self.render_next_distance = self.cluster_evaluation(
@@ -54,10 +58,10 @@ class dashboard(updates):
             'Distance in Cluster', 'miles', '# Clusters', 'Length (miles)'
         )
         self.plot_next_date, self.render_next_date = self.cluster_evaluation(
-            'Time between Clusters', 'days', '# Clusters', 'Nearest (days)'
+            'Time between Clusters', 'days', '# Clusters', f'Nearest ({self.units_time})'
         )
         self.plot_span_date, self.render_span_date = self.cluster_evaluation(
-            'Time in Cluster', 'days', '# Clusters', 'Length (days)'
+            'Time in Cluster', 'days', '# Clusters', f'Length ({self.units_time})'
         )
         
         self.summary_table()
@@ -96,9 +100,10 @@ class dashboard(updates):
         nearest = self.address[[column]].sort_values(column)
         nearest['Next'] = abs(nearest[column]-nearest[column].shift(1))
         nearest['Previous'] = abs(nearest[column]-nearest[column].shift(-1))
-        nearest['Nearest Date (days)'] = nearest[['Next','Previous']].min(axis='columns')
-        nearest['Nearest Date (days)'] = nearest['Nearest Date (days)'].dt.total_seconds()/60/60/24
-        self.address = self.address.merge(nearest[['Nearest Date (days)']], left_index=True, right_index=True)
+        column = f'Nearest Date ({self.units_time})'
+        nearest[column] = nearest[['Next','Previous']].min(axis='columns')
+        nearest[column] = convert.duration_to_numeric(nearest[column], self.units_time)
+        self.address = self.address.merge(nearest[[column]], left_index=True, right_index=True)
 
 
     def calculate_defaults(self):
@@ -112,7 +117,7 @@ class dashboard(updates):
         # summary based on parameters
         self.cluster_summary, self.cluster_boundary, self.cluster_id = group.get_clusters(
             self.address, self.parameters['max_cluster_distance_miles'],
-            self.distance, self.columns['date'], self.parameters['date_range'],
+            self.distance, self.columns['date'], self.units_time, self.parameters['date_range'],
             self.additional_summary
         )
 
@@ -308,8 +313,8 @@ class dashboard(updates):
             'Nearest (miles)': 90, 
             'Length (miles)': 80, 
             'Time (first)': 120, 
-            'Length (days)': 80, 
-            'Nearest (days)': 80
+            f'Length ({self.units_time})': 80, 
+            f'Nearest ({self.units_time})': 80
         }
 
         columns = self.format_table(self.cluster_summary, column_widths)
