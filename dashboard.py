@@ -48,7 +48,7 @@ class dashboard(updates):
             'Distance between Clusters', 'Point', 'miles', 'Nearest Point (miles)'
         )
         self.plot_estimate_time, self.render_estimate_time = self.parameter_estimation(
-            'Time between Clusters', 'Point', 'days', f'Nearest Date ({self.units_time})'
+            'Time between Clusters', 'Point', self.units_time, f'Nearest Date ({self.units_time})'
         )
 
         self.plot_next_distance, self.render_next_distance = self.cluster_evaluation(
@@ -58,10 +58,10 @@ class dashboard(updates):
             'Distance in Cluster', 'miles', '# Clusters', 'Length (miles)'
         )
         self.plot_next_date, self.render_next_date = self.cluster_evaluation(
-            'Time between Clusters', 'days', '# Clusters', f'Nearest ({self.units_time})'
+            'Time between Clusters', self.units_time, '# Clusters', f'Nearest ({self.units_time})'
         )
         self.plot_span_date, self.render_span_date = self.cluster_evaluation(
-            'Time in Cluster', 'days', '# Clusters', f'Length ({self.units_time})'
+            'Time in Cluster', self.units_time, '# Clusters', f'Length ({self.units_time})'
         )
         
         self.summary_table()
@@ -95,8 +95,8 @@ class dashboard(updates):
         self.address['Nearest Point (miles)'] = self.distance.min(axis=0) * 3958
         self.distance.mask = False
         
-        # nearest date occurance
-        column = self.columns['date']
+        # nearest time occurance
+        column = self.columns['time']
         nearest = self.address[[column]].sort_values(column)
         nearest['Next'] = abs(nearest[column]-nearest[column].shift(1))
         nearest['Previous'] = abs(nearest[column]-nearest[column].shift(-1))
@@ -117,7 +117,7 @@ class dashboard(updates):
         # summary based on parameters
         self.cluster_summary, self.cluster_boundary, self.cluster_id = group.get_clusters(
             self.address, self.parameters['max_cluster_distance_miles'],
-            self.distance, self.columns['date'], self.units_time, self.parameters['date_range'],
+            self.distance, self.columns['time'], self.units_time, self.parameters['date_range'],
             self.additional_summary
         )
 
@@ -209,7 +209,7 @@ class dashboard(updates):
         formatters = {
             'int': NumberFormatter(nan_format='-'),
             'float': NumberFormatter(nan_format='-', format='0.00'),
-            'date': DateFormatter(format="%m/%d/%Y", nan_format='-'),
+            'time': DateFormatter(format="%m/%d/%Y", nan_format='-'),
             'timestamp': DateFormatter(format="%m/%d/%Y %H:%M:%S", nan_format='-'),
             'string': StringFormatter(nan_format='-')
         }
@@ -228,7 +228,7 @@ class dashboard(updates):
                 columns += [TableColumn(field=col, formatter=formatters['float'], width=width)]
             elif pd.api.types.is_datetime64_dtype(values):
                 if self.is_date(values):
-                    fmt = formatters['date']
+                    fmt = formatters['time']
                 else:
                     fmt = formatters['timestamp']
                 columns += [TableColumn(field=col, formatter=fmt, width=width)]
@@ -244,13 +244,13 @@ class dashboard(updates):
 
         latitude = self.columns['latitude']
         longitude = self.columns['longitude']
-        date = self.columns['date']
+        time = self.columns['time']
         features = [
             (self.column_id, "@{"+self.column_id+"}"),
             (f"({latitude}/{longitude})", "(@{"+latitude+"},@{"+longitude+"})"),
-            (date, "@{"+date+"}{%F}")
+            (time, "@{"+time+"}{%F}")
         ]
-        formatters = {"@{"+date+"}": 'datetime'}
+        formatters = {"@{"+time+"}": 'datetime'}
         # formatters = {}
         # for col,values in self.address.drop(columns=[latitude, longitude, 'Latitude_mercator', 'Longitude_mercator']).items():
         #     if pd.api.types.is_datetime64_dtype(values):
@@ -279,16 +279,16 @@ class dashboard(updates):
         tile_provider = get_provider(CARTODBPOSITRON)
         self.plot_map.add_tile(tile_provider)
 
-        # add color scale for date
+        # add color scale for time
         cmap = linear_cmap(field_name='_timestamp', palette='Turbo256', low=min(self.address['_timestamp']), high=max(self.address['_timestamp']))
         color_bar = ColorBar(color_mapper=cmap['transform'], 
-            # title=self.columns['date'], 
+            # title=self.columns['time'], 
             formatter=DatetimeTickFormatter()
         )
         self.plot_map.add_layout(color_bar, 'above')        
 
         # render address points
-        source = ColumnDataSource(data=dict(x=[], y=[], date=[], _timestamp=[]))
+        source = ColumnDataSource(data=dict(x=[], y=[], time=[], _timestamp=[]))
         self.render_points = self.plot_map.circle('x','y', source=source, fill_color=cmap, line_color=None, size=10, legend_label='Location')
         features, formatters = self.format_hover()
         self.plot_map.add_tools(HoverTool(
@@ -298,7 +298,7 @@ class dashboard(updates):
         )
 
         # render boundary of clusters
-        source = ColumnDataSource(data=dict(x=[], y=[], date=[], _timestamp=[]))
+        source = ColumnDataSource(data=dict(x=[], y=[], time=[], _timestamp=[]))
         self.render_boundary = self.plot_map.multi_polygons('xs', 'ys', source=source, color=cmap, alpha=0.3, line_color=None, legend_label='Cluster')
 
         self.plot_map.legend.location = "top_right"
@@ -391,7 +391,7 @@ if args.debug:
     # plot second largest
     page.table_callback(None, None, [1])
 
-    # # enable date clustering
+    # # enable time clustering
     # page.date_callback([0])
 
     # display nearby points

@@ -21,7 +21,7 @@ class updates():
         menu = [
             ("1) Reset display.", "reset display"),
             ("2) Display clusters with same Location ID.", "same location"),
-            ("3) Display clusters with same Date ID.", "same date")
+            ("3) Display clusters with same Date ID.", "same time")
         ]
         self.options['display'] = Dropdown(label="display other cluster options", button_type="default", menu=menu, height=25, width=200)
         self.options['display'].on_click(self.display_callback)
@@ -54,13 +54,13 @@ class updates():
             'y': [],
         }
 
-        date = self.columns['date']
+        time = self.columns['time']
 
         unique_clusters = self.selected_cluster.dropna().drop_duplicates()
         data_boundary.update({
             'xs': self.cluster_boundary.loc[unique_clusters, 'Longitude_mercator'].tolist(),
             'ys': self.cluster_boundary.loc[unique_clusters, 'Latitude_mercator'].tolist(),
-            date: self.address.loc[unique_clusters.index, date].tolist(),
+            time: self.address.loc[unique_clusters.index, time].tolist(),
             '_timestamp': self.address.loc[unique_clusters.index, '_timestamp'].tolist()
         })
 
@@ -73,11 +73,11 @@ class updates():
             self.column_id: show_ids,
             longitude: self.address.loc[show_ids, longitude].values,
             latitude: self.address.loc[show_ids, latitude].values,
-            date: self.address.loc[show_ids, date].values,
+            time: self.address.loc[show_ids, time].values,
             '_timestamp': self.address.loc[show_ids, '_timestamp'].values
         })
         # data_point.update({
-        #     col: self.address.loc[show_ids, col].values for col in self.address.columns.drop([longitude,latitude,date])
+        #     col: self.address.loc[show_ids, col].values for col in self.address.columns.drop([longitude,latitude,time])
         # })
 
         # update map title
@@ -162,7 +162,7 @@ class updates():
             return None
         elif event.item=='same location':
             self.same_location()
-        elif event.item=='same date':
+        elif event.item=='same time':
             self.same_date()
 
         self.update_summary()
@@ -224,7 +224,7 @@ class updates():
 
         self.cluster_summary, self.cluster_boundary, self.cluster_id = group.get_clusters(
             self.address, self.parameters['max_cluster_distance_miles'],
-            self.distance, self.columns['date'], self.units_time, self.parameters['date_range'],
+            self.distance, self.columns['time'], self.units_time, self.parameters['date_range'],
             self.additional_summary
         )
         self.selected_cluster = None

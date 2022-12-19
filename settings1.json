@@ -3,7 +3,7 @@
     "column_names": {
         "latitude": "Latitude",
         "longitude": "Longitude",  
-        "date": "ReportedDate"
+        "time": "ReportedDate"
     },
     "additional_summary": {
         "NearestEventMiles": "min"

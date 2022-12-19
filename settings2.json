@@ -3,7 +3,7 @@
     "column_names": {
         "latitude": "Latitude",
         "longitude": "Longitude",  
-        "date": "Timestamp"
+        "time": "Timestamp"
     },
     "additional_summary": {
         "LocationGroup": "min",

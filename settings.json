@@ -3,7 +3,7 @@
     "column_names": {
         "latitude": "Latitude",
         "longitude": "Longitude",  
-        "date": "Pickup Time"
+        "time": "Pickup Time"
     },
     "additional_summary": {
         "Fare Amount": "max"

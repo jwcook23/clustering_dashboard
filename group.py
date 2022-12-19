@@ -10,7 +10,7 @@ def assign_id(cluster_id, input_columns, output_name, include_num_points=False):
 
     id_name = f'{output_name} ID'
 
-    # combine geo and date cluster ids
+    # combine geo and time cluster ids
     overall = cluster_id.groupby(input_columns).ngroup()
     overall = overall.astype('Int64')
     overall[overall==-1] = None

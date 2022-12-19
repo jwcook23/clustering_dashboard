@@ -71,7 +71,6 @@ def get_summary(cluster_id, column_date, units_time, additional_summary):
 def date_summary(cluster_summary, column_date, units_time):
 
     duration = cluster_summary[(column_date,'max')]-cluster_summary[(column_date,'min')]
-    duration = duration.dt.total_seconds()/60/60/24
     duration = convert.duration_to_numeric(duration, units_time)
 
     first = cluster_summary[(column_date,'min')]
