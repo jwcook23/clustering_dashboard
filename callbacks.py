@@ -11,7 +11,7 @@ class updates():
         self.parameters = {}
         self.options = {}
 
-        self.parameters['max_cluster_distance_miles'] = NumericInput(value=0.01, mode='float', title="Location Distance (miles)", height=50, width=160)
+        self.parameters['max_cluster_distance_miles'] = NumericInput(value=0.01, mode='float', title=f"Location Distance ({self.units_distance})", height=50, width=160)
         self.parameters['max_cluster_distance_miles'].on_change('value', self.parameter_callback)
 
         self.parameters['date_range'] = NumericInput(value=1, mode='float', title=f"Time Duration ({self.units_time})", height=50, width=160)
@@ -110,10 +110,10 @@ class updates():
 
     def update_evaluation(self):
         
-        bins = self.histogram_evaulation(self.cluster_summary['Nearest (miles)'])
+        bins = self.histogram_evaulation(self.cluster_summary[f'Nearest ({self.units_distance})'])
         self.render_next_distance.data_source.data = bins
 
-        bins = self.histogram_evaulation(self.cluster_summary['Length (miles)'])
+        bins = self.histogram_evaulation(self.cluster_summary[f'Length ({self.units_distance})'])
         self.render_span_distance.data_source.data = bins
 
         bins = self.histogram_evaulation(self.cluster_summary[f'Nearest ({self.units_time})'])
@@ -228,7 +228,8 @@ class updates():
 
         self.cluster_summary, self.cluster_boundary, self.cluster_id = group.get_clusters(
             self.address, self.parameters['max_cluster_distance_miles'],
-            self.distance, self.columns['time'], self.units_time, self.parameters['date_range'],
+            self.distance, self.columns['time'], self.units_time, self.units_distance,
+            self.parameters['date_range'],
             self.additional_summary
         )
         self.selected_cluster = None

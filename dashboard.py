@@ -45,17 +45,17 @@ class dashboard(updates):
         self.calculate_defaults()
 
         self.plot_estimate_distance, self.render_estimate_distance = self.parameter_estimation(
-            'Distance between Clusters', 'Point', 'miles', 'Nearest Point (miles)'
+            'Distance between Clusters', 'Point', 'miles', f'Nearest Point ({self.units_distance})'
         )
         self.plot_estimate_time, self.render_estimate_time = self.parameter_estimation(
             'Time between Clusters', 'Point', self.units_time, f'Nearest Time ({self.units_time})'
         )
 
         self.plot_next_distance, self.render_next_distance = self.cluster_evaluation(
-            'Distance between Clusters', 'miles', '# Clusters', 'Nearest (miles)'
+            'Distance between Clusters', 'miles', '# Clusters', f'Nearest ({self.units_distance})'
         )
         self.plot_span_distance, self.render_span_distance = self.cluster_evaluation(
-            'Distance in Cluster', 'miles', '# Clusters', 'Length (miles)'
+            'Distance in Cluster', 'miles', '# Clusters', f'Length ({self.units_distance})'
         )
         self.plot_next_date, self.render_next_date = self.cluster_evaluation(
             'Time between Clusters', self.units_time, '# Clusters', f'Nearest ({self.units_time})'
@@ -92,7 +92,9 @@ class dashboard(updates):
         # nearest point location
         self.distance.mask = np.eye(self.distance.shape[0], dtype=bool)
         np.fill_diagonal(self.distance.mask, True)
-        self.address['Nearest Point (miles)'] = self.distance.min(axis=0) * 3958
+        dist = self.distance.min(axis=0)
+        dist = convert.radians_to_distance(dist, self.units_distance)
+        self.address[f'Nearest Point ({self.units_distance})'] = dist
         self.distance.mask = False
         
         # nearest time occurance
@@ -117,7 +119,8 @@ class dashboard(updates):
         # summary based on parameters
         self.cluster_summary, self.cluster_boundary, self.cluster_id = group.get_clusters(
             self.address, self.parameters['max_cluster_distance_miles'],
-            self.distance, self.columns['time'], self.units_time, self.parameters['date_range'],
+            self.distance, self.columns['time'], self.units_time, self.units_distance,
+            self.parameters['date_range'],
             self.additional_summary
         )
 
@@ -321,8 +324,8 @@ class dashboard(updates):
             '# Points': 50,
             'Location ID': 70,
             'Time ID': 50, 
-            'Nearest (miles)': 90, 
-            'Length (miles)': 80, 
+            f'Nearest ({self.units_distance})': 90, 
+            f'Length ({self.units_distance})': 80, 
             'Time (first)': 120, 
             f'Length ({self.units_time})': 80, 
             f'Nearest ({self.units_time})': 80

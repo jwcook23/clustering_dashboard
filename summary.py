@@ -33,12 +33,12 @@ def _unique(series):
     return series
 
 
-def get_summary(cluster_id, column_time, units_time, additional_summary):
+def get_summary(cluster_id, column_time, units_time, units_distance, additional_summary):
 
     cluster_summary = cluster_id.reset_index().groupby('Cluster ID')
     plan = {
         '# Points': 'first', 'Location ID': 'first', 'Time ID': 'first',
-        'Nearest (miles)': min, 'Length (miles)': max, 
+        f'Nearest ({units_distance})': min, f'Length ({units_distance})': max, 
         column_time: ['max','min'],
     }
     cluster_summary = cluster_summary.agg(plan)
@@ -47,7 +47,7 @@ def get_summary(cluster_id, column_time, units_time, additional_summary):
 
     cluster_summary = cluster_summary[[
         '# Points', 'Location ID', 'Time ID', 'Time (first)',
-        'Nearest (miles)', 'Length (miles)', f'Nearest ({units_time})', f'Length ({units_time})'
+        f'Nearest ({units_distance})', f'Length ({units_distance})', f'Nearest ({units_time})', f'Length ({units_time})'
     ]]
 
     return cluster_summary

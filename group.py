@@ -5,6 +5,7 @@ from scipy.spatial import ConvexHull
 from sklearn.cluster import DBSCAN
 
 import summary
+import convert
 
 def assign_id(cluster_id, input_columns, output_name, include_num_points=False):
 
@@ -44,7 +45,7 @@ def assign_id(cluster_id, input_columns, output_name, include_num_points=False):
     return cluster_id
 
 
-def get_clusters(address, max_cluster_distance_miles, distance, column_time, units_time, date_range, additional_summary):
+def get_clusters(address, max_cluster_distance_miles, distance, column_time, units_time, units_distance, date_range, additional_summary):
 
     # group dates
     # date_id, grouped = cluster_date(address, column_latitude, column_longitude, column_time)
@@ -60,10 +61,10 @@ def get_clusters(address, max_cluster_distance_miles, distance, column_time, uni
     cluster_id = assign_id(cluster_id, ['Time ID','Location ID'], 'Cluster', include_num_points=True)
 
     # determine distance of points to other points
-    cluster_id = point_distance(cluster_id, distance)
+    cluster_id = point_distance(cluster_id, distance, units_distance)
 
     # summerize cluster
-    cluster_summary = summary.get_summary(cluster_id, column_time, units_time, additional_summary)
+    cluster_summary = summary.get_summary(cluster_id, column_time, units_time, units_distance, additional_summary)
 
     # calculate cluster boundary for map zoom
     cluster_boundary = cluster_id.groupby('Cluster ID')
@@ -135,7 +136,7 @@ def get_boundary(group):
     return boundary
 
 
-def point_distance(cluster_id, distance):
+def point_distance(cluster_id, distance, units_distance):
 
     grouped = pd.DataFrame(cluster_id['Location ID'])
     grouped['index'] = range(0, len(grouped))
@@ -149,11 +150,15 @@ def point_distance(cluster_id, distance):
 
     distance.mask = np.eye(distance.shape[0], dtype=bool)
     distance[row, col] = ma.masked
-    cluster_id['Nearest (miles)'] = distance.min(axis=0) * 3958
+    nearest = distance.min(axis=0)
+    nearest = convert.radians_to_distance(nearest, units_distance)
+    cluster_id[f'Nearest ({units_distance})'] =  nearest
 
     distance.mask = True
     distance.mask[row, col] = False
-    cluster_id['Length (miles)'] = distance.max(axis=0) * 3958
+    length = distance.max(axis=0)
+    length = convert.radians_to_distance(length, units_distance)
+    cluster_id[f'Length ({units_distance})'] =  length
 
     distance.mask = False
 

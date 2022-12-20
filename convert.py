@@ -12,3 +12,13 @@ def duration_to_numeric(dur, time_units):
         raise RuntimeError('Invalid time units.')
 
     return dur
+
+
+def radians_to_distance(rads, distance_units):
+
+    if distance_units == 'miles':
+        dist = rads * 3958
+    else:
+        raise RuntimeError('Invalid distance units.')
+
+    return dist
