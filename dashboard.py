@@ -214,6 +214,7 @@ class dashboard(updates):
     def format_table(self, df, column_widths=None):
 
         formatters = {
+            'id': NumberFormatter(format='0'),
             'int': NumberFormatter(nan_format='-'),
             'float': NumberFormatter(nan_format='-', format='0.00'),
             'time': DateFormatter(format="%m/%d/%Y", nan_format='-'),
@@ -230,7 +231,10 @@ class dashboard(updates):
                 width = 100
 
             if pd.api.types.is_integer_dtype(values):
-                columns += [TableColumn(field=col, formatter=formatters['int'], width=width)]
+                if 'ID' in col:
+                    columns += [TableColumn(field=col, formatter=formatters['id'], width=width)]
+                else:
+                    columns += [TableColumn(field=col, formatter=formatters['int'], width=width)]
             elif pd.api.types.is_float_dtype(values):
                 columns += [TableColumn(field=col, formatter=formatters['float'], width=width)]
             elif pd.api.types.is_datetime64_dtype(values):
