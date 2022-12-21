@@ -91,6 +91,8 @@ class dashboard(updates):
         # ]]
         self.column_id = self.address.index.name
 
+        self.address = self.address.reset_index()
+
     def find_nearest(self):
 
         # nearest point location

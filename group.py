@@ -31,7 +31,6 @@ def assign_id(cluster_id, input_columns, output_name, include_num_points=False):
     size[id_name] = range(0,len(size))
     overall = overall.merge(size, on='Grouped', how='left')
     overall[id_name] = overall[id_name].astype('Int64')
-    overall = overall.set_index(cluster_id.index.name)
 
     # add id and size to original input
     if include_num_points:
@@ -49,12 +48,13 @@ def get_clusters(address, cluster_distance, distance, column_time, units_time, u
 
     # group dates
     # date_id, grouped = cluster_date(address, column_latitude, column_longitude, column_time)
-    date_id = cluster_date(address, column_time, date_range, units_time)
+    date_id, grouped = cluster_date(address, column_time, date_range, units_time)
     cluster_id = address.merge(date_id, left_index=True, right_index=True)
 
     # group addresses
     # geo_id = grouped.apply(lambda x: cluster_geo(x, cluster_distance, min_cluster_size, column_latitude, column_longitude))
     geo_id = cluster_geo(address, cluster_distance, distance, units_distance)
+    # geo_id = grouped.apply(lambda x:  cluster_geo(x, cluster_distance, distance, units_distance))
     cluster_id = cluster_id.merge(geo_id, left_index=True, right_index=True)
 
     # assign an overall id desc with largest size
@@ -94,7 +94,7 @@ def cluster_date(address, column_time, date_range, units_time):
         # assign ID based on size
         cluster_id = assign_id(cluster_id, ['Time ID'], 'Time')
 
-    return cluster_id
+    return cluster_id, grouped
 
 
 def cluster_geo(df, cluster_distance, distance, units_distance):
