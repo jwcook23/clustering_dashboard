@@ -363,10 +363,11 @@ class dashboard(updates):
 
     def page_layout(self):
 
-        self.title_main = Div(style={'font-size': '150%', 'font-weight': 'bold'}, width=170)
+        # self.title_main = Div(style={'font-size': '150%', 'font-weight': 'bold'}, width=170)
         self.title_map = Div(style={'font-size': '150%', 'font-weight': 'bold'}, width=625)
         self.update_titles()
 
+        title_units = Div(text="Unit Selection", style={'font-weight': 'bold'}, height=20, width=160)
         title_parameter = Div(text="Cluster Parameters", style={'font-weight': 'bold'}, height=20, width=160)
         title_summary = Div(text="Cluster Summary*", style={'font-weight': 'bold'})
         id_description = Div(text="*lower IDs have larger size")
@@ -375,8 +376,9 @@ class dashboard(updates):
             column(
                 row(
                     column(
-                        self.title_main,
-                        title_parameter, 
+                        title_units,
+                        row(self.units['distance'], self.units['time']),
+                        title_parameter,
                         self.parameters['cluster_distance'], 
                         self.parameters['date_range']
                     ),

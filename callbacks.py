@@ -1,6 +1,5 @@
 import pandas as pd
-import numpy as np
-from bokeh.models import Dropdown, CheckboxGroup, NumericInput
+from bokeh.models import Dropdown, Select, NumericInput
 
 import group
 
@@ -8,8 +7,15 @@ class updates():
 
     def __init__(self):
         
+        self.units = {}
         self.parameters = {}
         self.options = {}
+
+        self.units['distance'] = Select(value="miles", options=["miles", "feet", "kilometers"], height=25, width=75)
+        self.units['distance'].on_change('value', self.parameter_callback)
+
+        self.units['time'] = Select(value="days", options=["days", "hours", "minutes"], height=25, width=75)
+        self.units['distance'].on_change('value', self.parameter_callback)
 
         self.parameters['cluster_distance'] = NumericInput(value=300, mode='float', title=f"Location Distance ({self.units_distance})", height=50, width=160)
         self.parameters['cluster_distance'].on_change('value', self.parameter_callback)
@@ -148,7 +154,7 @@ class updates():
 
         self.title_map.text = f"Location and Time Clusters: {selected_title}"
 
-        self.title_main.text = f'{len(self.cluster_summary)} Total Clusters'
+        # self.title_main.text = f'{len(self.cluster_summary)} Total Clusters'
 
 
     def table_callback(self, attr, old, selected_cluster):
