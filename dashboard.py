@@ -30,9 +30,6 @@ class dashboard(updates):
         self.load_settings()
         self.load_data()
 
-        self.units_distance = 'feet'
-        self.units_time = 'hours'
-
         updates.__init__(self)
 
         self.address = geo.convert_to_mercator(self.address, self.columns['latitude'], self.columns['longitude'])
@@ -45,23 +42,23 @@ class dashboard(updates):
         self.calculate_defaults()
 
         self.plot_estimate_distance, self.render_estimate_distance = self.parameter_estimation(
-            'Distance between Clusters', 'Point', self.units_distance, f'Nearest Point ({self.units_distance})'
+            'Distance between Clusters', 'Point', self.units["distance"].value, f'Nearest Point ({self.units["distance"].value})'
         )
         self.plot_estimate_time, self.render_estimate_time = self.parameter_estimation(
-            'Time between Clusters', 'Point', self.units_time, f'Nearest Time ({self.units_time})'
+            'Time between Clusters', 'Point', self.units["time"].value, f'Nearest Time ({self.units["time"].value})'
         )
 
         self.plot_next_distance, self.render_next_distance = self.cluster_evaluation(
-            'Distance between Clusters', self.units_distance, '# Clusters', f'Nearest ({self.units_distance})'
+            'Distance between Clusters', self.units["distance"].value, '# Clusters', f'Nearest ({self.units["distance"].value})'
         )
         self.plot_span_distance, self.render_span_distance = self.cluster_evaluation(
-            'Distance in Cluster', self.units_distance, '# Clusters', f'Length ({self.units_distance})'
+            'Distance in Cluster', self.units["distance"].value, '# Clusters', f'Length ({self.units["distance"].value})'
         )
         self.plot_next_date, self.render_next_date = self.cluster_evaluation(
-            'Time between Clusters', self.units_time, '# Clusters', f'Nearest ({self.units_time})'
+            'Time between Clusters', self.units["time"].value, '# Clusters', f'Nearest ({self.units["time"].value})'
         )
         self.plot_span_date, self.render_span_date = self.cluster_evaluation(
-            'Time in Cluster', self.units_time, '# Clusters', f'Length ({self.units_time})'
+            'Time in Cluster', self.units["time"].value, '# Clusters', f'Length ({self.units["time"].value})'
         )
         
         self.summary_table()
@@ -99,8 +96,8 @@ class dashboard(updates):
         self.distance.mask = np.eye(self.distance.shape[0], dtype=bool)
         np.fill_diagonal(self.distance.mask, True)
         dist = self.distance.min(axis=0)
-        dist = convert.radians_to_distance(dist, self.units_distance)
-        self.address[f'Nearest Point ({self.units_distance})'] = dist
+        dist = convert.radians_to_distance(dist, self.units["distance"].value)
+        self.address[f'Nearest Point ({self.units["distance"].value})'] = dist
         self.distance.mask = False
         
         # nearest time occurance
@@ -108,9 +105,9 @@ class dashboard(updates):
         nearest = self.address[[column]].sort_values(column)
         nearest['Next'] = abs(nearest[column]-nearest[column].shift(1))
         nearest['Previous'] = abs(nearest[column]-nearest[column].shift(-1))
-        column = f'Nearest Time ({self.units_time})'
+        column = f'Nearest Time ({self.units["time"].value})'
         nearest[column] = nearest[['Next','Previous']].min(axis='columns')
-        nearest[column] = convert.duration_to_numeric(nearest[column], self.units_time)
+        nearest[column] = convert.duration_to_numeric(nearest[column], self.units["time"].value)
         self.address = self.address.merge(nearest[[column]], left_index=True, right_index=True)
 
 
@@ -125,7 +122,7 @@ class dashboard(updates):
         # summary based on parameters
         self.cluster_summary, self.cluster_boundary, self.cluster_id = group.get_clusters(
             self.address, self.parameters['cluster_distance'],
-            self.distance, self.columns['time'], self.units_time, self.units_distance,
+            self.distance, self.columns['time'], self.units["time"].value, self.units["distance"].value,
             self.parameters['date_range'],
             self.additional_summary
         )
@@ -333,11 +330,11 @@ class dashboard(updates):
             '# Points': 50,
             'Location ID': 70,
             'Time ID': 50, 
-            f'Nearest ({self.units_distance})': 90, 
-            f'Length ({self.units_distance})': 80, 
+            f'Nearest ({self.units["distance"].value})': 90, 
+            f'Length ({self.units["distance"].value})': 80, 
             'Time (first)': 120, 
-            f'Length ({self.units_time})': 80, 
-            f'Nearest ({self.units_time})': 80
+            f'Length ({self.units["time"].value})': 80, 
+            f'Nearest ({self.units["time"].value})': 80
         }
 
         columns = self.format_table(self.cluster_summary, column_widths)

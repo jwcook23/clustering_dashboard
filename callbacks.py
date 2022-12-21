@@ -11,16 +11,16 @@ class updates():
         self.parameters = {}
         self.options = {}
 
-        self.units['distance'] = Select(value="miles", options=["miles", "feet", "kilometers"], height=25, width=75)
+        self.units['distance'] = Select(value="feet", options=["miles", "feet", "kilometers"], height=25, width=75)
         self.units['distance'].on_change('value', self.parameter_callback)
 
-        self.units['time'] = Select(value="days", options=["days", "hours", "minutes"], height=25, width=75)
+        self.units['time'] = Select(value="hours", options=["days", "hours", "minutes"], height=25, width=75)
         self.units['distance'].on_change('value', self.parameter_callback)
 
-        self.parameters['cluster_distance'] = NumericInput(value=300, mode='float', title=f"Location Distance ({self.units_distance})", height=50, width=160)
+        self.parameters['cluster_distance'] = NumericInput(value=300, mode='float', title=f'Location Distance ({self.units["distance"].value})', height=50, width=160)
         self.parameters['cluster_distance'].on_change('value', self.parameter_callback)
 
-        self.parameters['date_range'] = NumericInput(value=6, mode='float', title=f"Time Duration ({self.units_time})", height=50, width=160)
+        self.parameters['date_range'] = NumericInput(value=6, mode='float', title=f'Time Duration ({self.units["time"].value})', height=50, width=160)
         self.parameters['date_range'].on_change('value', self.parameter_callback)
         self.parameters['date_range'].visible = True
 
@@ -118,16 +118,16 @@ class updates():
 
     def update_evaluation(self):
         
-        bins = self.histogram_evaulation(self.cluster_summary[f'Nearest ({self.units_distance})'])
+        bins = self.histogram_evaulation(self.cluster_summary[f'Nearest ({self.units["distance"].value})'])
         self.render_next_distance.data_source.data = bins
 
-        bins = self.histogram_evaulation(self.cluster_summary[f'Length ({self.units_distance})'])
+        bins = self.histogram_evaulation(self.cluster_summary[f'Length ({self.units["distance"].value})'])
         self.render_span_distance.data_source.data = bins
 
-        bins = self.histogram_evaulation(self.cluster_summary[f'Nearest ({self.units_time})'])
+        bins = self.histogram_evaulation(self.cluster_summary[f'Nearest ({self.units["time"].value})'])
         self.render_next_date.data_source.data = bins
 
-        bins = self.histogram_evaulation(self.cluster_summary[f'Length ({self.units_time})'])
+        bins = self.histogram_evaulation(self.cluster_summary[f'Length ({self.units["time"].value})'])
         self.render_span_date.data_source.data = bins
 
 
@@ -236,7 +236,7 @@ class updates():
 
         self.cluster_summary, self.cluster_boundary, self.cluster_id = group.get_clusters(
             self.address, self.parameters['cluster_distance'],
-            self.distance, self.columns['time'], self.units_time, self.units_distance,
+            self.distance, self.columns['time'], self.units["time"].value, self.units["distance"].value,
             self.parameters['date_range'],
             self.additional_summary
         )
