@@ -47,18 +47,19 @@ def assign_id(cluster_id, input_columns, output_name, include_num_points=False):
 def get_clusters(address, cluster_distance, distance, column_time, units_time, units_distance, date_range, additional_summary):
 
     # group dates
-    # date_id, grouped = cluster_date(address, column_latitude, column_longitude, column_time)
     date_id, grouped = cluster_date(address, column_time, date_range, units_time)
     cluster_id = address.merge(date_id, left_index=True, right_index=True)
 
-    # group addresses
-    # geo_id = grouped.apply(lambda x: cluster_geo(x, cluster_distance, min_cluster_size, column_latitude, column_longitude))
-    geo_id = cluster_geo(address, cluster_distance, distance, units_distance)
-    # geo_id = grouped.apply(lambda x:  cluster_geo(x, cluster_distance, distance, units_distance))
+    # group on location without time aspect, to show other points near location potentially at different dates
+    geo_id = cluster_geo(address, cluster_distance, distance, units_distance, 'Location')
+    cluster_id = cluster_id.merge(geo_id, left_index=True, right_index=True)
+
+    # group on location with time to assign overall Cluster ID
+    geo_id = grouped.apply(lambda x:  cluster_geo(x, cluster_distance, distance, units_distance, 'LocationTime'))
     cluster_id = cluster_id.merge(geo_id, left_index=True, right_index=True)
 
     # assign an overall id desc with largest size
-    cluster_id = assign_id(cluster_id, ['Time ID','Location ID'], 'Cluster', include_num_points=True)
+    cluster_id = assign_id(cluster_id, ['Time ID','LocationTime ID'], 'Cluster', include_num_points=True)
 
     # determine distance of points to other points
     cluster_id = point_distance(cluster_id, distance, units_distance)
@@ -97,19 +98,26 @@ def cluster_date(address, column_time, date_range, units_time):
     return cluster_id, grouped
 
 
-def cluster_geo(df, cluster_distance, distance, units_distance):
+def cluster_geo(df, cluster_distance, distance, units_distance, name):
+
+    id_name = f'{name} ID'
 
     # convert to radians
     eps = convert.distance_to_radians(cluster_distance.value, units_distance)
 
-    # identify geographic clusters
+    # identify geographic clusters from already clustered time values
     clusters = DBSCAN(metric='precomputed', eps=eps, min_samples=2)
-    clusters = clusters.fit(distance)
-    cluster_id = pd.DataFrame(clusters.labels_, columns=['Location ID'], index=df.index, dtype='Int64')
-    cluster_id['Location ID'][cluster_id['Location ID']==-1] = None
+    if len(df)==0:
+        cluster_id = None
+    else:
+        time_submatrix = distance[np.ix_(df.index, df.index)]
+        clusters = clusters.fit(time_submatrix)
+        cluster_id = pd.DataFrame(clusters.labels_, columns=[id_name], index=df.index, dtype='Int64')
+        cluster_id[id_name][cluster_id[id_name]==-1] = None
 
-    # assign ID based on size
-    cluster_id = assign_id(cluster_id, ['Location ID'], 'Location')
+        # assign ID based on size if grouping by location only
+        if name == 'Location':
+            cluster_id = assign_id(cluster_id, [id_name], name)
 
     return cluster_id
 
@@ -138,9 +146,9 @@ def get_boundary(group):
 
 def point_distance(cluster_id, distance, units_distance):
 
-    grouped = pd.DataFrame(cluster_id['Location ID'])
+    grouped = pd.DataFrame(cluster_id['LocationTime ID'])
     grouped['index'] = range(0, len(grouped))
-    grouped = grouped.groupby('Location ID')
+    grouped = grouped.groupby('LocationTime ID')
     grouped = grouped.agg({'index': list})
     grouped['index'] = grouped['index'].apply(lambda x: np.array(x))
     grouped['row'] = grouped['index'].apply(lambda x: x.repeat(len(x)))

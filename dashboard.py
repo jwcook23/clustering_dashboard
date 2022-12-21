@@ -419,9 +419,9 @@ if args.debug:
     # page.date_callback([0])
 
     # # display nearby points
-    # dropdown = Event()
-    # dropdown.item = 'same location'
-    # page.display_callback(dropdown)
+    dropdown = Event()
+    dropdown.item = 'same location'
+    page.display_callback(dropdown)
 
     # # reset display
     # dropdown = Event()

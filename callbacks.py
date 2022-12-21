@@ -14,7 +14,7 @@ class updates():
         self.parameters['cluster_distance'] = NumericInput(value=300, mode='float', title=f"Location Distance ({self.units_distance})", height=50, width=160)
         self.parameters['cluster_distance'].on_change('value', self.parameter_callback)
 
-        self.parameters['date_range'] = NumericInput(value=1, mode='float', title=f"Time Duration ({self.units_time})", height=50, width=160)
+        self.parameters['date_range'] = NumericInput(value=6, mode='float', title=f"Time Duration ({self.units_time})", height=50, width=160)
         self.parameters['date_range'].on_change('value', self.parameter_callback)
         self.parameters['date_range'].visible = True
 
@@ -43,8 +43,6 @@ class updates():
     def update_map(self):
         '''Plot location point and boundary when making a selection in the summary table.'''
 
-        show_ids = self.selected_cluster.index
-
         data_boundary = {
             'xs': [],
             'ys': []
@@ -65,12 +63,13 @@ class updates():
         })
 
         # update address using selected cluster
+        show_ids = self.selected_cluster.index
         longitude = self.columns['longitude']
         latitude = self.columns['latitude']
         data_point.update({
-            'Cluster ID': self.cluster_id.loc[show_ids, 'Cluster ID'].values,
-            'Location ID': self.cluster_id.loc[show_ids, 'Location ID'].values,
-            'Time ID': self.cluster_id.loc[show_ids, 'Time ID'].values,
+            'Cluster ID': self.cluster_id.loc[show_ids, 'Cluster ID'].fillna(-1).values,
+            'Location ID': self.cluster_id.loc[show_ids, 'Location ID'].fillna(-1).values,
+            'Time ID': self.cluster_id.loc[show_ids, 'Time ID'].fillna(-1).values,
             'x': self.cluster_id.loc[show_ids, 'Longitude_mercator'].values,
             'y': self.cluster_id.loc[show_ids, 'Latitude_mercator'].values,
             self.column_id: show_ids,
@@ -189,26 +188,26 @@ class updates():
 
     def same_location(self):
             
-            same = self.cluster_id.loc[
-                self.cluster_id['Cluster ID'].isin(self.selected_cluster),
-                'Location ID'
-            ]
-            self.selected_cluster = self.cluster_id.loc[
-                self.cluster_id['Location ID'].isin(same),
-                'Cluster ID'
-            ]
+        same = self.cluster_id.loc[
+            self.cluster_id['Cluster ID'].isin(self.selected_cluster),
+            'Location ID'
+        ]
+        self.selected_cluster = self.cluster_id.loc[
+            self.cluster_id['Location ID'].isin(same),
+            'Cluster ID'
+        ]
 
 
     def same_date(self):
 
-            same = self.cluster_id.loc[
-                self.cluster_id['Cluster ID'].isin(self.selected_cluster),
-                'Time ID'
-            ]
-            self.selected_cluster = self.cluster_id.loc[
-                self.cluster_id['Time ID'].isin(same),
-                'Cluster ID'
-            ]            
+        same = self.cluster_id.loc[
+            self.cluster_id['Cluster ID'].isin(self.selected_cluster),
+            'Time ID'
+        ]
+        self.selected_cluster = self.cluster_id.loc[
+            self.cluster_id['Time ID'].isin(same),
+            'Cluster ID'
+        ]            
 
     def filter_clusters(self):
 
