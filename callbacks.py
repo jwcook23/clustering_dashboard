@@ -11,8 +11,8 @@ class updates():
         self.parameters = {}
         self.options = {}
 
-        self.parameters['max_cluster_distance_miles'] = NumericInput(value=0.01, mode='float', title=f"Location Distance ({self.units_distance})", height=50, width=160)
-        self.parameters['max_cluster_distance_miles'].on_change('value', self.parameter_callback)
+        self.parameters['cluster_distance'] = NumericInput(value=300, mode='float', title=f"Location Distance ({self.units_distance})", height=50, width=160)
+        self.parameters['cluster_distance'].on_change('value', self.parameter_callback)
 
         self.parameters['date_range'] = NumericInput(value=1, mode='float', title=f"Time Duration ({self.units_time})", height=50, width=160)
         self.parameters['date_range'].on_change('value', self.parameter_callback)
@@ -23,7 +23,7 @@ class updates():
             ("2) Display clusters with same Location ID.", "same location"),
             ("3) Display clusters with same Time ID.", "same time")
         ]
-        self.options['display'] = Dropdown(label="display other cluster options", button_type="default", menu=menu, height=25, width=200)
+        self.options['display'] = Dropdown(label="display related clusters", button_type="default", menu=menu, height=25, width=200)
         self.options['display'].on_click(self.display_callback)
 
 
@@ -68,13 +68,16 @@ class updates():
         longitude = self.columns['longitude']
         latitude = self.columns['latitude']
         data_point.update({
-            'x': self.address.loc[show_ids, 'Longitude_mercator'].values,
-            'y': self.address.loc[show_ids, 'Latitude_mercator'].values,
+            'Cluster ID': self.cluster_id.loc[show_ids, 'Cluster ID'].values,
+            'Location ID': self.cluster_id.loc[show_ids, 'Location ID'].values,
+            'Time ID': self.cluster_id.loc[show_ids, 'Time ID'].values,
+            'x': self.cluster_id.loc[show_ids, 'Longitude_mercator'].values,
+            'y': self.cluster_id.loc[show_ids, 'Latitude_mercator'].values,
             self.column_id: show_ids,
-            longitude: self.address.loc[show_ids, longitude].values,
-            latitude: self.address.loc[show_ids, latitude].values,
-            time: self.address.loc[show_ids, time].values,
-            '_timestamp': self.address.loc[show_ids, '_timestamp'].values
+            longitude: self.cluster_id.loc[show_ids, longitude].values,
+            latitude: self.cluster_id.loc[show_ids, latitude].values,
+            time: self.cluster_id.loc[show_ids, time].values,
+            '_timestamp': self.cluster_id.loc[show_ids, '_timestamp'].values
         })
         # data_point.update({
         #     col: self.address.loc[show_ids, col].values for col in self.address.columns.drop([longitude,latitude,time])
@@ -227,7 +230,7 @@ class updates():
     def parameter_callback(self, attr, old, new):
 
         self.cluster_summary, self.cluster_boundary, self.cluster_id = group.get_clusters(
-            self.address, self.parameters['max_cluster_distance_miles'],
+            self.address, self.parameters['cluster_distance'],
             self.distance, self.columns['time'], self.units_time, self.units_distance,
             self.parameters['date_range'],
             self.additional_summary

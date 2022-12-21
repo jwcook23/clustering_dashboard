@@ -30,7 +30,7 @@ class dashboard(updates):
         self.load_settings()
         self.load_data()
 
-        self.units_distance = 'miles'
+        self.units_distance = 'feet'
         self.units_time = 'hours'
 
         updates.__init__(self)
@@ -45,17 +45,17 @@ class dashboard(updates):
         self.calculate_defaults()
 
         self.plot_estimate_distance, self.render_estimate_distance = self.parameter_estimation(
-            'Distance between Clusters', 'Point', 'miles', f'Nearest Point ({self.units_distance})'
+            'Distance between Clusters', 'Point', self.units_distance, f'Nearest Point ({self.units_distance})'
         )
         self.plot_estimate_time, self.render_estimate_time = self.parameter_estimation(
             'Time between Clusters', 'Point', self.units_time, f'Nearest Time ({self.units_time})'
         )
 
         self.plot_next_distance, self.render_next_distance = self.cluster_evaluation(
-            'Distance between Clusters', 'miles', '# Clusters', f'Nearest ({self.units_distance})'
+            'Distance between Clusters', self.units_distance, '# Clusters', f'Nearest ({self.units_distance})'
         )
         self.plot_span_distance, self.render_span_distance = self.cluster_evaluation(
-            'Distance in Cluster', 'miles', '# Clusters', f'Length ({self.units_distance})'
+            'Distance in Cluster', self.units_distance, '# Clusters', f'Length ({self.units_distance})'
         )
         self.plot_next_date, self.render_next_date = self.cluster_evaluation(
             'Time between Clusters', self.units_time, '# Clusters', f'Nearest ({self.units_time})'
@@ -85,6 +85,10 @@ class dashboard(updates):
     def load_data(self):
 
         self.address = pd.read_parquet(self.file_path)
+        # self.address = self.address.loc[[
+        #     3922,3461,4398,4921,909,3731,
+        #     6384,917,8831
+        # ]]
         self.column_id = self.address.index.name
 
     def find_nearest(self):
@@ -118,7 +122,7 @@ class dashboard(updates):
 
         # summary based on parameters
         self.cluster_summary, self.cluster_boundary, self.cluster_id = group.get_clusters(
-            self.address, self.parameters['max_cluster_distance_miles'],
+            self.address, self.parameters['cluster_distance'],
             self.distance, self.columns['time'], self.units_time, self.units_distance,
             self.parameters['date_range'],
             self.additional_summary
@@ -260,6 +264,9 @@ class dashboard(updates):
         longitude = self.columns['longitude']
         time = self.columns['time']
         features = [
+            ('Cluster ID', "@{Cluster ID}"),
+            ('Location ID', "@{Location ID}"),
+            ('Time ID', "@{Time ID}"),
             (self.column_id, "@{"+self.column_id+"}"),
             (f"({latitude}/{longitude})", "(@{"+latitude+"},@{"+longitude+"})"),
             (time, "@{"+time+"}{%F}")
@@ -368,7 +375,7 @@ class dashboard(updates):
                     column(
                         self.title_main,
                         title_parameter, 
-                        self.parameters['max_cluster_distance_miles'], 
+                        self.parameters['cluster_distance'], 
                         self.parameters['date_range']
                     ),
                     Tabs(tabs=[
@@ -420,7 +427,7 @@ if args.debug:
     # page.display_callback(dropdown)
 
     # adjuster parameter
-    # page.parameters['max_cluster_distance_miles'].value = 0.01
+    # page.parameters['cluster_distance'].value = 0.01
     # page.parameter_callback(None, None, None)
 
     # # plot second largest

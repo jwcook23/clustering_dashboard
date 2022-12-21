@@ -45,7 +45,7 @@ def assign_id(cluster_id, input_columns, output_name, include_num_points=False):
     return cluster_id
 
 
-def get_clusters(address, max_cluster_distance_miles, distance, column_time, units_time, units_distance, date_range, additional_summary):
+def get_clusters(address, cluster_distance, distance, column_time, units_time, units_distance, date_range, additional_summary):
 
     # group dates
     # date_id, grouped = cluster_date(address, column_latitude, column_longitude, column_time)
@@ -53,8 +53,8 @@ def get_clusters(address, max_cluster_distance_miles, distance, column_time, uni
     cluster_id = address.merge(date_id, left_index=True, right_index=True)
 
     # group addresses
-    # geo_id = grouped.apply(lambda x: cluster_geo(x, max_cluster_distance_miles, min_cluster_size, column_latitude, column_longitude))
-    geo_id = cluster_geo(address, max_cluster_distance_miles, distance)
+    # geo_id = grouped.apply(lambda x: cluster_geo(x, cluster_distance, min_cluster_size, column_latitude, column_longitude))
+    geo_id = cluster_geo(address, cluster_distance, distance, units_distance)
     cluster_id = cluster_id.merge(geo_id, left_index=True, right_index=True)
 
     # assign an overall id desc with largest size
@@ -97,10 +97,10 @@ def cluster_date(address, column_time, date_range, units_time):
     return cluster_id
 
 
-def cluster_geo(df, max_cluster_distance_miles, distance):
+def cluster_geo(df, cluster_distance, distance, units_distance):
 
-    # convert to kilometers then radians
-    eps = max_cluster_distance_miles.value*1.60934/6371
+    # convert to radians
+    eps = convert.distance_to_radians(cluster_distance.value, units_distance)
 
     # identify geographic clusters
     clusters = DBSCAN(metric='precomputed', eps=eps, min_samples=2)
