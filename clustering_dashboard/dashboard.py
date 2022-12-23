@@ -53,19 +53,18 @@ class dashboard(updates):
             'Time between Clusters', 'Point', self.units["time"].value, f'Nearest Time ({self.units["time"].value})'
         )
 
-        # f'Nearest ({self.units["distance"].value})'
         self.plot_next_distance, self.render_next_distance = self.cluster_evaluation(
             'Distance between Clusters', self.units["distance"].value, '# Clusters'
         )
-        # f'Length ({self.units["distance"].value})'
+
         self.plot_span_distance, self.render_span_distance = self.cluster_evaluation(
             'Distance in Cluster', self.units["distance"].value, '# Clusters'
         )
-        # f'Nearest ({self.units["time"].value})'
+
         self.plot_next_date, self.render_next_date = self.cluster_evaluation(
             'Time between Clusters', self.units["time"].value, '# Clusters'
         )
-        # f'Length ({self.units["time"].value})'
+
         self.plot_span_date, self.render_span_date = self.cluster_evaluation(
             'Time in Cluster', self.units["time"].value, '# Clusters'
         )
@@ -142,20 +141,6 @@ class dashboard(updates):
         return (values.dt.hour==0).all()
 
 
-    def histogram_evaulation(self, data):
-
-        hist, edges = np.histogram(data.dropna(), bins='fd')
-
-        bins = dict(
-                left=edges[:-1],
-                right=edges[1:],
-                top=hist,
-                bottom=[0]*len(hist),
-            )
-
-        return bins
-
-
     def parameter_figure(self, title, xlabel, ylabel):
 
         fig = figure(
@@ -209,16 +194,6 @@ class dashboard(updates):
             'left', 'right', 'top', 'bottom', source=source, 
             fill_color="skyblue", line_color="white"
         )
-
-        # values = self.cluster_summary[column]
-        # values, outliers = self.filter_outliers(values)
-        # bins = self.histogram_evaulation(values)
-        # source = ColumnDataSource(bins)
-        # xloc = values.max()
-        # if np.isnan(xloc):
-        #     xloc = 1
-        # yloc = bins['top'].max()
-        # fig.add_layout(Label(text=outliers, x=xloc, y=yloc, text_align='right', text_baseline='top'))
 
         return fig, renderer
 
@@ -329,7 +304,7 @@ class dashboard(updates):
             TableColumn(field="Time ID", formatter=self.display_format['id'], width=50),
             TableColumn(field=f"Nearest ({self.units['distance'].value})", formatter=self.display_format['float'], width=90),
             TableColumn(field=f"Length ({self.units['distance'].value})", formatter=self.display_format['float'], width=80),
-            TableColumn(field=self.columns['time'], formatter=self.display_format['timestamp'], width=120),
+            TableColumn(field='Time (first)', formatter=self.display_format['timestamp'], width=120),
             TableColumn(field=f"Length ({self.units['time'].value})", formatter=self.display_format['float'], width=80),
             TableColumn(field=f"Nearest ({self.units['time'].value})", formatter=self.display_format['float'], width=80)
         ]

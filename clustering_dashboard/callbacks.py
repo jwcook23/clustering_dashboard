@@ -1,5 +1,6 @@
 import pandas as pd
-from bokeh.models import Dropdown, Select, NumericInput
+import numpy as np
+from bokeh.models import Dropdown, Select, NumericInput, Label
 
 from clustering_dashboard import group
 
@@ -114,20 +115,55 @@ class updates():
         self.source_detail.data = data
         self.update_titles()
 
+    def histogram_evaulation(self, column, fig, renderer):
+
+        data = self.cluster_summary[column]
+
+        data, outliers = self.filter_outliers(data)
+
+        hist, edges = np.histogram(data.dropna(), bins='fd')
+
+        bins = dict(
+                left=edges[:-1],
+                right=edges[1:],
+                top=hist,
+                bottom=[0]*len(hist),
+            )
+
+        xpos = bins['right'].max()
+        if np.isnan(xpos):
+            xpos = 1
+        ypos = bins['top'].max()
+
+        renderer.data_source.data = bins
+        fig.add_layout(Label(text=outliers, x=xpos, y=ypos, text_align='right', text_baseline='top'))
+
 
     def update_evaluation(self):
+
+        self.histogram_evaulation(
+            f'Nearest ({self.units["distance"].value})',
+            self.plot_next_distance,
+            self.render_next_distance
+        )
         
-        bins = self.histogram_evaulation(self.cluster_summary[f'Nearest ({self.units["distance"].value})'])
-        self.render_next_distance.data_source.data = bins
+        self.histogram_evaulation(
+            f'Length ({self.units["distance"].value})',
+            self.plot_span_distance,
+            self.render_span_distance
+        )
 
-        bins = self.histogram_evaulation(self.cluster_summary[f'Length ({self.units["distance"].value})'])
-        self.render_span_distance.data_source.data = bins
+        self.histogram_evaulation(
+            f'Nearest ({self.units["time"].value})',
+            self.plot_next_date,
+            self.render_next_date
+        )
 
-        bins = self.histogram_evaulation(self.cluster_summary[f'Nearest ({self.units["time"].value})'])
-        self.render_next_date.data_source.data = bins
-
-        bins = self.histogram_evaulation(self.cluster_summary[f'Length ({self.units["time"].value})'])
-        self.render_span_date.data_source.data = bins
+        self.histogram_evaulation(
+            f'Length ({self.units["time"].value})',
+            self.plot_span_date,
+            self.render_span_date
+        )
 
 
     def update_summary(self):

@@ -1,12 +1,26 @@
 from bokeh.events import Event
 from bokeh.plotting import output_file, show
 
-from clustering_dashboard import dashboard
+from clustering_dashboard.dashboard import dashboard
+
+def test_landing_page():
+
+    page = dashboard()
+    output_file("test.html")
+
+    show(page.layout)
+
 
 def test_parameter_select():
 
     page = dashboard()
     output_file("test.html")
+
+    page.units['distance'].value = 'miles'
+    page.units['time'].value = 'hours'
+    page.parameters['cluster_distance'].value = 1
+    page.parameters['date_range'].value = 6
+
     show(page.layout)
 
 # plot second largest
