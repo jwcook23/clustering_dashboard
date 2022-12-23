@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-import convert
+from clustering_dashboard import convert
 
 def _min(series):
 

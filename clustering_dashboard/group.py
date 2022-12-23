@@ -4,8 +4,7 @@ import pandas as pd
 from scipy.spatial import ConvexHull
 from sklearn.cluster import DBSCAN
 
-import summary
-import convert
+from clustering_dashboard import summary, convert
 
 def assign_id(cluster_id, input_columns, output_name, include_num_points=False):
 

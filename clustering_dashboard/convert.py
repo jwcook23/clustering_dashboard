@@ -1,5 +1,3 @@
-
-
 def duration_to_numeric(dur, time_units):
 
     if time_units == 'days':

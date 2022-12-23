@@ -1,7 +1,7 @@
 import pandas as pd
 from bokeh.models import Dropdown, Select, NumericInput
 
-import group
+from clustering_dashboard import group
 
 class updates():
 
@@ -11,18 +11,17 @@ class updates():
         self.parameters = {}
         self.options = {}
 
-        self.units['distance'] = Select(value="feet", options=["miles", "feet", "kilometers"], height=25, width=75)
-        self.units['distance'].on_change('value', self.parameter_callback)
+        self.units['distance'] = Select(title='Distance:', value="miles", options=["miles", "feet", "kilometers"], height=25, width=75)
+        self.units['distance'].on_change('value', self.calculate_callback)
 
-        self.units['time'] = Select(value="hours", options=["days", "hours", "minutes"], height=25, width=75)
-        self.units['distance'].on_change('value', self.parameter_callback)
+        self.units['time'] = Select(title='Time:', value="hours", options=["days", "hours", "minutes"], height=25, width=75)
+        self.units['distance'].on_change('value', self.calculate_callback)
 
-        self.parameters['cluster_distance'] = NumericInput(value=300, mode='float', title=f'Location Distance ({self.units["distance"].value})', height=50, width=160)
-        self.parameters['cluster_distance'].on_change('value', self.parameter_callback)
+        self.parameters['cluster_distance'] = NumericInput(value=None, mode='float', title=f'Location Distance ({self.units["distance"].value}):', height=50, width=160)
+        self.parameters['cluster_distance'].on_change('value', self.calculate_callback)
 
-        self.parameters['date_range'] = NumericInput(value=6, mode='float', title=f'Time Duration ({self.units["time"].value})', height=50, width=160)
-        self.parameters['date_range'].on_change('value', self.parameter_callback)
-        self.parameters['date_range'].visible = True
+        self.parameters['date_range'] = NumericInput(value=None, mode='float', title=f'Time Duration ({self.units["time"].value}):', height=50, width=160)
+        self.parameters['date_range'].on_change('value', self.calculate_callback)
 
         menu = [
             ("1) Reset display.", "reset display"),
@@ -54,8 +53,8 @@ class updates():
             'ys': []
         }
         data_point = {
-            'x': [],
-            'y': [],
+            'xs': [],
+            'ys': [],
         }
 
         time = self.columns['time']
@@ -76,8 +75,8 @@ class updates():
             'Cluster ID': self.cluster_id.loc[show_ids, 'Cluster ID'].fillna(-1).values,
             'Location ID': self.cluster_id.loc[show_ids, 'Location ID'].fillna(-1).values,
             'Time ID': self.cluster_id.loc[show_ids, 'Time ID'].fillna(-1).values,
-            'x': self.cluster_id.loc[show_ids, 'Longitude_mercator'].values,
-            'y': self.cluster_id.loc[show_ids, 'Latitude_mercator'].values,
+            'xs': self.cluster_id.loc[show_ids, 'Longitude_mercator'].values,
+            'ys': self.cluster_id.loc[show_ids, 'Latitude_mercator'].values,
             self.column_id: show_ids,
             longitude: self.cluster_id.loc[show_ids, longitude].values,
             latitude: self.cluster_id.loc[show_ids, latitude].values,
@@ -170,7 +169,7 @@ class updates():
     def display_callback(self, event):
         
         if event.item=='reset display':
-            self.parameter_callback(None, None, None)
+            self.calculate_callback(None, None, None)
             return None
         elif event.item=='same location':
             self.same_location()
@@ -189,7 +188,7 @@ class updates():
         else:
             self.parameters['date_range'].visible = False
 
-        self.parameter_callback(None, None, None)
+        self.calculate_callback(None, None, None)
 
 
     def same_location(self):
@@ -232,7 +231,10 @@ class updates():
         return cluster_summary
 
 
-    def parameter_callback(self, attr, old, new):
+    def calculate_callback(self, attr, old, new):
+
+        if self.parameters['cluster_distance'].value is None or self.parameters['date_range'].value is None:
+            return
 
         self.cluster_summary, self.cluster_boundary, self.cluster_id = group.get_clusters(
             self.address, self.parameters['cluster_distance'],

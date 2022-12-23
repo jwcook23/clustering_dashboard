@@ -1,9 +1,7 @@
-# bokeh serve --show dashboard.py
+# bokeh serve --show clustering_dashboard/dashboard.py
 
 import json
 import os
-import argparse
-import ast
 
 import pandas as pd
 import numpy as np
@@ -17,10 +15,8 @@ from bokeh.models import (
     Panel, Tabs, ColorBar, Label
 )
 
-from callbacks import updates
-import group
-import geo
-import convert
+from clustering_dashboard.callbacks import updates
+from clustering_dashboard import geo, convert
 
 class dashboard(updates):
 
@@ -41,6 +37,15 @@ class dashboard(updates):
 
         self.calculate_defaults()
 
+        self.display_format = {
+            'id': NumberFormatter(format='0'),
+            'int': NumberFormatter(nan_format='-'),
+            'float': NumberFormatter(nan_format='-', format='0.00'),
+            'time': DateFormatter(format="%m/%d/%Y", nan_format='-'),
+            'timestamp': DateFormatter(format="%m/%d/%Y %H:%M:%S", nan_format='-'),
+            'string': StringFormatter(nan_format='-')
+        }
+
         self.plot_estimate_distance, self.render_estimate_distance = self.parameter_estimation(
             'Distance between Clusters', 'Point', self.units["distance"].value, f'Nearest Point ({self.units["distance"].value})'
         )
@@ -48,17 +53,21 @@ class dashboard(updates):
             'Time between Clusters', 'Point', self.units["time"].value, f'Nearest Time ({self.units["time"].value})'
         )
 
+        # f'Nearest ({self.units["distance"].value})'
         self.plot_next_distance, self.render_next_distance = self.cluster_evaluation(
-            'Distance between Clusters', self.units["distance"].value, '# Clusters', f'Nearest ({self.units["distance"].value})'
+            'Distance between Clusters', self.units["distance"].value, '# Clusters'
         )
+        # f'Length ({self.units["distance"].value})'
         self.plot_span_distance, self.render_span_distance = self.cluster_evaluation(
-            'Distance in Cluster', self.units["distance"].value, '# Clusters', f'Length ({self.units["distance"].value})'
+            'Distance in Cluster', self.units["distance"].value, '# Clusters'
         )
+        # f'Nearest ({self.units["time"].value})'
         self.plot_next_date, self.render_next_date = self.cluster_evaluation(
-            'Time between Clusters', self.units["time"].value, '# Clusters', f'Nearest ({self.units["time"].value})'
+            'Time between Clusters', self.units["time"].value, '# Clusters'
         )
+        # f'Length ({self.units["time"].value})'
         self.plot_span_date, self.render_span_date = self.cluster_evaluation(
-            'Time in Cluster', self.units["time"].value, '# Clusters', f'Length ({self.units["time"].value})'
+            'Time in Cluster', self.units["time"].value, '# Clusters'
         )
         
         self.summary_table()
@@ -67,7 +76,7 @@ class dashboard(updates):
         self.page_layout()
 
         # display all clusters
-        self.table_callback(None, None, self.cluster_summary.index)
+        # self.table_callback(None, None, self.cluster_summary.index)
 
     def load_settings(self):
 
@@ -119,13 +128,13 @@ class dashboard(updates):
         points = self.address[['Longitude_mercator','Latitude_mercator']].rename(columns={'Longitude_mercator': 'x', 'Latitude_mercator': 'y'})
         self.default_zoom = self.zoom_window(points)
 
-        # summary based on parameters
-        self.cluster_summary, self.cluster_boundary, self.cluster_id = group.get_clusters(
-            self.address, self.parameters['cluster_distance'],
-            self.distance, self.columns['time'], self.units["time"].value, self.units["distance"].value,
-            self.parameters['date_range'],
-            self.additional_summary
-        )
+        # # summary based on parameters
+        # self.cluster_summary, self.cluster_boundary, self.cluster_id = group.get_clusters(
+        #     self.address, self.parameters['cluster_distance'],
+        #     self.distance, self.columns['time'], self.units["time"].value, self.units["distance"].value,
+        #     self.parameters['date_range'],
+        #     self.additional_summary
+        # )
 
 
     def is_date(self, values):
@@ -166,7 +175,7 @@ class dashboard(updates):
         values = values[~values.index.isin(outliers.index)]
 
         if values.any():
-            outliers = f'{len(outliers)} points\n> {values.max():.3f}'
+            outliers = f'excluding {len(outliers)} points\n> {values.max():.3f}'
         else:
             outliers = 'no data'
 
@@ -192,41 +201,29 @@ class dashboard(updates):
         return fig, renderer
 
 
-    def cluster_evaluation(self, title, xlabel, ylabel, column):
+    def cluster_evaluation(self, title, xlabel, ylabel):
 
         fig = self.parameter_figure(title, xlabel, ylabel)
-
-        values = self.cluster_summary[column]
-
-        values, outliers = self.filter_outliers(values)
-
-        bins = self.histogram_evaulation(values)
-
-        source = ColumnDataSource(bins)
-
+        source = ColumnDataSource({'left': [], 'right': [], 'top': [], 'bottom': []})
         renderer = fig.quad(
             'left', 'right', 'top', 'bottom', source=source, 
             fill_color="skyblue", line_color="white"
         )
-        xloc = values.max()
-        if np.isnan(xloc):
-            xloc = 1
-        yloc = bins['top'].max()
-        fig.add_layout(Label(text=outliers, x=xloc, y=yloc, text_align='right', text_baseline='top'))
+
+        # values = self.cluster_summary[column]
+        # values, outliers = self.filter_outliers(values)
+        # bins = self.histogram_evaulation(values)
+        # source = ColumnDataSource(bins)
+        # xloc = values.max()
+        # if np.isnan(xloc):
+        #     xloc = 1
+        # yloc = bins['top'].max()
+        # fig.add_layout(Label(text=outliers, x=xloc, y=yloc, text_align='right', text_baseline='top'))
 
         return fig, renderer
 
 
     def format_table(self, df, column_widths=None):
-
-        formatters = {
-            'id': NumberFormatter(format='0'),
-            'int': NumberFormatter(nan_format='-'),
-            'float': NumberFormatter(nan_format='-', format='0.00'),
-            'time': DateFormatter(format="%m/%d/%Y", nan_format='-'),
-            'timestamp': DateFormatter(format="%m/%d/%Y %H:%M:%S", nan_format='-'),
-            'string': StringFormatter(nan_format='-')
-        }
 
         columns = []
         for col,values in df.items():
@@ -238,21 +235,21 @@ class dashboard(updates):
 
             if pd.api.types.is_integer_dtype(values):
                 if 'ID' in col:
-                    columns += [TableColumn(field=col, formatter=formatters['id'], width=width)]
+                    columns += [TableColumn(field=col, formatter=self.display_format['id'], width=width)]
                 else:
-                    columns += [TableColumn(field=col, formatter=formatters['int'], width=width)]
+                    columns += [TableColumn(field=col, formatter=self.display_format['int'], width=width)]
             elif pd.api.types.is_float_dtype(values):
-                columns += [TableColumn(field=col, formatter=formatters['float'], width=width)]
+                columns += [TableColumn(field=col, formatter=self.display_format['float'], width=width)]
             elif pd.api.types.is_datetime64_dtype(values):
                 if self.is_date(values):
-                    fmt = formatters['time']
+                    fmt = self.display_format['time']
                 else:
-                    fmt = formatters['timestamp']
+                    fmt = self.display_format['timestamp']
                 columns += [TableColumn(field=col, formatter=fmt, width=width)]
             elif pd.api.types.is_string_dtype(values):
-                columns += [TableColumn(field=col, formatter=formatters['string'], width=width)]
+                columns += [TableColumn(field=col, formatter=self.display_format['string'], width=width)]
             else:
-                columns += [TableColumn(field=col, formatter=formatters['string'], width=width)]
+                columns += [TableColumn(field=col, formatter=self.display_format['string'], width=width)]
 
         return columns
 
@@ -308,8 +305,8 @@ class dashboard(updates):
         self.plot_map.add_layout(color_bar, 'above')        
 
         # render address points
-        source = ColumnDataSource(data=dict(x=[], y=[], time=[], _timestamp=[]))
-        self.render_points = self.plot_map.circle('x','y', source=source, fill_color=cmap, line_color=None, size=10, legend_label='Location')
+        source = ColumnDataSource(data=dict(xs=[], ys=[], time=[], _timestamp=[]))
+        self.render_points = self.plot_map.circle('xs','ys', source=source, fill_color=cmap, line_color=None, size=10, legend_label='Location')
         features, formatters = self.format_hover()
         self.plot_map.add_tools(HoverTool(
             tooltips=features,
@@ -318,7 +315,7 @@ class dashboard(updates):
         )
 
         # render boundary of clusters
-        source = ColumnDataSource(data=dict(x=[], y=[], time=[], _timestamp=[]))
+        source = ColumnDataSource(data=dict(xs=[], ys=[], time=[], _timestamp=[]))
         self.render_boundary = self.plot_map.multi_polygons('xs', 'ys', source=source, color=cmap, alpha=0.3, line_color=None, legend_label='Cluster')
 
         self.plot_map.legend.location = "top_right"
@@ -326,26 +323,22 @@ class dashboard(updates):
 
     def summary_table(self):
 
-        column_widths = {
-            '# Points': 50,
-            'Location ID': 70,
-            'Time ID': 50, 
-            f'Nearest ({self.units["distance"].value})': 90, 
-            f'Length ({self.units["distance"].value})': 80, 
-            'Time (first)': 120, 
-            f'Length ({self.units["time"].value})': 80, 
-            f'Nearest ({self.units["time"].value})': 80
-        }
-
-        columns = self.format_table(self.cluster_summary, column_widths)
+        columns = [
+            TableColumn(field="# Points", formatter=self.display_format['int'], width=50),
+            TableColumn(field="Location ID", formatter=self.display_format['id'], width=70),
+            TableColumn(field="Time ID", formatter=self.display_format['id'], width=50),
+            TableColumn(field=f"Nearest ({self.units['distance'].value})", formatter=self.display_format['float'], width=90),
+            TableColumn(field=f"Length ({self.units['distance'].value})", formatter=self.display_format['float'], width=80),
+            TableColumn(field=self.columns['time'], formatter=self.display_format['timestamp'], width=120),
+            TableColumn(field=f"Length ({self.units['time'].value})", formatter=self.display_format['float'], width=80),
+            TableColumn(field=f"Nearest ({self.units['time'].value})", formatter=self.display_format['float'], width=80)
+        ]
 
         self.source_summary = ColumnDataSource(data=dict())
         self.table_summary = DataTable(
             source=self.source_summary, columns=columns, index_header='Cluster ID', index_width=60,
             autosize_mode='none', height=300, width=700)
         self.source_summary.selected.on_change('indices', self.table_callback)
-
-        self.update_summary()
 
 
     def cluster_detail(self):
@@ -366,6 +359,7 @@ class dashboard(updates):
 
         title_units = Div(text="Unit Selection", style={'font-weight': 'bold'}, height=20, width=160)
         title_parameter = Div(text="Cluster Parameters", style={'font-weight': 'bold'}, height=20, width=160)
+        space = Div(height=20, width=160)
         title_summary = Div(text="Cluster Summary*", style={'font-weight': 'bold'})
         id_description = Div(text="*lower IDs have larger size")
 
@@ -375,6 +369,7 @@ class dashboard(updates):
                     column(
                         title_units,
                         row(self.units['distance'], self.units['time']),
+                        space,
                         title_parameter,
                         self.parameters['cluster_distance'], 
                         self.parameters['date_range']
@@ -402,37 +397,3 @@ class dashboard(updates):
 # initialize server app
 page = dashboard()
 curdoc().add_root(page.layout)
-
-parser = argparse.ArgumentParser()
-parser.add_argument('--debug', type=ast.literal_eval, required=False, default=False)
-args = parser.parse_args()
-if args.debug:
-    # TODO: move to tests
-    from bokeh.events import Event
-    from bokeh.plotting import output_file, show
-
-    # plot second largest
-    page.table_callback(None, None, [0])
-
-    # # enable time clustering
-    # page.date_callback([0])
-
-    # # display nearby points
-    dropdown = Event()
-    dropdown.item = 'same location'
-    page.display_callback(dropdown)
-
-    # # reset display
-    # dropdown = Event()
-    # dropdown.item = 'reset display'
-    # page.display_callback(dropdown)
-
-    # adjuster parameter
-    # page.parameters['cluster_distance'].value = 0.01
-    # page.parameter_callback(None, None, None)
-
-    # # plot second largest
-    # page.table_callback(None, None, [1])
-
-    output_file("test.html")
-    show(page.layout)
