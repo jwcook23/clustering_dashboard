@@ -5,6 +5,8 @@ from clustering_dashboard.dashboard import dashboard
 
 def test_landing_page():
 
+    # TODO: show all points plotted without clustering on init
+
     page = dashboard()
     output_file("test.html")
 

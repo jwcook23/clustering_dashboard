@@ -124,7 +124,7 @@ def cluster_geo(df, cluster_distance, distance, units_distance, name):
 def get_boundary(group):
     '''Calculate the boundary of latitude and longitude points using a convex hull.'''
 
-    points = group[['Latitude_mercator','Longitude_mercator']].values
+    points = group[['_latitude_mercator','_longitude_mercator']].values
 
     # return a line for only 2 points
     if points.shape[0]<=2:
@@ -138,7 +138,7 @@ def get_boundary(group):
 
     # reshape and format for multi_polygons
     # ex) LAT_mercator = [[[[0, 0, 1, 1]]], [[[3,4,5]]]]
-    boundary = pd.Series({'Latitude_mercator': [[list(boundary[:,0])]], 'Longitude_mercator': [[list(boundary[:,1])]]})
+    boundary = pd.Series({'_latitude_mercator': [[list(boundary[:,0])]], '_longitude_mercator': [[list(boundary[:,1])]]})
 
     return boundary
 

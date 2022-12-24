@@ -1,3 +1,5 @@
+import numpy as np
+
 def duration_to_numeric(dur, time_units):
 
     if time_units == 'days':
@@ -37,3 +39,12 @@ def distance_to_radians(dist, distance_units):
         raise RuntimeError('Invalid distance units.')
 
     return rads
+
+
+def latlon_to_mercator(latitude, longitude):
+
+    k = 6378137
+    longitude_mercator = longitude * (k * np.pi/180.0)
+    latitude_mercator = np.log(np.tan((90 + latitude) * np.pi/360.0)) * k
+
+    return latitude_mercator, longitude_mercator

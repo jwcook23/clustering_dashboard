@@ -16,7 +16,7 @@ from bokeh.models import (
 )
 
 from clustering_dashboard.callbacks import updates
-from clustering_dashboard import geo, convert
+from clustering_dashboard import calculate, convert
 
 class dashboard(updates):
 
@@ -28,14 +28,29 @@ class dashboard(updates):
 
         updates.__init__(self)
 
-        self.address = geo.convert_to_mercator(self.address, self.columns['latitude'], self.columns['longitude'])
-        self.address['_timestamp'] = self.address['Pickup Time'].apply(lambda x: int(x.timestamp()*1000))
-
-        self.distance = geo.calc_distance(self.address, self.columns['latitude'], self.columns['longitude'])
-
-        self.find_nearest()
-
         self.calculate_defaults()
+
+        self.set_format()
+       
+        self.plot_parameters()
+        self.summary_table()
+        self.map_plot()
+        self.cluster_detail()
+        self.page_layout()
+
+        # display all clusters
+        # self.table_callback(None, None, self.cluster_summary.index)
+
+    def load_settings(self):
+
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)),'settings.json')) as fh:
+            settings = json.load(fh)
+
+        self.file_path = settings['file_path']
+        self.columns = pd.Series(settings['column_names'])
+        self.additional_summary = settings['additional_summary']
+
+    def set_format(self):
 
         self.display_format = {
             'id': NumberFormatter(format='0'),
@@ -45,6 +60,59 @@ class dashboard(updates):
             'timestamp': DateFormatter(format="%m/%d/%Y %H:%M:%S", nan_format='-'),
             'string': StringFormatter(nan_format='-')
         }
+
+    def load_data(self):
+
+        self.address = pd.read_parquet(self.file_path)
+        self.column_id = self.address.index.name
+
+        self.address = self.address.reset_index()
+
+
+    def calculate_defaults(self):
+
+        self.selected_cluster = None
+
+        latitude = self.address[self.columns['latitude']]
+        longitude = self.address[self.columns['longitude']]
+        
+        latitude_mercator, longitude_mercator = convert.latlon_to_mercator(latitude, longitude)
+        self.address['_latitude_mercator'] = latitude_mercator
+        self.address['_longitude_mercator'] = longitude_mercator
+
+        self.address['_timestamp'] = self.address[self.columns['time']].apply(lambda x: int(x.timestamp()*1000))
+
+        self.distance = calculate.distance_matrix(self.address, self.columns['latitude'], self.columns['longitude'])
+
+        units = self.units["distance"].value
+        self.address[f'Nearest Point ({units})'] = calculate.nearest_point(self.distance, units)
+
+        units = self.units["time"].value
+        self.address[f'Nearest Time ({units})'] = calculate.nearest_time(self.address[self.columns['time']], units)
+
+        # set zoom box as range of coordinates
+        points = self.address[['_longitude_mercator','_latitude_mercator']].rename(columns={'_longitude_mercator': 'x', '_latitude_mercator': 'y'})
+        self.default_zoom = self.zoom_window(points)
+
+
+
+    def is_date(self, values):
+
+        return (values.dt.hour==0).all()
+
+
+    def parameter_figure(self, title, xlabel, ylabel):
+
+        fig = figure(
+            title=title, width=275, height=225,
+            y_axis_label = ylabel, x_axis_label=xlabel,
+            toolbar_location='right', tools='pan, box_zoom, reset',
+            active_drag = 'box_zoom'
+        )
+
+        return fig
+
+    def plot_parameters(self):
 
         self.plot_estimate_distance, self.render_estimate_distance = self.parameter_estimation(
             'Distance between Clusters', 'Point', self.units["distance"].value, f'Nearest Point ({self.units["distance"].value})'
@@ -68,90 +136,6 @@ class dashboard(updates):
         self.plot_span_date, self.render_span_date = self.cluster_evaluation(
             'Time in Cluster', self.units["time"].value, '# Clusters'
         )
-        
-        self.summary_table()
-        self.map_plot()
-        self.cluster_detail()
-        self.page_layout()
-
-        # display all clusters
-        # self.table_callback(None, None, self.cluster_summary.index)
-
-    def load_settings(self):
-
-        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)),'settings.json')) as fh:
-            settings = json.load(fh)
-
-        self.file_path = settings['file_path']
-        self.columns = pd.Series(settings['column_names'])
-        self.additional_summary = settings['additional_summary']
-
-
-    def load_data(self):
-
-        self.address = pd.read_parquet(self.file_path)
-        # self.address = self.address.loc[[
-        #     3922,3461,4398,4921,909,3731,
-        #     6384,917,8831
-        # ]]
-        self.column_id = self.address.index.name
-
-        self.address = self.address.reset_index()
-
-    def find_nearest(self):
-
-        # nearest point location
-        self.distance.mask = np.eye(self.distance.shape[0], dtype=bool)
-        np.fill_diagonal(self.distance.mask, True)
-        dist = self.distance.min(axis=0)
-        dist = convert.radians_to_distance(dist, self.units["distance"].value)
-        self.address[f'Nearest Point ({self.units["distance"].value})'] = dist
-        self.distance.mask = False
-        
-        # nearest time occurance
-        column = self.columns['time']
-        nearest = self.address[[column]].sort_values(column)
-        nearest['Next'] = abs(nearest[column]-nearest[column].shift(1))
-        nearest['Previous'] = abs(nearest[column]-nearest[column].shift(-1))
-        column = f'Nearest Time ({self.units["time"].value})'
-        nearest[column] = nearest[['Next','Previous']].min(axis='columns')
-        nearest[column] = convert.duration_to_numeric(nearest[column], self.units["time"].value)
-        self.address = self.address.merge(nearest[[column]], left_index=True, right_index=True)
-
-
-    def calculate_defaults(self):
-
-        self.selected_cluster = None
-
-        # set zoom box as range of coordinates
-        points = self.address[['Longitude_mercator','Latitude_mercator']].rename(columns={'Longitude_mercator': 'x', 'Latitude_mercator': 'y'})
-        self.default_zoom = self.zoom_window(points)
-
-        # # summary based on parameters
-        # self.cluster_summary, self.cluster_boundary, self.cluster_id = group.get_clusters(
-        #     self.address, self.parameters['cluster_distance'],
-        #     self.distance, self.columns['time'], self.units["time"].value, self.units["distance"].value,
-        #     self.parameters['date_range'],
-        #     self.additional_summary
-        # )
-
-
-    def is_date(self, values):
-
-        return (values.dt.hour==0).all()
-
-
-    def parameter_figure(self, title, xlabel, ylabel):
-
-        fig = figure(
-            title=title, width=275, height=225,
-            y_axis_label = ylabel, x_axis_label=xlabel,
-            toolbar_location='right', tools='pan, box_zoom, reset',
-            active_drag = 'box_zoom'
-        )
-
-        return fig
-
     
     def filter_outliers(self, values):
 
@@ -244,7 +228,7 @@ class dashboard(updates):
         ]
         formatters = {"@{"+time+"}": 'datetime'}
         # formatters = {}
-        # for col,values in self.address.drop(columns=[latitude, longitude, 'Latitude_mercator', 'Longitude_mercator']).items():
+        # for col,values in self.address.drop(columns=[latitude, longitude, '_latitude_mercator', '_longitude_mercator']).items():
         #     if pd.api.types.is_datetime64_dtype(values):
         #         if self.is_date(values):
         #             features += [(col, f'@{col}'+"{%F}")]
@@ -319,7 +303,7 @@ class dashboard(updates):
     def cluster_detail(self):
 
         ignore = self.columns.loc[['latitude','longitude']].tolist()
-        ignore += ['Longitude_mercator','Latitude_mercator']
+        ignore += ['_longitude_mercator','_latitude_mercator']
         columns = self.format_table(self.address.drop(columns=ignore))
 
         self.source_detail = ColumnDataSource(data=dict())

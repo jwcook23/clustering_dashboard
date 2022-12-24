@@ -62,8 +62,8 @@ class updates():
 
         unique_clusters = self.selected_cluster.dropna().drop_duplicates()
         data_boundary.update({
-            'xs': self.cluster_boundary.loc[unique_clusters, 'Longitude_mercator'].tolist(),
-            'ys': self.cluster_boundary.loc[unique_clusters, 'Latitude_mercator'].tolist(),
+            'xs': self.cluster_boundary.loc[unique_clusters, '_longitude_mercator'].tolist(),
+            'ys': self.cluster_boundary.loc[unique_clusters, '_latitude_mercator'].tolist(),
             time: self.address.loc[unique_clusters.index, time].tolist(),
             '_timestamp': self.address.loc[unique_clusters.index, '_timestamp'].tolist()
         })
@@ -76,8 +76,8 @@ class updates():
             'Cluster ID': self.cluster_id.loc[show_ids, 'Cluster ID'].fillna(-1).values,
             'Location ID': self.cluster_id.loc[show_ids, 'Location ID'].fillna(-1).values,
             'Time ID': self.cluster_id.loc[show_ids, 'Time ID'].fillna(-1).values,
-            'xs': self.cluster_id.loc[show_ids, 'Longitude_mercator'].values,
-            'ys': self.cluster_id.loc[show_ids, 'Latitude_mercator'].values,
+            'xs': self.cluster_id.loc[show_ids, '_longitude_mercator'].values,
+            'ys': self.cluster_id.loc[show_ids, '_latitude_mercator'].values,
             self.column_id: show_ids,
             longitude: self.cluster_id.loc[show_ids, longitude].values,
             latitude: self.cluster_id.loc[show_ids, latitude].values,
@@ -96,11 +96,11 @@ class updates():
         self.render_points.data_source.data = data_point
 
         # update range to selected
-        zoom = self.zoom_window(self.address.loc[show_ids,['Longitude_mercator','Latitude_mercator']])
-        self.plot_map.x_range.start = zoom.at['Longitude_mercator','min']
-        self.plot_map.x_range.end = zoom.at['Longitude_mercator','max']
-        self.plot_map.y_range.start = zoom.at['Latitude_mercator','min']
-        self.plot_map.y_range.end = zoom.at['Latitude_mercator','max']
+        zoom = self.zoom_window(self.address.loc[show_ids,['_longitude_mercator','_latitude_mercator']])
+        self.plot_map.x_range.start = zoom.at['_longitude_mercator','min']
+        self.plot_map.x_range.end = zoom.at['_longitude_mercator','max']
+        self.plot_map.y_range.start = zoom.at['_latitude_mercator','min']
+        self.plot_map.y_range.end = zoom.at['_latitude_mercator','max']
 
 
     def update_detail(self):
