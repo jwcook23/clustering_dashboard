@@ -4,42 +4,31 @@ import json
 import os
 
 import pandas as pd
-import numpy as np
-from bokeh.plotting import figure, curdoc
-from bokeh.tile_providers import CARTODBPOSITRON, get_provider
+from bokeh.plotting import curdoc
 from bokeh.layouts import row, column
-from bokeh.transform import linear_cmap
 from bokeh.models import (
-    ColumnDataSource, DataTable, TableColumn, HoverTool, Div,
-    DateFormatter, StringFormatter, NumberFormatter, DatetimeTickFormatter,
-    Panel, Tabs, ColorBar, Label
+    TableColumn, Div, DateFormatter, StringFormatter, 
+    NumberFormatter, Panel, Tabs
 )
 
-from clustering_dashboard.callbacks import updates
+from clustering_dashboard.callbacks import callbacks
+from clustering_dashboard.figures import figures
 from clustering_dashboard import calculate, convert
 
-class dashboard(updates):
+class dashboard(figures, callbacks):
 
     def __init__(self):
 
-
         self.load_settings()
         self.load_data()
-
-        updates.__init__(self)
-
-        self.calculate_defaults()
-
         self.set_format()
+
+        figures.__init__(self)
+        callbacks.__init__(self)
+        self.calculate_defaults()
        
-        self.plot_parameters()
-        self.summary_table()
-        self.map_plot()
-        self.cluster_detail()
         self.page_layout()
 
-        # display all clusters
-        # self.table_callback(None, None, self.cluster_summary.index)
 
     def load_settings(self):
 
@@ -49,6 +38,7 @@ class dashboard(updates):
         self.file_path = settings['file_path']
         self.columns = pd.Series(settings['column_names'])
         self.additional_summary = settings['additional_summary']
+
 
     def set_format(self):
 
@@ -60,6 +50,7 @@ class dashboard(updates):
             'timestamp': DateFormatter(format="%m/%d/%Y %H:%M:%S", nan_format='-'),
             'string': StringFormatter(nan_format='-')
         }
+
 
     def load_data(self):
 
@@ -95,48 +86,11 @@ class dashboard(updates):
         self.default_zoom = self.zoom_window(points)
 
 
-
     def is_date(self, values):
 
         return (values.dt.hour==0).all()
 
 
-    def parameter_figure(self, title, xlabel, ylabel):
-
-        fig = figure(
-            title=title, width=275, height=225,
-            y_axis_label = ylabel, x_axis_label=xlabel,
-            toolbar_location='right', tools='pan, box_zoom, reset',
-            active_drag = 'box_zoom'
-        )
-
-        return fig
-
-    def plot_parameters(self):
-
-        self.plot_estimate_distance, self.render_estimate_distance = self.parameter_estimation(
-            'Distance between Clusters', 'Point', self.units["distance"].value, f'Nearest Point ({self.units["distance"].value})'
-        )
-        self.plot_estimate_time, self.render_estimate_time = self.parameter_estimation(
-            'Time between Clusters', 'Point', self.units["time"].value, f'Nearest Time ({self.units["time"].value})'
-        )
-
-        self.plot_next_distance, self.render_next_distance = self.cluster_evaluation(
-            'Distance between Clusters', self.units["distance"].value, '# Clusters'
-        )
-
-        self.plot_span_distance, self.render_span_distance = self.cluster_evaluation(
-            'Distance in Cluster', self.units["distance"].value, '# Clusters'
-        )
-
-        self.plot_next_date, self.render_next_date = self.cluster_evaluation(
-            'Time between Clusters', self.units["time"].value, '# Clusters'
-        )
-
-        self.plot_span_date, self.render_span_date = self.cluster_evaluation(
-            'Time in Cluster', self.units["time"].value, '# Clusters'
-        )
-    
     def filter_outliers(self, values):
 
         outliers = values[values > values.mean() + 3 * values.std()]
@@ -149,37 +103,6 @@ class dashboard(updates):
             outliers = 'no data'
 
         return values, outliers
-
-
-    def parameter_estimation(self, title, xlabel, ylabel, column):
-               
-        values = self.address[column].sort_values()
-        
-        values, outliers = self.filter_outliers(values)
-
-        fig = self.parameter_figure(title, xlabel, ylabel)
-
-        source = ColumnDataSource({
-            'x': range(0, len(values)),
-            'y': values.values
-        })
-
-        renderer = fig.line('x','y', source=source)
-        fig.add_layout(Label(text=outliers, x=len(values), y=values.max(), text_align='right', text_baseline='top'))
-     
-        return fig, renderer
-
-
-    def cluster_evaluation(self, title, xlabel, ylabel):
-
-        fig = self.parameter_figure(title, xlabel, ylabel)
-        source = ColumnDataSource({'left': [], 'right': [], 'top': [], 'bottom': []})
-        renderer = fig.quad(
-            'left', 'right', 'top', 'bottom', source=source, 
-            fill_color="skyblue", line_color="white"
-        )
-
-        return fig, renderer
 
 
     def format_table(self, df, column_widths=None):
@@ -239,75 +162,6 @@ class dashboard(updates):
         #         features += [(col, f'@{col}')]
 
         return features, formatters
-
-
-    def map_plot(self):
-
-        # generate map
-        self.plot_map = figure(
-            x_range=self.default_zoom.loc['x'], y_range=self.default_zoom.loc['y'],
-            x_axis_type="mercator", y_axis_type="mercator", title=None,
-            height=625, width=625,
-            x_axis_label=self.columns['longitude'], y_axis_label = self.columns['latitude'],
-            toolbar_location='right', tools='pan, wheel_zoom, zoom_out, zoom_in, reset',
-            active_drag = 'pan', active_scroll = 'wheel_zoom'
-        )
-        tile_provider = get_provider(CARTODBPOSITRON)
-        self.plot_map.add_tile(tile_provider)
-
-        # add color scale for time
-        cmap = linear_cmap(field_name='_timestamp', palette='Turbo256', low=min(self.address['_timestamp']), high=max(self.address['_timestamp']))
-        color_bar = ColorBar(color_mapper=cmap['transform'], 
-            # title=self.columns['time'], 
-            formatter=DatetimeTickFormatter()
-        )
-        self.plot_map.add_layout(color_bar, 'above')        
-
-        # render address points
-        source = ColumnDataSource(data=dict(xs=[], ys=[], time=[], _timestamp=[]))
-        self.render_points = self.plot_map.circle('xs','ys', source=source, fill_color=cmap, line_color=None, size=10, legend_label='Location')
-        features, formatters = self.format_hover()
-        self.plot_map.add_tools(HoverTool(
-            tooltips=features,
-            formatters=formatters,
-            renderers=[self.render_points])
-        )
-
-        # render boundary of clusters
-        source = ColumnDataSource(data=dict(xs=[], ys=[], time=[], _timestamp=[]))
-        self.render_boundary = self.plot_map.multi_polygons('xs', 'ys', source=source, color=cmap, alpha=0.3, line_color=None, legend_label='Cluster')
-
-        self.plot_map.legend.location = "top_right"
-
-
-    def summary_table(self):
-
-        columns = [
-            TableColumn(field="# Points", formatter=self.display_format['int'], width=50),
-            TableColumn(field="Location ID", formatter=self.display_format['id'], width=70),
-            TableColumn(field="Time ID", formatter=self.display_format['id'], width=50),
-            TableColumn(field=f"Nearest ({self.units['distance'].value})", formatter=self.display_format['float'], width=90),
-            TableColumn(field=f"Length ({self.units['distance'].value})", formatter=self.display_format['float'], width=80),
-            TableColumn(field='Time (first)', formatter=self.display_format['timestamp'], width=120),
-            TableColumn(field=f"Length ({self.units['time'].value})", formatter=self.display_format['float'], width=80),
-            TableColumn(field=f"Nearest ({self.units['time'].value})", formatter=self.display_format['float'], width=80)
-        ]
-
-        self.source_summary = ColumnDataSource(data=dict())
-        self.table_summary = DataTable(
-            source=self.source_summary, columns=columns, index_header='Cluster ID', index_width=60,
-            autosize_mode='none', height=300, width=700)
-        self.source_summary.selected.on_change('indices', self.table_callback)
-
-
-    def cluster_detail(self):
-
-        ignore = self.columns.loc[['latitude','longitude']].tolist()
-        ignore += ['_longitude_mercator','_latitude_mercator']
-        columns = self.format_table(self.address.drop(columns=ignore))
-
-        self.source_detail = ColumnDataSource(data=dict())
-        self.table_detail = DataTable(source=self.source_detail, columns=columns, autosize_mode='fit_columns', height=625, width=625)        
 
 
     def page_layout(self):

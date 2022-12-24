@@ -1,36 +1,14 @@
 import pandas as pd
 import numpy as np
-from bokeh.models import Dropdown, Select, NumericInput, Label
+from bokeh.models import Label
 
 from clustering_dashboard import group
 
-class updates():
+class callbacks():
 
     def __init__(self):
         
-        self.units = {}
-        self.parameters = {}
-        self.options = {}
-
-        self.units['distance'] = Select(title='Distance:', value="miles", options=["miles", "feet", "kilometers"], height=25, width=75)
-        self.units['distance'].on_change('value', self.calculate_callback)
-
-        self.units['time'] = Select(title='Time:', value="hours", options=["days", "hours", "minutes"], height=25, width=75)
-        self.units['distance'].on_change('value', self.calculate_callback)
-
-        self.parameters['cluster_distance'] = NumericInput(value=None, mode='float', title=f'Location Distance ({self.units["distance"].value}):', height=50, width=160)
-        self.parameters['cluster_distance'].on_change('value', self.calculate_callback)
-
-        self.parameters['date_range'] = NumericInput(value=None, mode='float', title=f'Time Duration ({self.units["time"].value}):', height=50, width=160)
-        self.parameters['date_range'].on_change('value', self.calculate_callback)
-
-        menu = [
-            ("1) Reset display.", "reset display"),
-            ("2) Display clusters with same Location ID.", "same location"),
-            ("3) Display clusters with same Time ID.", "same time")
-        ]
-        self.options['display'] = Dropdown(label="display related clusters", button_type="default", menu=menu, height=25, width=200)
-        self.options['display'].on_click(self.display_callback)
+        pass
 
 
     def zoom_window(self, df):
