@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from bokeh.models import Label
+from bokeh.models import Label, ColumnDataSource
 
 from clustering_dashboard import group
 
@@ -93,6 +93,7 @@ class callbacks():
         self.source_detail.data = data
         self.update_titles()
 
+
     def histogram_evaulation(self, column, fig, renderer):
 
         data = self.cluster_summary[column]
@@ -157,6 +158,34 @@ class callbacks():
         self.source_summary.data = data.to_dict(orient='list')
 
 
+    def update_parameter_estimation(self):
+
+        parameters = {
+            f'Nearest Point ({self.units["distance"].value})': {
+                'fig': self.plot_estimate_distance,
+                'render': self.render_estimate_distance
+            },
+            f'Nearest Time ({self.units["time"].value})': {
+                'fig': self.plot_estimate_time,
+                'renderer': self.render_estimate_time
+            }
+        }
+
+        for column, target in parameters.items():
+
+            values = self.address[column].sort_values()
+            values, outliers = self.filter_outliers(values)
+            
+            source = ColumnDataSource({
+                'x': range(0, len(values)),
+                'y': values.values
+            })
+            target['renderer'].source = source
+
+            label = Label(text=outliers, x=len(values), y=values.max(), text_align='right', text_baseline='top')
+            target['fig'].add_layout(label)
+
+
     def update_titles(self):
 
         if self.selected_cluster is None:
@@ -166,8 +195,6 @@ class callbacks():
             selected_title = f'{self.selected_cluster.nunique()} clusters displayed'
 
         self.title_map.text = f"Location and Time Clusters: {selected_title}"
-
-        # self.title_main.text = f'{len(self.cluster_summary)} Total Clusters'
 
 
     def table_callback(self, attr, old, selected_cluster):
@@ -227,6 +254,7 @@ class callbacks():
             self.cluster_id['Time ID'].isin(same),
             'Cluster ID'
         ]            
+
 
     def filter_clusters(self):
 

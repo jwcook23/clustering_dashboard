@@ -23,7 +23,9 @@ class figures():
         self.options = {}
         self.related_clusters()
 
-        self.common_estimation_evaluation()
+        self.parameter_estimate()
+        self.distance_evaluation()
+        self.time_evaluation()
         self.summary_table()
         self.cluster_map()
         self.cluster_detail()
@@ -63,7 +65,7 @@ class figures():
         self.options['display'].on_click(self.display_callback)
 
 
-    def parameter_figure(self, title, xlabel, ylabel):
+    def common_figure(self, title, xlabel, ylabel):
 
         fig = figure(
             title=title, width=275, height=225,
@@ -75,56 +77,23 @@ class figures():
         return fig
 
 
-    def common_estimation_evaluation(self):
+    def estimation_figure(self, title, xlabel, ylabel):
 
-        self.plot_estimate_distance, self.render_estimate_distance = self.parameter_estimation(
-            'Distance between Clusters', 'Point', self.units["distance"].value, f'Nearest Point ({self.units["distance"].value})'
-        )
-        self.plot_estimate_time, self.render_estimate_time = self.parameter_estimation(
-            'Time between Clusters', 'Point', self.units["time"].value, f'Nearest Time ({self.units["time"].value})'
-        )
-
-        self.plot_next_distance, self.render_next_distance = self.cluster_evaluation(
-            'Distance between Clusters', self.units["distance"].value, '# Clusters'
-        )
-
-        self.plot_span_distance, self.render_span_distance = self.cluster_evaluation(
-            'Distance in Cluster', self.units["distance"].value, '# Clusters'
-        )
-
-        self.plot_next_date, self.render_next_date = self.cluster_evaluation(
-            'Time between Clusters', self.units["time"].value, '# Clusters'
-        )
-
-        self.plot_span_date, self.render_span_date = self.cluster_evaluation(
-            'Time in Cluster', self.units["time"].value, '# Clusters'
-        )
-
-
-    def parameter_estimation(self, title, xlabel, ylabel, column):
-        
-        # TODO: only return figure, then call in a default function in dashboard.py
-
-        values = self.address[column].sort_values()
-        
-        values, outliers = self.filter_outliers(values)
-
-        fig = self.parameter_figure(title, xlabel, ylabel)
+        fig = self.common_figure(title, xlabel, ylabel)
 
         source = ColumnDataSource({
-            'x': range(0, len(values)),
-            'y': values.values
+            'x': [],
+            'y': []
         })
 
         renderer = fig.line('x','y', source=source)
-        fig.add_layout(Label(text=outliers, x=len(values), y=values.max(), text_align='right', text_baseline='top'))
      
         return fig, renderer
 
 
-    def cluster_evaluation(self, title, xlabel, ylabel):
+    def evaluation_figure(self, title, xlabel, ylabel):
 
-        fig = self.parameter_figure(title, xlabel, ylabel)
+        fig = self.common_figure(title, xlabel, ylabel)
         source = ColumnDataSource({'left': [], 'right': [], 'top': [], 'bottom': []})
         renderer = fig.quad(
             'left', 'right', 'top', 'bottom', source=source, 
@@ -132,6 +101,37 @@ class figures():
         )
 
         return fig, renderer
+
+
+    def parameter_estimate(self):
+
+        self.plot_estimate_distance, self.render_estimate_distance = self.estimation_figure(
+            'Distance between Clusters', 'Point', self.units["distance"].value
+        )
+        self.plot_estimate_time, self.render_estimate_time = self.estimation_figure(
+            'Time between Clusters', 'Point', self.units["time"].value
+        )
+
+
+    def distance_evaluation(self):
+        self.plot_next_distance, self.render_next_distance = self.evaluation_figure(
+            'Distance between Clusters', self.units["distance"].value, '# Clusters'
+        )
+
+        self.plot_span_distance, self.render_span_distance = self.evaluation_figure(
+            'Distance in Cluster', self.units["distance"].value, '# Clusters'
+        )
+
+
+    def time_evaluation(self):
+
+        self.plot_next_date, self.render_next_date = self.evaluation_figure(
+            'Time between Clusters', self.units["time"].value, '# Clusters'
+        )
+
+        self.plot_span_date, self.render_span_date = self.evaluation_figure(
+            'Time in Cluster', self.units["time"].value, '# Clusters'
+        )
 
 
     def summary_table(self):
