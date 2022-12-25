@@ -8,7 +8,7 @@ class callbacks():
 
     def __init__(self):
         
-        pass
+        self.selected_cluster = None
 
 
     def zoom_window(self, df):

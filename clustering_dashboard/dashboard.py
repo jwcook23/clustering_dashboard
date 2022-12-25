@@ -11,33 +11,19 @@ from bokeh.models import (
     NumberFormatter, Panel, Tabs
 )
 
-from clustering_dashboard.callbacks import callbacks
 from clustering_dashboard.figures import figures
-from clustering_dashboard import calculate, convert
+from clustering_dashboard import calculate
 
-class dashboard(figures, callbacks):
+class dashboard(figures):
 
     def __init__(self):
 
-        self.load_settings()
-        self.load_data()
         self.set_format()
 
         figures.__init__(self)
-        callbacks.__init__(self)
         self.calculate_defaults()
        
         self.page_layout()
-
-
-    def load_settings(self):
-
-        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)),'settings.json')) as fh:
-            settings = json.load(fh)
-
-        self.file_path = settings['file_path']
-        self.columns = pd.Series(settings['column_names'])
-        self.additional_summary = settings['additional_summary']
 
 
     def set_format(self):
@@ -52,38 +38,15 @@ class dashboard(figures, callbacks):
         }
 
 
-    def load_data(self):
-
-        self.address = pd.read_parquet(self.file_path)
-        self.column_id = self.address.index.name
-
-        self.address = self.address.reset_index()
-
-
     def calculate_defaults(self):
 
-        self.selected_cluster = None
 
-        latitude = self.address[self.columns['latitude']]
-        longitude = self.address[self.columns['longitude']]
-        
-        latitude_mercator, longitude_mercator = convert.latlon_to_mercator(latitude, longitude)
-        self.address['_latitude_mercator'] = latitude_mercator
-        self.address['_longitude_mercator'] = longitude_mercator
-
-        self.address['_timestamp'] = self.address[self.columns['time']].apply(lambda x: int(x.timestamp()*1000))
-
-        self.distance = calculate.distance_matrix(self.address, self.columns['latitude'], self.columns['longitude'])
-
+        # TODO: where should this go?
         units = self.units["distance"].value
         self.address[f'Nearest Point ({units})'] = calculate.nearest_point(self.distance, units)
 
         units = self.units["time"].value
         self.address[f'Nearest Time ({units})'] = calculate.nearest_time(self.address[self.columns['time']], units)
-
-        # set zoom box as range of coordinates
-        points = self.address[['_longitude_mercator','_latitude_mercator']].rename(columns={'_longitude_mercator': 'x', '_latitude_mercator': 'y'})
-        self.default_zoom = self.zoom_window(points)
 
 
     def is_date(self, values):

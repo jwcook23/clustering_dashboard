@@ -8,9 +8,15 @@ from bokeh.models import (
     Dropdown, Select, NumericInput
 )
 
-class figures():
+from clustering_dashboard.data import data
+from clustering_dashboard.callbacks import callbacks
+
+class figures(data, callbacks):
 
     def __init__(self):
+
+        data.__init__(self)
+        callbacks.__init__(self)
 
         self.units = {}
         self.units_distance()
@@ -165,6 +171,9 @@ class figures():
 
 
     def cluster_map(self):
+
+        points = self.address[['_longitude_mercator','_latitude_mercator']].rename(columns={'_longitude_mercator': 'x', '_latitude_mercator': 'y'})
+        self.default_zoom = self.zoom_window(points)
 
         # generate map
         self.plot_map = figure(
