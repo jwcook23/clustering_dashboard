@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from bokeh.models import Label, ColumnDataSource
 
-from clustering_dashboard import group
+from clustering_dashboard import group, calculate
 
 class callbacks():
 
@@ -161,19 +161,21 @@ class callbacks():
     def update_parameter_estimation(self):
 
         parameters = {
-            f'Nearest Point ({self.units["distance"].value})': {
+            'distance': {
                 'fig': self.plot_estimate_distance,
-                'render': self.render_estimate_distance
+                'render': self.render_estimate_distance,
+                'data': calculate.nearest_point(self.distance, self.units["distance"].value)
             },
-            f'Nearest Time ({self.units["time"].value})': {
+            'time': {
                 'fig': self.plot_estimate_time,
-                'renderer': self.render_estimate_time
+                'renderer': self.render_estimate_time,
+                'data': calculate.nearest_time(self.address[self.columns['time']], self.units["time"].value)
             }
         }
 
-        for column, target in parameters.items():
+        for target in parameters.values():
 
-            values = self.address[column].sort_values()
+            values = target['data'].sort_values()
             values, outliers = self.filter_outliers(values)
             
             source = ColumnDataSource({

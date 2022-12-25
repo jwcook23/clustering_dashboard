@@ -21,7 +21,6 @@ class dashboard(figures):
         self.set_format()
 
         figures.__init__(self)
-        self.calculate_defaults()
        
         self.page_layout()
 
@@ -36,17 +35,6 @@ class dashboard(figures):
             'timestamp': DateFormatter(format="%m/%d/%Y %H:%M:%S", nan_format='-'),
             'string': StringFormatter(nan_format='-')
         }
-
-
-    def calculate_defaults(self):
-
-
-        # TODO: where should this go?
-        units = self.units["distance"].value
-        self.address[f'Nearest Point ({units})'] = calculate.nearest_point(self.distance, units)
-
-        units = self.units["time"].value
-        self.address[f'Nearest Time ({units})'] = calculate.nearest_time(self.address[self.columns['time']], units)
 
 
     def is_date(self, values):
