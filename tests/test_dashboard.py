@@ -26,7 +26,7 @@ def test_parameter_select():
     show(page.layout)
 
 # plot second largest
-# page.table_callback(None, None, [0])
+# page.cluster_selected(None, None, [0])
 
 # # enable time clustering
 # page.date_callback([0])
@@ -34,16 +34,16 @@ def test_parameter_select():
 # # display nearby points
 # dropdown = Event()
 # dropdown.item = 'same location'
-# page.display_callback(dropdown)
+# page.relation_selected(dropdown)
 
 # # reset display
 # dropdown = Event()
 # dropdown.item = 'reset display'
-# page.display_callback(dropdown)
+# page.relation_selected(dropdown)
 
 # adjuster parameter
 # page.parameters['cluster_distance'].value = 0.01
 # page.parameter_callback(None, None, None)
 
 # # plot second largest
-# page.table_callback(None, None, [1])
+# page.cluster_selected(None, None, [1])

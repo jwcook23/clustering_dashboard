@@ -1,5 +1,5 @@
 setup.py
-clustering_dashboard/callbacks.py
+clustering_dashboard/updates.py
 clustering_dashboard/convert.py
 clustering_dashboard/dashboard.py
 clustering_dashboard/data.py

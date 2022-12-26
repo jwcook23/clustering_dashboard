@@ -1,22 +1,24 @@
-import numpy as np
+import pandas as pd
 from bokeh.plotting import figure
 from bokeh.tile_providers import CARTODBPOSITRON, get_provider
 from bokeh.transform import linear_cmap
 from bokeh.models import (
-    ColumnDataSource, Label, DataTable,
-    HoverTool, ColorBar, DatetimeTickFormatter, TableColumn,
-    Dropdown, Select, NumericInput
+    ColumnDataSource, DataTable, HoverTool, ColorBar, 
+    DatetimeTickFormatter, TableColumn, Dropdown, Select, 
+    NumericInput, TableColumn, DateFormatter, StringFormatter, NumberFormatter
 )
 
 from clustering_dashboard.data import data
-from clustering_dashboard.callbacks import callbacks
+from clustering_dashboard.selections import selections
 
-class figures(data, callbacks):
+class figures(data, selections):
 
     def __init__(self):
 
+        self._set_format()
+
         data.__init__(self)
-        callbacks.__init__(self)
+        selections.__init__(self)
 
         self.units = {}
         self.units_distance()
@@ -40,24 +42,24 @@ class figures(data, callbacks):
     def units_distance(self):
 
         self.units['distance'] = Select(title='Distance:', value="miles", options=["miles", "feet", "kilometers"], height=25, width=75)
-        self.units['distance'].on_change('value', self.calculate_callback)
+        self.units['distance'].on_change('value', self.parameter_selected)
 
 
     def units_time(self):
 
         self.units['time'] = Select(title='Time:', value="hours", options=["days", "hours", "minutes"], height=25, width=75)
-        self.units['time'].on_change('value', self.calculate_callback)
+        self.units['time'].on_change('value', self.parameter_selected)
 
 
     def parameter_distance(self):
 
         self.parameters['cluster_distance'] = NumericInput(value=None, mode='float', title=f'Location Distance ({self.units["distance"].value}):', height=50, width=160)
-        self.parameters['cluster_distance'].on_change('value', self.calculate_callback)
+        self.parameters['cluster_distance'].on_change('value', self.parameter_selected)
 
     def parameter_time(self):
 
         self.parameters['date_range'] = NumericInput(value=None, mode='float', title=f'Time Duration ({self.units["time"].value}):', height=50, width=160)
-        self.parameters['date_range'].on_change('value', self.calculate_callback)
+        self.parameters['date_range'].on_change('value', self.parameter_selected)
 
 
     def related_clusters(self):
@@ -68,7 +70,7 @@ class figures(data, callbacks):
             ("3) Display clusters with same Time ID.", "same time")
         ]
         self.options['display'] = Dropdown(label="display related clusters", button_type="default", menu=menu, height=25, width=200)
-        self.options['display'].on_click(self.display_callback)
+        self.options['display'].on_click(self.relation_selected)
 
 
     def common_figure(self, title, xlabel, ylabel):
@@ -157,14 +159,14 @@ class figures(data, callbacks):
         self.table_summary = DataTable(
             source=self.source_summary, columns=columns, index_header='Cluster ID', index_width=60,
             autosize_mode='none', height=300, width=700)
-        self.source_summary.selected.on_change('indices', self.table_callback)
+        self.source_summary.selected.on_change('indices', self.cluster_selected)
 
 
     def cluster_detail(self):
 
         ignore = self.columns.loc[['latitude','longitude']].tolist()
         ignore += ['_longitude_mercator','_latitude_mercator']
-        columns = self.format_table(self.address.drop(columns=ignore))
+        columns = self._format_table(self.address.drop(columns=ignore))
 
         self.source_detail = ColumnDataSource(data=dict())
         self.table_detail = DataTable(source=self.source_detail, columns=columns, autosize_mode='fit_columns', height=625, width=625)        
@@ -173,7 +175,7 @@ class figures(data, callbacks):
     def cluster_map(self):
 
         points = self.address[['_longitude_mercator','_latitude_mercator']].rename(columns={'_longitude_mercator': 'x', '_latitude_mercator': 'y'})
-        self.default_zoom = self.zoom_window(points)
+        self.default_zoom = self._zoom_window(points)
 
         # generate map
         self.plot_map = figure(
@@ -198,7 +200,7 @@ class figures(data, callbacks):
         # render address points
         source = ColumnDataSource(data=dict(xs=[], ys=[], time=[], _timestamp=[]))
         self.render_points = self.plot_map.circle('xs','ys', source=source, fill_color=cmap, line_color=None, size=10, legend_label='Location')
-        features, formatters = self.format_hover()
+        features, formatters = self._format_hover()
         self.plot_map.add_tools(HoverTool(
             tooltips=features,
             formatters=formatters,
@@ -211,3 +213,78 @@ class figures(data, callbacks):
 
         self.plot_map.legend.location = "top_right"
 
+
+    def _set_format(self):
+
+        self.display_format = {
+            'id': NumberFormatter(format='0'),
+            'int': NumberFormatter(nan_format='-'),
+            'float': NumberFormatter(nan_format='-', format='0.00'),
+            'time': DateFormatter(format="%m/%d/%Y", nan_format='-'),
+            'timestamp': DateFormatter(format="%m/%d/%Y %H:%M:%S", nan_format='-'),
+            'string': StringFormatter(nan_format='-')
+        }
+
+
+    def _format_table(self, df, column_widths=None):
+
+        columns = []
+        for col,values in df.items():
+
+            if column_widths:
+                width = column_widths[col]
+            else:
+                width = 100
+
+            if pd.api.types.is_integer_dtype(values):
+                if 'ID' in col:
+                    columns += [TableColumn(field=col, formatter=self.display_format['id'], width=width)]
+                else:
+                    columns += [TableColumn(field=col, formatter=self.display_format['int'], width=width)]
+            elif pd.api.types.is_float_dtype(values):
+                columns += [TableColumn(field=col, formatter=self.display_format['float'], width=width)]
+            elif pd.api.types.is_datetime64_dtype(values):
+                if self._isdate(values):
+                    fmt = self.display_format['time']
+                else:
+                    fmt = self.display_format['timestamp']
+                columns += [TableColumn(field=col, formatter=fmt, width=width)]
+            elif pd.api.types.is_string_dtype(values):
+                columns += [TableColumn(field=col, formatter=self.display_format['string'], width=width)]
+            else:
+                columns += [TableColumn(field=col, formatter=self.display_format['string'], width=width)]
+
+        return columns
+
+    
+    def _format_hover(self):
+
+        latitude = self.columns['latitude']
+        longitude = self.columns['longitude']
+        time = self.columns['time']
+        features = [
+            ('Cluster ID', "@{Cluster ID}"),
+            ('Location ID', "@{Location ID}"),
+            ('Time ID', "@{Time ID}"),
+            (self.column_id, "@{"+self.column_id+"}"),
+            (f"({latitude}/{longitude})", "(@{"+latitude+"},@{"+longitude+"})"),
+            (time, "@{"+time+"}{%F}")
+        ]
+        formatters = {"@{"+time+"}": 'datetime'}
+        # formatters = {}
+        # for col,values in self.address.drop(columns=[latitude, longitude, '_latitude_mercator', '_longitude_mercator']).items():
+        #     if pd.api.types.is_datetime64_dtype(values):
+        #         if self._isdate(values):
+        #             features += [(col, f'@{col}'+"{%F}")]
+        #         else:
+        #             features += [(col, f'@{col}')]
+        #         formatters[f"@{col}"] = 'datetime'
+        #     else:
+        #         features += [(col, f'@{col}')]
+
+        return features, formatters
+
+
+    def _isdate(self, values):
+
+        return (values.dt.hour==0).all()
