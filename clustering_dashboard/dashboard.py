@@ -12,8 +12,9 @@ class dashboard(figures):
     def __init__(self):
 
         figures.__init__(self)
-       
+
         self.page_layout()
+        self.landing_page()
 
 
     def page_layout(self):
@@ -59,6 +60,5 @@ class dashboard(figures):
         )
 
 
-# initialize server app
 page = dashboard()
 curdoc().add_root(page.layout)

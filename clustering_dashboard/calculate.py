@@ -23,6 +23,8 @@ def nearest_point(distance, units):
     nearest = convert.radians_to_distance(nearest, units)
     distance.mask = False
 
+    nearest = pd.Series(np.array(nearest))
+
     return nearest
     
 

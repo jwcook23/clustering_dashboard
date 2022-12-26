@@ -8,8 +8,13 @@ class selections(updates):
         updates.__init__(self)
 
 
-    def landing_page():
-        pass
+    def landing_page(self):
+        
+        self.update_parameter_estimation()
+        # plot all map points
+        # clear cluster summary
+        # clear cluster detail
+        # clear cluster evaluation
 
 
     def parameter_selected(self, attr, old, new):

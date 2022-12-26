@@ -126,7 +126,7 @@ class updates():
         parameters = {
             'distance': {
                 'fig': self.plot_estimate_distance,
-                'render': self.render_estimate_distance,
+                'renderer': self.render_estimate_distance,
                 'data': calculate.nearest_point(self.distance, self.units["distance"].value)
             },
             'time': {
@@ -145,7 +145,7 @@ class updates():
                 'x': range(0, len(values)),
                 'y': values.values
             })
-            target['renderer'].source = source
+            target['renderer'].data_source = source
 
             label = Label(text=outliers, x=len(values), y=values.max(), text_align='right', text_baseline='top')
             target['fig'].add_layout(label)
