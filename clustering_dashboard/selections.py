@@ -9,6 +9,9 @@ class selections(updates):
 
 
     def landing_page(self):
+
+        self.cluster_summary = None
+        self.cluster_boundary = None
         
         self.update_parameter_estimation()
         self.update_map()
@@ -22,7 +25,7 @@ class selections(updates):
         if self.parameters['cluster_distance'].value is None or self.parameters['date_range'].value is None:
             return
 
-        self.cluster_summary, self.cluster_boundary, self.cluster_id = group.get_clusters(
+        self.cluster_summary, self.cluster_boundary, self.details = group.get_clusters(
             self.details, self.parameters['cluster_distance'],
             self.distance, self.columns['time'], self.units["time"].value, self.units["distance"].value,
             self.parameters['date_range'],
@@ -36,8 +39,8 @@ class selections(updates):
 
     def cluster_selected(self, attr, old, selected_cluster):
 
-        self.selected_cluster = self.cluster_id.loc[
-            self.cluster_id['Cluster ID'].isin(selected_cluster), 
+        self.selected_cluster = self.details.loc[
+            self.details['Cluster ID'].isin(selected_cluster), 
             'Cluster ID'
         ]
         self.update_map()
@@ -61,23 +64,23 @@ class selections(updates):
 
     def _same_location(self):
             
-        same = self.cluster_id.loc[
-            self.cluster_id['Cluster ID'].isin(self.selected_cluster),
+        same = self.details.loc[
+            self.details['Cluster ID'].isin(self.selected_cluster),
             'Location ID'
         ]
-        self.selected_cluster = self.cluster_id.loc[
-            self.cluster_id['Location ID'].isin(same),
+        self.selected_cluster = self.details.loc[
+            self.details['Location ID'].isin(same),
             'Cluster ID'
         ]
 
 
     def _same_date(self):
 
-        same = self.cluster_id.loc[
-            self.cluster_id['Cluster ID'].isin(self.selected_cluster),
+        same = self.details.loc[
+            self.details['Cluster ID'].isin(self.selected_cluster),
             'Time ID'
         ]
-        self.selected_cluster = self.cluster_id.loc[
-            self.cluster_id['Time ID'].isin(same),
+        self.selected_cluster = self.details.loc[
+            self.details['Time ID'].isin(same),
             'Cluster ID'
         ] 

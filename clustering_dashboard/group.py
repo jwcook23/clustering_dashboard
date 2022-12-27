@@ -6,12 +6,12 @@ from sklearn.cluster import DBSCAN
 
 from clustering_dashboard import summary, convert
 
-def assign_id(cluster_id, input_columns, output_name, include_num_points=False):
+def assign_id(details, input_columns, output_name):
 
     id_name = f'{output_name} ID'
 
     # combine geo and time cluster ids
-    overall = cluster_id.groupby(input_columns).ngroup()
+    overall = details.groupby(input_columns).ngroup()
     overall = overall.astype('Int64')
     overall[overall==-1] = None
     overall.name = 'Grouped'
@@ -31,70 +31,60 @@ def assign_id(cluster_id, input_columns, output_name, include_num_points=False):
     overall = overall.merge(size, on='Grouped', how='left')
     overall[id_name] = overall[id_name].astype('Int64')
 
-    # add id and size to original input
-    if include_num_points:
-        columns = [id_name, '# Points']
-    else:
-        columns = [id_name]
-    cluster_id = cluster_id.merge(overall[columns], left_index=True, right_index=True, how='inner', suffixes=('_original',''))
+    # add id to original input
+    details = details.merge(overall[[id_name]], left_index=True, right_index=True, how='inner', suffixes=('_original',''))
     if id_name in input_columns:
-        cluster_id = cluster_id.drop(columns=id_name+'_original')
+        details = details.drop(columns=id_name+'_original')
 
-    return cluster_id
+    return details
 
 
 def get_clusters(details, cluster_distance, distance, column_time, units_time, units_distance, date_range, additional_summary):
 
     # group dates
     date_id, grouped = cluster_date(details, column_time, date_range, units_time)
-    cluster_id = details.merge(date_id, left_index=True, right_index=True)
+    details = details.drop(columns=['Time ID']).merge(date_id, left_index=True, right_index=True)
 
     # group on location without time aspect, to show other points near location potentially at different dates
     geo_id = cluster_geo(details, cluster_distance, distance, units_distance, 'Location')
-    cluster_id = cluster_id.merge(geo_id, left_index=True, right_index=True)
+    details = details.drop(columns=['Location ID']).merge(geo_id, left_index=True, right_index=True)
 
     # group on location with time to assign overall Cluster ID
     geo_id = grouped.apply(lambda x:  cluster_geo(x, cluster_distance, distance, units_distance, 'LocationTime'))
-    cluster_id = cluster_id.merge(geo_id, left_index=True, right_index=True)
+    details = details.drop(columns=['LocationTime ID']).merge(geo_id, left_index=True, right_index=True)
 
     # assign an overall id desc with largest size
-    cluster_id = assign_id(cluster_id, ['Time ID','LocationTime ID'], 'Cluster', include_num_points=True)
+    details = assign_id(details, ['Time ID','LocationTime ID'], 'Cluster')
 
     # determine distance of points to other points
-    cluster_id = point_distance(cluster_id, distance, units_distance)
+    details = point_distance(details, distance, units_distance)
 
     # summerize cluster
-    cluster_summary = summary.get_summary(cluster_id, column_time, units_time, units_distance, additional_summary)
+    cluster_summary = summary.get_summary(details, column_time, units_time, units_distance, additional_summary)
 
     # calculate cluster boundary for map zoom
-    cluster_boundary = cluster_id.groupby('Cluster ID')
+    cluster_boundary = details.groupby('Cluster ID')
     cluster_boundary = cluster_boundary.apply(get_boundary)
 
-    return cluster_summary, cluster_boundary, cluster_id
+    return cluster_summary, cluster_boundary, details
 
 
-def cluster_date(address, column_time, date_range, units_time):
+def cluster_date(details, column_time, date_range, units_time):
 
-    if not date_range.visible:
-        cluster_id = pd.DataFrame({
-            'Time ID': [0]*len(address),
-            'Time Count': [len(address)]*len(address)
-        }, index=address.index)
-    else:
-        if units_time == 'days':
-            offset = 'D'
-        elif units_time == 'hours':
-            offset = 'H'
-        elif units_time == 'minutes':
-            offset = 'T'
-        grouped = address.groupby(pd.Grouper(key=column_time, freq=f'{date_range.value}{offset}'))
-        cluster_id = pd.DataFrame(grouped.ngroup(), columns=['Time ID'], index=address.index, dtype='Int64')
-        cluster_id['Time ID'][cluster_id['Time ID']==-1] = None
+    if units_time == 'days':
+        offset = 'D'
+    elif units_time == 'hours':
+        offset = 'H'
+    elif units_time == 'minutes':
+        offset = 'T'
+    grouped = details.groupby(pd.Grouper(key=column_time, freq=f'{date_range.value}{offset}'))
+    assigned_id = pd.DataFrame(grouped.ngroup(), columns=['Time ID'], index=details.index, dtype='Int64')
+    assigned_id['Time ID'][assigned_id['Time ID']==-1] = None
 
-        # assign ID based on size
-        cluster_id = assign_id(cluster_id, ['Time ID'], 'Time')
+    # assign ID based on size
+    assigned_id = assign_id(assigned_id, ['Time ID'], 'Time')
 
-    return cluster_id, grouped
+    return assigned_id, grouped
 
 
 def cluster_geo(df, cluster_distance, distance, units_distance, name):
@@ -107,18 +97,18 @@ def cluster_geo(df, cluster_distance, distance, units_distance, name):
     # identify geographic clusters from already clustered time values
     clusters = DBSCAN(metric='precomputed', eps=eps, min_samples=2)
     if len(df)==0:
-        cluster_id = None
+        assigned_id = None
     else:
         time_submatrix = distance[np.ix_(df.index, df.index)]
         clusters = clusters.fit(time_submatrix)
-        cluster_id = pd.DataFrame(clusters.labels_, columns=[id_name], index=df.index, dtype='Int64')
-        cluster_id[id_name][cluster_id[id_name]==-1] = None
+        assigned_id = pd.DataFrame(clusters.labels_, columns=[id_name], index=df.index, dtype='Int64')
+        assigned_id[id_name][assigned_id[id_name]==-1] = None
 
         # assign ID based on size if grouping by location only
         if name == 'Location':
-            cluster_id = assign_id(cluster_id, [id_name], name)
+            assigned_id = assign_id(assigned_id, [id_name], name)
 
-    return cluster_id
+    return assigned_id
 
 
 def get_boundary(group):
@@ -143,9 +133,9 @@ def get_boundary(group):
     return boundary
 
 
-def point_distance(cluster_id, distance, units_distance):
+def point_distance(details, distance, units_distance):
 
-    grouped = pd.DataFrame(cluster_id['LocationTime ID'])
+    grouped = pd.DataFrame(details['LocationTime ID'])
     grouped['index'] = range(0, len(grouped))
     grouped = grouped.groupby('LocationTime ID')
     grouped = grouped.agg({'index': list})
@@ -159,14 +149,14 @@ def point_distance(cluster_id, distance, units_distance):
     distance[row, col] = ma.masked
     nearest = distance.min(axis=0)
     nearest = convert.radians_to_distance(nearest, units_distance)
-    cluster_id[f'Nearest ({units_distance})'] =  nearest
+    details[f'Nearest ({units_distance})'] =  nearest
 
     distance.mask = True
     distance.mask[row, col] = False
     length = distance.max(axis=0)
     length = convert.radians_to_distance(length, units_distance)
-    cluster_id[f'Length ({units_distance})'] =  length
+    details[f'Length ({units_distance})'] =  length
 
     distance.mask = False
 
-    return cluster_id
+    return details

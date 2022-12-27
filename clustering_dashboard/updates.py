@@ -62,7 +62,7 @@ class updates():
         if self.selected_cluster is None:
             data = dict()
         else:
-            cluster = self.cluster_id[self.cluster_id['Cluster ID'].isin(self.selected_cluster)].index
+            cluster = self.details[self.details['Cluster ID'].isin(self.selected_cluster)].index
             name = [col.field for col in self.table_detail.columns]
             data = self.details.loc[cluster, name]
             
