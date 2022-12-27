@@ -11,7 +11,7 @@ class selections(updates):
     def landing_page(self):
         
         self.update_parameter_estimation()
-        # plot all map points
+        self.update_map()
         # clear cluster summary
         # clear cluster detail
         # clear cluster evaluation
@@ -23,7 +23,7 @@ class selections(updates):
             return
 
         self.cluster_summary, self.cluster_boundary, self.cluster_id = group.get_clusters(
-            self.address, self.parameters['cluster_distance'],
+            self.details, self.parameters['cluster_distance'],
             self.distance, self.columns['time'], self.units["time"].value, self.units["distance"].value,
             self.parameters['date_range'],
             self.additional_summary

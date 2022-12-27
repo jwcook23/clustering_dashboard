@@ -166,7 +166,7 @@ class figures(data, selections):
 
         ignore = self.columns.loc[['latitude','longitude']].tolist()
         ignore += ['_longitude_mercator','_latitude_mercator']
-        columns = self._format_table(self.address.drop(columns=ignore))
+        columns = self._format_table(self.details.drop(columns=ignore))
 
         self.source_detail = ColumnDataSource(data=dict())
         self.table_detail = DataTable(source=self.source_detail, columns=columns, autosize_mode='fit_columns', height=625, width=625)        
@@ -174,7 +174,7 @@ class figures(data, selections):
 
     def cluster_map(self):
 
-        points = self.address[['_longitude_mercator','_latitude_mercator']].rename(columns={'_longitude_mercator': 'x', '_latitude_mercator': 'y'})
+        points = self.details[['_longitude_mercator','_latitude_mercator']].rename(columns={'_longitude_mercator': 'x', '_latitude_mercator': 'y'})
         self.default_zoom = self._zoom_window(points)
 
         # generate map
@@ -190,14 +190,14 @@ class figures(data, selections):
         self.plot_map.add_tile(tile_provider)
 
         # add color scale for time
-        cmap = linear_cmap(field_name='_timestamp', palette='Turbo256', low=min(self.address['_timestamp']), high=max(self.address['_timestamp']))
+        cmap = linear_cmap(field_name='_timestamp', palette='Turbo256', low=min(self.details['_timestamp']), high=max(self.details['_timestamp']))
         color_bar = ColorBar(color_mapper=cmap['transform'], 
             # title=self.columns['time'], 
             formatter=DatetimeTickFormatter()
         )
         self.plot_map.add_layout(color_bar, 'above')        
 
-        # render address points
+        # render loction points
         source = ColumnDataSource(data=dict(xs=[], ys=[], time=[], _timestamp=[]))
         self.render_points = self.plot_map.circle('xs','ys', source=source, fill_color=cmap, line_color=None, size=10, legend_label='Location')
         features, formatters = self._format_hover()
@@ -272,7 +272,7 @@ class figures(data, selections):
         ]
         formatters = {"@{"+time+"}": 'datetime'}
         # formatters = {}
-        # for col,values in self.address.drop(columns=[latitude, longitude, '_latitude_mercator', '_longitude_mercator']).items():
+        # for col,values in self.details.drop(columns=[latitude, longitude, '_latitude_mercator', '_longitude_mercator']).items():
         #     if pd.api.types.is_datetime64_dtype(values):
         #         if self._isdate(values):
         #             features += [(col, f'@{col}'+"{%F}")]

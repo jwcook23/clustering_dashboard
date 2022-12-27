@@ -59,6 +59,6 @@ class dashboard(figures):
             )
         )
 
-
-page = dashboard()
-curdoc().add_root(page.layout)
+if __name__ == '__main__':
+    page = dashboard()
+    curdoc().add_root(page.layout)

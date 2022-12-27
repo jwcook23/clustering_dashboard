@@ -12,56 +12,45 @@ class updates():
 
 
     def update_map(self):
-        '''Plot location point and boundary when making a selection in the summary table.'''
 
-        data_boundary = {
-            'xs': [],
-            'ys': []
-        }
-        data_point = {
-            'xs': [],
-            'ys': [],
-        }
-
+        # variable field names
         time = self.columns['time']
-
-        unique_clusters = self.selected_cluster.dropna().drop_duplicates()
-        data_boundary.update({
-            'xs': self.cluster_boundary.loc[unique_clusters, '_longitude_mercator'].tolist(),
-            'ys': self.cluster_boundary.loc[unique_clusters, '_latitude_mercator'].tolist(),
-            time: self.address.loc[unique_clusters.index, time].tolist(),
-            '_timestamp': self.address.loc[unique_clusters.index, '_timestamp'].tolist()
-        })
-
-        # update address using selected cluster
-        show_ids = self.selected_cluster.index
         longitude = self.columns['longitude']
         latitude = self.columns['latitude']
-        data_point.update({
-            'Cluster ID': self.cluster_id.loc[show_ids, 'Cluster ID'].fillna(-1).values,
-            'Location ID': self.cluster_id.loc[show_ids, 'Location ID'].fillna(-1).values,
-            'Time ID': self.cluster_id.loc[show_ids, 'Time ID'].fillna(-1).values,
-            'xs': self.cluster_id.loc[show_ids, '_longitude_mercator'].values,
-            'ys': self.cluster_id.loc[show_ids, '_latitude_mercator'].values,
+
+        # update boundary box of each cluster
+        if self.selected_cluster is not None:
+            unique_clusters = self.selected_cluster.dropna().drop_duplicates()
+            self.render_boundary.data_source.data = {
+                'xs': self.cluster_boundary.loc[unique_clusters, '_longitude_mercator'].tolist(),
+                'ys': self.cluster_boundary.loc[unique_clusters, '_latitude_mercator'].tolist(),
+                time: self.details.loc[unique_clusters.index, time].tolist(),
+                '_timestamp': self.details.loc[unique_clusters.index, '_timestamp'].tolist()
+            }
+
+        # update points
+        if self.selected_cluster is None:
+            show_ids = self.details.index
+        else:
+            show_ids = self.selected_cluster.index
+        self.render_points.data_source.data = {
+            'Cluster ID': self.details.loc[show_ids, 'Cluster ID'].fillna(-1).values,
+            'Location ID': self.details.loc[show_ids, 'Location ID'].fillna(-1).values,
+            'Time ID': self.details.loc[show_ids, 'Time ID'].fillna(-1).values,
+            'xs': self.details.loc[show_ids, '_longitude_mercator'].values,
+            'ys': self.details.loc[show_ids, '_latitude_mercator'].values,
             self.column_id: show_ids,
-            longitude: self.cluster_id.loc[show_ids, longitude].values,
-            latitude: self.cluster_id.loc[show_ids, latitude].values,
-            time: self.cluster_id.loc[show_ids, time].values,
-            '_timestamp': self.cluster_id.loc[show_ids, '_timestamp'].values
-        })
-        # data_point.update({
-        #     col: self.address.loc[show_ids, col].values for col in self.address.columns.drop([longitude,latitude,time])
-        # })
+            longitude: self.details.loc[show_ids, longitude].values,
+            latitude: self.details.loc[show_ids, latitude].values,
+            time: self.details.loc[show_ids, time].values,
+            '_timestamp': self.details.loc[show_ids, '_timestamp'].values
+        }
 
         # update map title
         self.update_titles()
 
-        # plot updated data
-        self.render_boundary.data_source.data = data_boundary
-        self.render_points.data_source.data = data_point
-
-        # update range to selected
-        zoom = self._zoom_window(self.address.loc[show_ids,['_longitude_mercator','_latitude_mercator']])
+        # zoom in on current selected data
+        zoom = self._zoom_window(self.details.loc[show_ids,['_longitude_mercator','_latitude_mercator']])
         self.plot_map.x_range.start = zoom.at['_longitude_mercator','min']
         self.plot_map.x_range.end = zoom.at['_longitude_mercator','max']
         self.plot_map.y_range.start = zoom.at['_latitude_mercator','min']
@@ -75,7 +64,7 @@ class updates():
         else:
             cluster = self.cluster_id[self.cluster_id['Cluster ID'].isin(self.selected_cluster)].index
             name = [col.field for col in self.table_detail.columns]
-            data = self.address.loc[cluster, name]
+            data = self.details.loc[cluster, name]
             
         self.source_detail.data = data
         self.update_titles()
@@ -132,7 +121,7 @@ class updates():
             'time': {
                 'fig': self.plot_estimate_time,
                 'renderer': self.render_estimate_time,
-                'data': calculate.nearest_time(self.address[self.columns['time']], self.units["time"].value)
+                'data': calculate.nearest_time(self.details[self.columns['time']], self.units["time"].value)
             }
         }
 

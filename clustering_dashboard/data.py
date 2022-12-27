@@ -13,9 +13,11 @@ class data():
         self.load_settings()
         self.load_data()
 
-        self.address['_timestamp'] = self.address[self.columns['time']].apply(lambda x: int(x.timestamp()*1000))
+        self.details[['Cluster ID', 'Location ID', 'Time ID']] = None
 
-        self.distance = calculate.distance_matrix(self.address, self.columns['latitude'], self.columns['longitude'])
+        self.details['_timestamp'] = self.details[self.columns['time']].apply(lambda x: int(x.timestamp()*1000))
+
+        self.distance = calculate.distance_matrix(self.details, self.columns['latitude'], self.columns['longitude'])
 
         self.map_display()
 
@@ -32,17 +34,17 @@ class data():
 
     def load_data(self):
 
-        self.address = pd.read_parquet(self.file_path)
-        self.column_id = self.address.index.name
+        self.details = pd.read_parquet(self.file_path)
+        self.column_id = self.details.index.name
 
-        self.address = self.address.reset_index()
+        self.details = self.details.reset_index()
 
 
     def map_display(self):
 
-        latitude = self.address[self.columns['latitude']]
-        longitude = self.address[self.columns['longitude']]
+        latitude = self.details[self.columns['latitude']]
+        longitude = self.details[self.columns['longitude']]
         
         latitude_mercator, longitude_mercator = convert.latlon_to_mercator(latitude, longitude)
-        self.address['_latitude_mercator'] = latitude_mercator
-        self.address['_longitude_mercator'] = longitude_mercator
+        self.details['_latitude_mercator'] = latitude_mercator
+        self.details['_longitude_mercator'] = longitude_mercator

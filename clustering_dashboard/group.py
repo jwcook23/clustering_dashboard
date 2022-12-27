@@ -43,14 +43,14 @@ def assign_id(cluster_id, input_columns, output_name, include_num_points=False):
     return cluster_id
 
 
-def get_clusters(address, cluster_distance, distance, column_time, units_time, units_distance, date_range, additional_summary):
+def get_clusters(details, cluster_distance, distance, column_time, units_time, units_distance, date_range, additional_summary):
 
     # group dates
-    date_id, grouped = cluster_date(address, column_time, date_range, units_time)
-    cluster_id = address.merge(date_id, left_index=True, right_index=True)
+    date_id, grouped = cluster_date(details, column_time, date_range, units_time)
+    cluster_id = details.merge(date_id, left_index=True, right_index=True)
 
     # group on location without time aspect, to show other points near location potentially at different dates
-    geo_id = cluster_geo(address, cluster_distance, distance, units_distance, 'Location')
+    geo_id = cluster_geo(details, cluster_distance, distance, units_distance, 'Location')
     cluster_id = cluster_id.merge(geo_id, left_index=True, right_index=True)
 
     # group on location with time to assign overall Cluster ID
