@@ -1,7 +1,7 @@
 # bokeh serve --show clustering_dashboard/dashboard.py
 
 import pandas as pd
-from bokeh.plotting import curdoc
+from bokeh.plotting import curdoc, output_file, show
 from bokeh.layouts import row, column
 from bokeh.models import Div, Panel, Tabs
 
@@ -59,6 +59,10 @@ class dashboard(figures):
             )
         )
 
-if __name__ == '__main__':
+if __name__.startswith('bokeh_app'):
     page = dashboard()
     curdoc().add_root(page.layout)
+elif __name__ == '__main__':
+    page = dashboard()
+    output_file("test.html")
+    show(page.layout)

@@ -130,11 +130,11 @@ class updates():
             values = target['data'].sort_values()
             values, outliers = self._filter_outliers(values)
             
-            source = ColumnDataSource({
+            source = {
                 'x': range(0, len(values)),
                 'y': values.values
-            })
-            target['renderer'].data_source = source
+            }
+            target['renderer'].data_source.data = source
 
             label = Label(text=outliers, x=len(values), y=values.max(), text_align='right', text_baseline='top')
             target['fig'].add_layout(label)

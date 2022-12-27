@@ -32,9 +32,10 @@ def assign_id(details, input_columns, output_name):
     overall[id_name] = overall[id_name].astype('Int64')
 
     # add id to original input
-    details = details.merge(overall[[id_name]], left_index=True, right_index=True, how='inner', suffixes=('_original',''))
-    if id_name in input_columns:
-        details = details.drop(columns=id_name+'_original')
+    if id_name in details:
+        details = details.drop(columns=id_name)
+    details = details.merge(overall[[id_name]], left_index=True, right_index=True, how='left')
+
 
     return details
 
