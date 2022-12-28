@@ -34,6 +34,7 @@ class figures(data, selections):
         self.parameter_estimate()
         self.distance_evaluation()
         self.time_evaluation()
+        self.summary_id()
         self.summary_table()
         self.cluster_map()
         self.cluster_detail()
@@ -73,73 +74,42 @@ class figures(data, selections):
         self.options['display'].on_click(self.relation_selected)
 
 
-    def common_figure(self, title, xlabel, ylabel):
-
-        fig = figure(
-            title=title, width=275, height=225,
-            y_axis_label = ylabel, x_axis_label=xlabel,
-            toolbar_location='right', tools='pan, box_zoom, reset',
-            active_drag = 'box_zoom'
-        )
-
-        return fig
-
-
-    def estimation_figure(self, title, xlabel, ylabel):
-
-        fig = self.common_figure(title, xlabel, ylabel)
-
-        source = ColumnDataSource({
-            'x': [],
-            'y': []
-        })
-
-        renderer = fig.line('x','y', source=source)
-     
-        return fig, renderer
-
-
-    def evaluation_figure(self, title, xlabel, ylabel):
-
-        fig = self.common_figure(title, xlabel, ylabel)
-        source = ColumnDataSource({'left': [], 'right': [], 'top': [], 'bottom': []})
-        renderer = fig.quad(
-            'left', 'right', 'top', 'bottom', source=source, 
-            fill_color="skyblue", line_color="white"
-        )
-
-        return fig, renderer
-
-
     def parameter_estimate(self):
 
-        self.plot_estimate_distance, self.render_estimate_distance = self.estimation_figure(
+        self.plot_estimate_distance, self.render_estimate_distance = self._plot_line(
             'Distance between Clusters', 'Point', self.units["distance"].value
         )
-        self.plot_estimate_time, self.render_estimate_time = self.estimation_figure(
+        self.plot_estimate_time, self.render_estimate_time = self._plot_line(
             'Time between Clusters', 'Point', self.units["time"].value
         )
 
 
     def distance_evaluation(self):
-        self.plot_next_distance, self.render_next_distance = self.evaluation_figure(
+        self.plot_next_distance, self.render_next_distance = self._plot_histogram(
             'Distance between Clusters', self.units["distance"].value, '# Clusters'
         )
 
-        self.plot_span_distance, self.render_span_distance = self.evaluation_figure(
+        self.plot_span_distance, self.render_span_distance = self._plot_histogram(
             'Distance in Cluster', self.units["distance"].value, '# Clusters'
         )
 
 
     def time_evaluation(self):
 
-        self.plot_next_date, self.render_next_date = self.evaluation_figure(
+        self.plot_next_date, self.render_next_date = self._plot_histogram(
             'Time between Clusters', self.units["time"].value, '# Clusters'
         )
 
-        self.plot_span_date, self.render_span_date = self.evaluation_figure(
+        self.plot_span_date, self.render_span_date = self._plot_histogram(
             'Time in Cluster', self.units["time"].value, '# Clusters'
         )
+
+
+    def summary_id(self):
+
+        self.table_location, self.source_location = self._id_table('Location ID')
+        
+        self.table_time, self.source_time = self._id_table('Time ID')
 
 
     def summary_table(self):
@@ -288,3 +258,57 @@ class figures(data, selections):
     def _isdate(self, values):
 
         return (values.dt.hour==0).all()
+
+
+    def _figure_common(self, title, xlabel, ylabel):
+
+        fig = figure(
+            title=title, width=275, height=225,
+            y_axis_label = ylabel, x_axis_label=xlabel,
+            toolbar_location='right', tools='pan, box_zoom, reset',
+            active_drag = 'box_zoom'
+        )
+
+        return fig
+
+
+    def _plot_line(self, title, xlabel, ylabel):
+
+        fig = self._figure_common(title, xlabel, ylabel)
+
+        source = ColumnDataSource({'x': [], 'y': []})
+
+        renderer = fig.line('x','y', source=source)
+     
+        return fig, renderer
+
+
+    def _plot_histogram(self, title, xlabel, ylabel):
+
+        fig = self._figure_common(title, xlabel, ylabel)
+
+        source = ColumnDataSource({'left': [], 'right': [], 'top': [], 'bottom': []})
+
+        renderer = fig.quad(
+            'left', 'right', 'top', 'bottom', source=source, 
+            fill_color="skyblue", line_color="white"
+        )
+
+        return fig, renderer
+
+
+    def _id_table(self, id_column):
+
+        columns = [
+            TableColumn(field="# Clusters", formatter=self.display_format['int'], width=70),
+            TableColumn(field="# Unassigned Points", formatter=self.display_format['int'], width=120),            
+        ]
+
+        source = ColumnDataSource(data=dict())
+        summary = DataTable(
+            source=source, columns=columns, index_header=id_column, index_width=60,
+            autosize_mode='none', height=100, width=260
+        )
+        # TODO: use to select clusters
+        # summary.selected.on_change('indices', self.cluster_selected)
+        return summary, source

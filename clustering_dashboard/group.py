@@ -61,13 +61,13 @@ def get_clusters(details, cluster_distance, distance, column_time, units_time, u
     details = point_distance(details, distance, units_distance)
 
     # summerize cluster
-    cluster_summary = summary.get_summary(details, column_time, units_time, units_distance, additional_summary)
+    cluster_summary, location_summary, time_summary = summary.get_summary(details, column_time, units_time, units_distance, additional_summary)
 
     # calculate cluster boundary for map zoom
     cluster_boundary = details.groupby('Cluster ID')
     cluster_boundary = cluster_boundary.apply(get_boundary)
 
-    return cluster_summary, cluster_boundary, details
+    return cluster_summary, location_summary, time_summary, cluster_boundary, details
 
 
 def cluster_date(details, column_time, date_range, units_time):

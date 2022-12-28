@@ -46,9 +46,15 @@ class dashboard(figures):
                         Panel(child=row(self.plot_next_date, self.plot_span_date), title='Time Parameter Evalulation')
                     ])
             ),
-                row(title_summary, self.options['display']),
-                id_description,
-                self.table_summary
+            row(
+                column(
+                    title_summary,
+                    id_description,
+                    self.options['display'],
+                ),
+                row(self.table_location, self.table_time)
+            ),
+            self.table_summary
             ),
             column(
                 self.title_map,

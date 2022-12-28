@@ -11,6 +11,8 @@ class selections(updates):
     def landing_page(self):
 
         self.cluster_summary = None
+        self.location_summary = None
+        self.time_summary = None
         self.cluster_boundary = None
         
         self.update_parameter_estimation()
@@ -25,7 +27,7 @@ class selections(updates):
         if self.parameters['cluster_distance'].value is None or self.parameters['date_range'].value is None:
             return
 
-        self.cluster_summary, self.cluster_boundary, self.details = group.get_clusters(
+        self.cluster_summary, self.location_summary, self.time_summary, self.cluster_boundary, self.details = group.get_clusters(
             self.details, self.parameters['cluster_distance'],
             self.distance, self.columns['time'], self.units["time"].value, self.units["distance"].value,
             self.parameters['date_range'],

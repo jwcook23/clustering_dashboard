@@ -1,8 +1,8 @@
 import pandas as pd
 import numpy as np
-from bokeh.models import Label, ColumnDataSource
+from bokeh.models import Label
 
-from clustering_dashboard import group, calculate
+from clustering_dashboard import calculate
 
 class updates():
 
@@ -101,10 +101,16 @@ class updates():
 
         cluster_summary = self._filter_clusters()
 
-        # replace values of all empty to avoid ValueError: Out of range float values are not JSON compliant
+        # update summary of location id
+        self.source_location.data = self.location_summary.to_dict(orient='list')
+
+        # # update summary of time id
+        self.source_time.data = self.time_summary.to_dict(orient='list')
+
+        # update summary table
+        # BUG: replace values of all empty to avoid ValueError: Out of range float values are not JSON compliant
         all_empty = cluster_summary.columns[~cluster_summary.any()]
         cluster_summary[all_empty] = '-'
-
         cols = [x.field for x in self.table_summary.columns]
         data = cluster_summary[cols]
         self.source_summary.data = data.to_dict(orient='list')

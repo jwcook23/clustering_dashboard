@@ -1,39 +1,11 @@
 import pandas as pd
-import numpy as np
 
-from clustering_dashboard import convert
-
-def _min(series):
-
-    val = series.min()
-    if np.isnan(val):
-        val = ''
-    else:
-        val = str(val)
-    return val
-
-def _max(series):
-
-    val = series.max()
-    if np.isnan(val):
-        val = ''
-    else:
-        val = str(val)
-    return val
-
-def _unique(series):
-    
-    series = series.dropna()
-    series = series.explode()
-    series = series[series.str.len()>0]
-    series = series.drop_duplicates()
-    series = series.tolist()
-    series = ', '.join(series)
-
-    return series
+from clustering_dashboard import convert, aggregations
 
 
 def get_summary(details, column_time, units_time, units_distance, additional_summary):
+
+    location_summary, time_summary = id_aggregation(details)
 
     cluster_summary = details.reset_index().groupby('Cluster ID')
     plan = {
@@ -46,14 +18,14 @@ def get_summary(details, column_time, units_time, units_distance, additional_sum
     cluster_summary = cluster_summary.agg(plan)
     cluster_summary['# Points'] = num_points
 
-    cluster_summary = date_summary(cluster_summary, column_time, units_time)
+    cluster_summary = time_aggregation(cluster_summary, column_time, units_time)
 
     cluster_summary = cluster_summary[[
         '# Points', 'Location ID', 'Time ID', 'Time (first)',
         f'Nearest ({units_distance})', f'Length ({units_distance})', f'Nearest ({units_time})', f'Length ({units_time})'
     ]]
 
-    return cluster_summary
+    return cluster_summary, location_summary, time_summary
 
 
 # def calculate_additional(details, column_time, additional_summary):
@@ -71,7 +43,23 @@ def get_summary(details, column_time, units_time, units_distance, additional_sum
     # return cluster_summary
 
 
-def date_summary(cluster_summary, column_time, units_time):
+def id_aggregation(details):
+
+    # summarize location ids
+    location_summary = details.groupby('Location ID')
+    location_summary = location_summary.agg({'Cluster ID': [aggregations.UniqueCountNonNA, aggregations.CountNA]})
+    location_summary.columns = location_summary.columns.droplevel(0)
+    location_summary = location_summary.rename(columns={'UniqueCountNonNA': '# Clusters', 'CountNA': '# Unassigned Points'})
+
+    # summerize time ids
+    time_summary = details.groupby('Time ID')
+    time_summary = time_summary.agg({'Cluster ID': [aggregations.UniqueCountNonNA, aggregations.CountNA]})
+    time_summary.columns = time_summary.columns.droplevel(0)
+    time_summary = time_summary.rename(columns={'UniqueCountNonNA': '# Clusters', 'CountNA': '# Unassigned Points'})
+
+    return location_summary, time_summary
+
+def time_aggregation(cluster_summary, column_time, units_time):
 
     duration = cluster_summary[(column_time,'max')]-cluster_summary[(column_time,'min')]
     duration = convert.duration_to_numeric(duration, units_time)
