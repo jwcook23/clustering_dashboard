@@ -70,7 +70,7 @@ class figures(data, selections):
             ("2) Display clusters with same Location ID.", "same location"),
             ("3) Display clusters with same Time ID.", "same time")
         ]
-        self.options['display'] = Dropdown(label="display related clusters", button_type="default", menu=menu, height=25, width=200)
+        self.options['display'] = Dropdown(label="related clusters", button_type="default", menu=menu, height=25, width=150)
         self.options['display'].on_click(self.relation_selected)
 
 
@@ -307,7 +307,7 @@ class figures(data, selections):
         source = ColumnDataSource(data=dict())
         summary = DataTable(
             source=source, columns=columns, index_header=id_column, index_width=60,
-            autosize_mode='none', height=100, width=260
+            autosize_mode='none', height=100, width=270
         )
         # TODO: use to select clusters
         # summary.selected.on_change('indices', self.cluster_selected)

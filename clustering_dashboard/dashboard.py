@@ -26,8 +26,7 @@ class dashboard(figures):
         title_units = Div(text="Unit Selection", style={'font-weight': 'bold'}, height=20, width=160)
         title_parameter = Div(text="Cluster Parameters", style={'font-weight': 'bold'}, height=20, width=160)
         space = Div(height=20, width=160)
-        title_summary = Div(text="Cluster Summary*", style={'font-weight': 'bold'})
-        id_description = Div(text="*lower IDs have larger size")
+        title_summary = Div(text="Cluster Summary", style={'font-weight': 'bold'})
 
         self.layout = row(
             column(
@@ -49,7 +48,6 @@ class dashboard(figures):
             row(
                 column(
                     title_summary,
-                    id_description,
                     self.options['display'],
                 ),
                 row(self.table_location, self.table_time)
