@@ -7,23 +7,24 @@ from clustering_dashboard.dashboard import dashboard
 
 @pytest.fixture(scope='module')
 def db():
+
     page = dashboard()
     output_file("test.html")
+
+    page.units['distance'].value = 'miles'
+    page.units['time'].value = 'hours'
+    page.parameters['cluster_distance'].value = 0.25
+    page.parameters['date_range'].value = 6
+
     yield page
     show(page.layout)
 
 
-def test_parameter_select(db):
+def test_steps(db):
 
-    db.units['distance'].value = 'miles'
-    db.units['time'].value = 'hours'
-    db.parameters['cluster_distance'].value = 0.25
-    db.parameters['date_range'].value = 6
+    db.cluster_selected(None, None, [0])
 
-
-def test_cluster_select():
-
-    pass
+    # db.location_selected(None, None, [0])
 
 
 

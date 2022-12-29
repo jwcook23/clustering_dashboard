@@ -108,8 +108,10 @@ class figures(data, selections):
     def summary_id(self):
 
         self.table_location, self.source_location = self._id_table('Location ID')
+        self.source_location.selected.on_change('indices', self.location_selected)
         
         self.table_time, self.source_time = self._id_table('Time ID')
+        self.source_time.selected.on_change('indices', self.time_selected)
 
 
     def summary_table(self):
@@ -309,6 +311,4 @@ class figures(data, selections):
             source=source, columns=columns, index_header=id_column, index_width=60,
             autosize_mode='none', height=100, width=270
         )
-        # TODO: use to select clusters
-        # summary.selected.on_change('indices', self.cluster_selected)
         return summary, source

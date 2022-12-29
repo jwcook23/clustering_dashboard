@@ -33,7 +33,7 @@ class selections(updates):
             self.parameters['date_range'],
             self.additional_summary
         )
-        self.selected_cluster = None
+        self.selected_details = self.details
         self.update_evaluation()
         self.update_summary()
         self.cluster_selected(None, None, self.cluster_summary.index)
@@ -41,12 +41,24 @@ class selections(updates):
 
     def cluster_selected(self, attr, old, selected_cluster):
 
-        self.selected_cluster = self.details.loc[
-            self.details['Cluster ID'].isin(selected_cluster), 
-            'Cluster ID'
+        self.selected_details = self.details.loc[
+            self.details['Cluster ID'].isin(selected_cluster)
         ]
         self.update_map()
         self.update_detail()
+
+    def location_selected(self, attr, old, selected_location):
+
+        # TODO: how are they multiple Location IDs and Time IDs both of 0?
+
+        self.selected_details = self.details.loc[
+            self.details['Location ID'].isin(selected_location)
+        ]
+
+
+    def time_selected(self, attr, old, selected_time):
+
+        pass
 
 
     def relation_selected(self, event):
@@ -67,10 +79,10 @@ class selections(updates):
     def _same_location(self):
             
         same = self.details.loc[
-            self.details['Cluster ID'].isin(self.selected_cluster),
+            self.details['Cluster ID'].isin(self.selected_details),
             'Location ID'
         ]
-        self.selected_cluster = self.details.loc[
+        self.selected_details = self.details.loc[
             self.details['Location ID'].isin(same),
             'Cluster ID'
         ]
@@ -79,10 +91,10 @@ class selections(updates):
     def _same_date(self):
 
         same = self.details.loc[
-            self.details['Cluster ID'].isin(self.selected_cluster),
+            self.details['Cluster ID'].isin(self.selected_details),
             'Time ID'
         ]
-        self.selected_cluster = self.details.loc[
+        self.selected_details = self.details.loc[
             self.details['Time ID'].isin(same),
             'Cluster ID'
         ] 

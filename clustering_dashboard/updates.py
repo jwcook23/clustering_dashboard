@@ -8,7 +8,7 @@ class updates():
 
     def __init__(self):
         
-        self.selected_cluster = None
+        self.selected_details = self.details
 
 
     def update_map(self):
@@ -19,8 +19,8 @@ class updates():
         latitude = self.columns['latitude']
 
         # update boundary box of each cluster
-        if self.selected_cluster is not None:
-            unique_clusters = self.selected_cluster.dropna().drop_duplicates()
+        unique_clusters = self.selected_details['Cluster ID'].dropna().drop_duplicates()
+        if len(unique_clusters) > 0:
             self.render_boundary.data_source.data = {
                 'xs': self.cluster_boundary.loc[unique_clusters, '_longitude_mercator'].tolist(),
                 'ys': self.cluster_boundary.loc[unique_clusters, '_latitude_mercator'].tolist(),
@@ -29,28 +29,24 @@ class updates():
             }
 
         # update points
-        if self.selected_cluster is None:
-            show_ids = self.details.index
-        else:
-            show_ids = self.selected_cluster.index
         self.render_points.data_source.data = {
-            'Cluster ID': self.details.loc[show_ids, 'Cluster ID'].fillna(-1).values,
-            'Location ID': self.details.loc[show_ids, 'Location ID'].fillna(-1).values,
-            'Time ID': self.details.loc[show_ids, 'Time ID'].fillna(-1).values,
-            'xs': self.details.loc[show_ids, '_longitude_mercator'].values,
-            'ys': self.details.loc[show_ids, '_latitude_mercator'].values,
-            self.column_id: show_ids,
-            longitude: self.details.loc[show_ids, longitude].values,
-            latitude: self.details.loc[show_ids, latitude].values,
-            time: self.details.loc[show_ids, time].values,
-            '_timestamp': self.details.loc[show_ids, '_timestamp'].values
+            'Cluster ID': self.details['Cluster ID'].fillna(-1).values,
+            'Location ID': self.details['Location ID'].fillna(-1).values,
+            'Time ID': self.details['Time ID'].fillna(-1).values,
+            'xs': self.details['_longitude_mercator'].values,
+            'ys': self.details['_latitude_mercator'].values,
+            self.column_id: self.details[self.column_id].values,
+            longitude: self.details[longitude].values,
+            latitude: self.details[latitude].values,
+            time: self.details[time].values,
+            '_timestamp': self.details['_timestamp'].values
         }
 
         # update map title
         self.update_titles()
 
         # zoom in on current selected data
-        zoom = self._zoom_window(self.details.loc[show_ids,['_longitude_mercator','_latitude_mercator']])
+        zoom = self._zoom_window(self.selected_details[['_longitude_mercator','_latitude_mercator']])
         self.plot_map.x_range.start = zoom.at['_longitude_mercator','min']
         self.plot_map.x_range.end = zoom.at['_longitude_mercator','max']
         self.plot_map.y_range.start = zoom.at['_latitude_mercator','min']
@@ -59,12 +55,8 @@ class updates():
 
     def update_detail(self):
 
-        if self.selected_cluster is None:
-            data = dict()
-        else:
-            cluster = self.details[self.details['Cluster ID'].isin(self.selected_cluster)].index
-            name = [col.field for col in self.table_detail.columns]
-            data = self.details.loc[cluster, name]
+        name = [col.field for col in self.table_detail.columns]
+        data = self.selected_details[name]
             
         self.source_detail.data = data
         self.update_titles()
@@ -99,7 +91,9 @@ class updates():
 
     def update_summary(self):
 
-        cluster_summary = self._filter_clusters()
+        # TODO: why filter?
+        # cluster_summary = self._filter_clusters()
+        cluster_summary = self.cluster_summary
 
         # update summary of location id
         self.source_location.data = self.location_summary.to_dict(orient='list')
@@ -148,11 +142,13 @@ class updates():
 
     def update_titles(self):
 
-        if self.selected_cluster is None:
-            selected_title = 'select cluster summary to display'
+        cluster_count = self.selected_details['Cluster ID'].dropna().nunique()
+
+        if cluster_count == 0:
+            selected_title = 'enter parameters & select cluster summary to display'
         else:
 
-            selected_title = f'{self.selected_cluster.nunique()} clusters displayed'
+            selected_title = f'{cluster_count} clusters displayed'
 
         self.title_map.text = f"Location and Time Clusters: {selected_title}"          
 
@@ -172,17 +168,17 @@ class updates():
 
     def _filter_clusters(self):
 
-        if self.selected_cluster is None:
+        if self.selected_details is None:
             cluster_summary = self.cluster_summary
         else:
             cluster_summary = self.cluster_summary[
-                self.cluster_summary.index.isin(self.selected_cluster)
+                self.cluster_summary.index.isin(self.selected_details)
             ].reset_index(drop=True)
 
             self.cluster_boundary = self.cluster_boundary[
-                self.cluster_boundary.index.isin(self.selected_cluster)
+                self.cluster_boundary.index.isin(self.selected_details)
             ]
-            self.cluster_id = self.cluster_id.loc[self.selected_cluster.index]
+            self.cluster_id = self.cluster_id.loc[self.selected_details.index]
 
         return cluster_summary
 

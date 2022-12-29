@@ -1,6 +1,5 @@
 # bokeh serve --show clustering_dashboard/dashboard.py
 
-import pandas as pd
 from bokeh.plotting import curdoc, output_file, show
 from bokeh.layouts import row, column
 from bokeh.models import Div, Panel, Tabs
