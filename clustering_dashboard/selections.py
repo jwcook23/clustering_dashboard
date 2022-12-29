@@ -54,11 +54,17 @@ class selections(updates):
         self.selected_details = self.details.loc[
             self.details['Location ID'].isin(selected_location)
         ]
+        self.update_map()
+        self.update_detail()
 
 
     def time_selected(self, attr, old, selected_time):
 
-        pass
+        self.selected_details = self.details.loc[
+            self.details['Time ID'].isin(selected_time)
+        ]
+        self.update_map()
+        self.update_detail()
 
 
     def relation_selected(self, event):

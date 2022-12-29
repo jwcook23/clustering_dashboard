@@ -57,6 +57,8 @@ class updates():
 
         name = [col.field for col in self.table_detail.columns]
         data = self.selected_details[name]
+        id_cols = ['Cluster ID', 'LocationTime ID', 'Location ID', 'Time ID']
+        data[id_cols] = data[id_cols].fillna(-1)
             
         self.source_detail.data = data
         self.update_titles()

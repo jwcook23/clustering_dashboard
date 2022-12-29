@@ -22,9 +22,9 @@ def db():
 
 def test_steps(db):
 
-    db.cluster_selected(None, None, [0])
+    # db.cluster_selected(None, None, [0])
 
-    # db.location_selected(None, None, [0])
+    db.location_selected(None, None, [0])
 
 
 

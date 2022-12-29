@@ -137,7 +137,7 @@ class figures(data, selections):
     def cluster_detail(self):
 
         ignore = self.columns.loc[['latitude','longitude']].tolist()
-        ignore += ['_longitude_mercator','_latitude_mercator']
+        ignore += self.details.columns[self.details.columns.str.startswith('_')].tolist()
         columns = self._format_table(self.details.drop(columns=ignore))
 
         self.source_detail = ColumnDataSource(data=dict())
