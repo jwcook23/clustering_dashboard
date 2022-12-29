@@ -30,16 +30,16 @@ class updates():
 
         # update points
         self.render_points.data_source.data = {
-            'Cluster ID': self.details['Cluster ID'].fillna(-1).values,
-            'Location ID': self.details['Location ID'].fillna(-1).values,
-            'Time ID': self.details['Time ID'].fillna(-1).values,
-            'xs': self.details['_longitude_mercator'].values,
-            'ys': self.details['_latitude_mercator'].values,
-            self.column_id: self.details[self.column_id].values,
-            longitude: self.details[longitude].values,
-            latitude: self.details[latitude].values,
-            time: self.details[time].values,
-            '_timestamp': self.details['_timestamp'].values
+            'Cluster ID': self.selected_details['Cluster ID'].fillna(-1).values,
+            'Location ID': self.selected_details['Location ID'].fillna(-1).values,
+            'Time ID': self.selected_details['Time ID'].fillna(-1).values,
+            'xs': self.selected_details['_longitude_mercator'].values,
+            'ys': self.selected_details['_latitude_mercator'].values,
+            self.column_id: self.selected_details[self.column_id].values,
+            longitude: self.selected_details[longitude].values,
+            latitude: self.selected_details[latitude].values,
+            time: self.selected_details[time].values,
+            '_timestamp': self.selected_details['_timestamp'].values
         }
 
         # update map title
