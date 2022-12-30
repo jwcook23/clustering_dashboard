@@ -56,7 +56,7 @@ class updates():
     def update_detail(self):
 
         name = [col.field for col in self.table_detail.columns]
-        data = self.selected_details[name]
+        data = self.selected_details[name].copy()
         id_cols = ['Cluster ID', 'LocationTime ID', 'Location ID', 'Time ID']
         data[id_cols] = data[id_cols].fillna(-1)
             

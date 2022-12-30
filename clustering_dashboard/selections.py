@@ -1,3 +1,5 @@
+import pandas as pd
+
 from clustering_dashboard.updates import updates
 from clustering_dashboard import group
 
@@ -36,33 +38,29 @@ class selections(updates):
         self.selected_details = self.details
         self.update_evaluation()
         self.update_summary()
-        self.cluster_selected(None, None, self.cluster_summary.index)
-
-
-    def cluster_selected(self, attr, old, selected_cluster):
-
-        self.selected_details = self.details.loc[
-            self.details['Cluster ID'].isin(selected_cluster)
-        ]
+        # self.cluster_selected(None, None, self.cluster_summary.index)
         self.update_map()
         self.update_detail()
 
-    def location_selected(self, attr, old, selected_location):
+
+    def cluster_selected(self, attr, old, selected):
+
+        self._select_details()
+        self.update_map()
+        self.update_detail()
+
+    def location_selected(self, attr, old, selected):
 
         # TODO: how are they multiple Location IDs and Time IDs both of 0?
 
-        self.selected_details = self.details.loc[
-            self.details['Location ID'].isin(selected_location)
-        ]
+        self._select_details()
         self.update_map()
         self.update_detail()
 
 
-    def time_selected(self, attr, old, selected_time):
+    def time_selected(self, attr, old, selected):
 
-        self.selected_details = self.details.loc[
-            self.details['Time ID'].isin(selected_time)
-        ]
+        self._select_details()
         self.update_map()
         self.update_detail()
 
@@ -80,6 +78,32 @@ class selections(updates):
         self.update_summary()
         self.update_map()
         self.update_detail()
+
+
+    def _select_details(self):
+
+        # TODO: update titles to show what is selected
+        # TODO: add a reset button
+
+        id_summary = self.source_summary.selected.indices
+        id_location = self.source_location.selected.indices
+        id_time = self.source_time.selected.indices
+
+        if (len(id_location)>0) & (len(id_time)>0):
+            selected = (
+                self.details['Location ID'].isin(id_location) &
+                self.details['Time ID'].isin(id_time)
+            )
+        elif len(id_location)>0:
+            selected = self.details['Location ID'].isin(id_location)
+        elif len(id_time)>0:
+            selected = self.details['Time ID'].isin(id_time)
+        elif len(id_summary)>0:
+            selected = self.details['Cluster ID'].isin(id_summary)
+        else:
+            selected = pd.Series([True]*len(self.details))
+
+        self.selected_details = self.details.loc[selected]
 
 
     def _same_location(self):
