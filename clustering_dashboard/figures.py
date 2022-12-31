@@ -127,6 +127,7 @@ class figures(data, selections):
             TableColumn(field=f"Nearest ({self.units['time'].value})", formatter=self.display_format['float'], width=80)
         ]
 
+        # TODO: id from actual index
         self.source_summary = ColumnDataSource(data=dict())
         self.table_summary = DataTable(
             source=self.source_summary, columns=columns, index_header='Cluster ID', index_width=60,
@@ -300,7 +301,7 @@ class figures(data, selections):
 
 
     def _id_table(self, id_column):
-
+        # TODO: id from actual index
         columns = [
             TableColumn(field="# Clusters", formatter=self.display_format['int'], width=70),
             TableColumn(field="# Unassigned Points", formatter=self.display_format['int'], width=120),            

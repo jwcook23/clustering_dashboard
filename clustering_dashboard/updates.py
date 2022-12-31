@@ -109,9 +109,6 @@ class updates():
 
     def update_summary(self):
 
-        # TODO: why filter if not needed then delete method?
-        # cluster_summary = self._filter_clusters()
-        # cluster_summary = self.cluster_summary
         cluster_summary = self.cluster_summary[
             self.cluster_summary.index.isin(self.selected_details['Cluster ID'])
         ].copy()
@@ -178,23 +175,6 @@ class updates():
         zoom = pd.DataFrame({'min': center-offset, 'max': center+offset})
 
         return zoom
-
-
-    def _filter_clusters(self):
-
-        if self.selected_details is None:
-            cluster_summary = self.cluster_summary
-        else:
-            cluster_summary = self.cluster_summary[
-                self.cluster_summary.index.isin(self.selected_details)
-            ].reset_index(drop=True)
-
-            self.cluster_boundary = self.cluster_boundary[
-                self.cluster_boundary.index.isin(self.selected_details)
-            ]
-            self.cluster_id = self.cluster_id.loc[self.selected_details.index]
-
-        return cluster_summary
 
 
     def _filter_outliers(self, values):
