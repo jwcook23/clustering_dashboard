@@ -43,7 +43,7 @@ class updates():
         }
 
         # update map title
-        self.update_titles()
+        self.update_selected_count()
 
         # zoom in on current selected data
         zoom = self._zoom_window(self.selected_details[['_longitude_mercator','_latitude_mercator']])
@@ -61,7 +61,7 @@ class updates():
         data[id_cols] = data[id_cols].fillna(-1)
             
         self.source_detail.data = data
-        self.update_titles()
+        self.update_selected_count()
 
 
     def update_evaluation(self):
@@ -142,17 +142,16 @@ class updates():
             target['fig'].add_layout(label)
 
 
-    def update_titles(self):
+    def update_selected_count(self):
 
-        cluster_count = self.selected_details['Cluster ID'].dropna().nunique()
+        num_clusters = self.selected_details['Cluster ID'].dropna().nunique()
+        self.count_summary.text = f"({num_clusters} selected)"
 
-        if cluster_count == 0:
-            selected_title = 'enter parameters & select cluster summary to display'
-        else:
+        num_locations = self.selected_details['Location ID'].dropna().nunique()
+        self.count_location.text = f"({num_locations} selected)"
 
-            selected_title = f'{cluster_count} clusters displayed'
-
-        self.title_map.text = f"Location and Time Clusters: {selected_title}"          
+        num_times = self.selected_details['Time ID'].dropna().nunique()
+        self.count_time.text = f"({num_times} selected)"
 
 
     def _zoom_window(self, df):

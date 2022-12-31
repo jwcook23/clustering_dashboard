@@ -19,13 +19,23 @@ class dashboard(figures):
     def page_layout(self):
 
         # self.title_main = Div(style={'font-size': '150%', 'font-weight': 'bold'}, width=170)
-        self.title_map = Div(style={'font-size': '150%', 'font-weight': 'bold'}, width=625)
-        self.update_titles()
+        
+        style = {'font-size': '150%', 'font-weight': 'bold'}
+        title_map = Div(text='Location and Time Clusters', style=style, width=625)
+        title_units = Div(text="Select Units", style=style, width=160)
+        title_parameter = Div(text="Select Parameters", style=style, width=160)
+        title_options = Div(text="Display Options")
 
-        title_units = Div(text="Unit Selection", style={'font-weight': 'bold'}, height=20, width=160)
-        title_parameter = Div(text="Cluster Parameters", style={'font-weight': 'bold'}, height=20, width=160)
+        title_location = Div(text="Location Summary", style=style)
+        self.count_location = Div()
+        title_time = Div(text="Time Summary", style=style)
+        self.count_time = Div()
+        title_summary = Div(text="Cluster Summary", style=style)
+        self.count_summary = Div()
+
+        self.update_selected_count()
+
         space = Div(height=20, width=160)
-        title_summary = Div(text="Cluster Summary", style={'font-weight': 'bold'})
 
         self.layout = row(
             column(
@@ -43,18 +53,21 @@ class dashboard(figures):
                         Panel(child=row(self.plot_next_distance, self.plot_span_distance), title='Distance Parameter Evaluation'),
                         Panel(child=row(self.plot_next_date, self.plot_span_date), title='Time Parameter Evalulation')
                     ])
-            ),
-            row(
-                column(
-                    title_summary,
-                    self.options['display'],
                 ),
-                row(self.table_location, self.table_time)
-            ),
-            self.table_summary
+                row(
+                    column(
+                        title_options,
+                        self.options['display'],
+                    ),
+                    row(
+                        column(row(title_location, self.count_location), self.table_location), 
+                        column(row(title_time, self.count_time), self.table_time)
+                    )
+                ),
+                column(row(title_summary, self.count_summary), self.table_summary)
             ),
             column(
-                self.title_map,
+                title_map,
                 Tabs(tabs=[
                     Panel(child=self.plot_map, title='Location and Time Plot'), 
                     Panel(child=self.table_detail, title='Record Detail')
