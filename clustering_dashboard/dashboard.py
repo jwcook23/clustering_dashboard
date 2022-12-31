@@ -22,8 +22,8 @@ class dashboard(figures):
         
         style = {'font-size': '150%', 'font-weight': 'bold'}
         title_map = Div(text='Location and Time Clusters', style=style, width=625)
-        title_units = Div(text="Select Units", style=style, width=160)
-        title_parameter = Div(text="Select Parameters", style=style, width=160)
+        title_units = Div(text="Units", style=style, width=160)
+        title_parameter = Div(text="Parameters", style=style, width=160)
         title_options = Div(text="Display Options")
 
         title_location = Div(text="Location Summary", style=style)

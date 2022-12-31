@@ -91,17 +91,30 @@ class updates():
         )
 
 
+    def update_time(self):
+        
+        time_summary = self.time_summary[
+            self.time_summary.index.isin(self.selected_details['Time ID'])
+        ]
+        self.source_time.data = time_summary.to_dict(orient='list')
+
+
+    def update_location(self):
+
+        location_summary = self.location_summary[
+            self.location_summary.index.isin(self.selected_details['Location ID'])
+        ]
+        self.source_location.data = location_summary.to_dict(orient='list')
+
+
     def update_summary(self):
 
-        # TODO: why filter?
+        # TODO: why filter if not needed then delete method?
         # cluster_summary = self._filter_clusters()
-        cluster_summary = self.cluster_summary
-
-        # update summary of location id
-        self.source_location.data = self.location_summary.to_dict(orient='list')
-
-        # # update summary of time id
-        self.source_time.data = self.time_summary.to_dict(orient='list')
+        # cluster_summary = self.cluster_summary
+        cluster_summary = self.cluster_summary[
+            self.cluster_summary.index.isin(self.selected_details['Cluster ID'])
+        ].copy()
 
         # update summary table
         # BUG: replace values of all empty to avoid ValueError: Out of range float values are not JSON compliant
@@ -145,13 +158,13 @@ class updates():
     def update_selected_count(self):
 
         num_clusters = self.selected_details['Cluster ID'].dropna().nunique()
-        self.count_summary.text = f"({num_clusters} selected)"
+        self.count_summary.text = f"({num_clusters} displayed)"
 
         num_locations = self.selected_details['Location ID'].dropna().nunique()
-        self.count_location.text = f"({num_locations} selected)"
+        self.count_location.text = f"({num_locations} displayed)"
 
         num_times = self.selected_details['Time ID'].dropna().nunique()
-        self.count_time.text = f"({num_times} selected)"
+        self.count_time.text = f"({num_times} displayed)"
 
 
     def _zoom_window(self, df):

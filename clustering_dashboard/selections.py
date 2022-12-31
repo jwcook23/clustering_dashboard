@@ -38,7 +38,8 @@ class selections(updates):
         self.selected_details = self.details
         self.update_evaluation()
         self.update_summary()
-        # self.cluster_selected(None, None, self.cluster_summary.index)
+        self.update_location()
+        self.update_time()
         self.update_map()
         self.update_detail()
 
@@ -48,14 +49,16 @@ class selections(updates):
         self._select_details()
         self.update_map()
         self.update_detail()
+        self.update_location()
+        self.update_time()
 
     def location_selected(self, attr, old, selected):
-
-        # TODO: how are they multiple Location IDs and Time IDs both of 0?
 
         self._select_details()
         self.update_map()
         self.update_detail()
+        self.update_summary()
+        self.update_time()
 
 
     def time_selected(self, attr, old, selected):
@@ -63,6 +66,8 @@ class selections(updates):
         self._select_details()
         self.update_map()
         self.update_detail()
+        self.update_summary()
+        self.update_location()
 
 
     def relation_selected(self, event):
@@ -82,7 +87,6 @@ class selections(updates):
 
     def _select_details(self):
 
-        # TODO: update titles to show what is selected
         # TODO: add a reset button
 
         id_summary = self.source_summary.selected.indices
