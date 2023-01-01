@@ -95,7 +95,7 @@ class updates():
         
         time_summary = self.time_summary[
             self.time_summary.index.isin(self.selected_details['Time ID'])
-        ]
+        ].reset_index()
         self.source_time.data = time_summary.to_dict(orient='list')
 
 
@@ -103,7 +103,7 @@ class updates():
 
         location_summary = self.location_summary[
             self.location_summary.index.isin(self.selected_details['Location ID'])
-        ]
+        ].reset_index()
         self.source_location.data = location_summary.to_dict(orient='list')
 
 
@@ -111,7 +111,7 @@ class updates():
 
         cluster_summary = self.cluster_summary[
             self.cluster_summary.index.isin(self.selected_details['Cluster ID'])
-        ].copy()
+        ].reset_index().copy()
 
         # update summary table
         # BUG: replace values of all empty to avoid ValueError: Out of range float values are not JSON compliant

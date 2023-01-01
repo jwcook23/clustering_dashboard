@@ -117,6 +117,7 @@ class figures(data, selections):
     def summary_table(self):
 
         columns = [
+            TableColumn(field="Cluster ID", formatter=self.display_format['id'], width=70),
             TableColumn(field="# Points", formatter=self.display_format['int'], width=50),
             TableColumn(field="Location ID", formatter=self.display_format['id'], width=70),
             TableColumn(field="Time ID", formatter=self.display_format['id'], width=50),
@@ -130,7 +131,7 @@ class figures(data, selections):
         # TODO: id from actual index
         self.source_summary = ColumnDataSource(data=dict())
         self.table_summary = DataTable(
-            source=self.source_summary, columns=columns, index_header='Cluster ID', index_width=60,
+            source=self.source_summary, columns=columns, index_position=None,
             autosize_mode='none', height=300, width=700)
         self.source_summary.selected.on_change('indices', self.cluster_selected)
 
@@ -301,15 +302,16 @@ class figures(data, selections):
 
 
     def _id_table(self, id_column):
-        # TODO: id from actual index
+
         columns = [
+            TableColumn(field=id_column, formatter=self.display_format['id'],width=70),
             TableColumn(field="# Clusters", formatter=self.display_format['int'], width=70),
             TableColumn(field="# Unassigned Points", formatter=self.display_format['int'], width=120),            
         ]
 
         source = ColumnDataSource(data=dict())
         summary = DataTable(
-            source=source, columns=columns, index_header=id_column, index_width=60,
+            source=source, columns=columns, index_position=None,
             autosize_mode='none', height=100, width=270
         )
         return summary, source
