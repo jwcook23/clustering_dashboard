@@ -22,30 +22,34 @@ class dashboard(figures):
             text='Clustering Dashboard',
             style={'font-size': '150%', 'font-weight': 'bold'}, width=210
         )
-        
-        style = {'font-weight': 'bold'}
-        title_map = Div(text='Location and Time Clusters', style=style, width=625)
 
-        title_location = Div(text="Location Summary", style=style)
+        bold = {'font-weight': 'bold'}
+
+        title_distance_input = Div(text='Distance Length', style=bold)
+        title_time_input = Div(text='Time Duration', style=bold)
+        
+        title_map = Div(text='Location and Time Clusters', style=bold, width=625)
+
+        title_location_summary = Div(text="Location Summary", style=bold)
         self.count_location = Div()
-        title_time = Div(text="Time Summary", style=style)
+        title_time_summary = Div(text="Time Summary", style=bold)
         self.count_time = Div()
-        title_summary = Div(text="Cluster Summary", style=style)
+        title_summary = Div(text="Cluster Summary", style=bold)
         self.count_summary = Div()
 
         self.update_selected_count()
 
-        space = Div(height=20, width=160)
+        space = Div(height=20, width=100)
 
         self.layout = row(
             column(
                 row(
                     column(
                         title_main,
-                        row(self.units['distance'], self.units['time']),
-                        space,
-                        row(self.parameters['cluster_distance'], self.parameters['date_range']),
-                        space,
+                        row(
+                            column(title_distance_input, self.units['distance'], space, self.parameters['cluster_distance']),
+                            column(title_time_input, self.units['time'], space, self.parameters['date_range'])
+                        ),
                         self.options['reset']
                     ),
                     Tabs(tabs=[
@@ -55,8 +59,8 @@ class dashboard(figures):
                     ])
                 ),
                 row(
-                    column(row(title_location, self.count_location), self.table_location), 
-                    column(row(title_time, self.count_time), self.table_time)
+                    column(row(title_location_summary, self.count_location), self.table_location), 
+                    column(row(title_time_summary, self.count_time), self.table_time)
                 ),
                 column(row(title_summary, self.count_summary), self.table_summary)
             ),

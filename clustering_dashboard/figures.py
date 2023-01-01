@@ -42,30 +42,30 @@ class figures(data, selections):
 
     def units_distance(self):
 
-        self.units['distance'] = Select(title='Distance Units:', value="miles", options=["miles", "feet", "kilometers"], height=25, width=100)
+        self.units['distance'] = Select(title='Units:', value="miles", options=["miles", "feet", "kilometers"], height=25, width=100)
         self.units['distance'].on_change('value', self.parameter_selected)
 
 
     def units_time(self):
 
-        self.units['time'] = Select(title='Time Units:', value="hours", options=["days", "hours", "minutes"], height=25, width=100)
+        self.units['time'] = Select(title='Units:', value="hours", options=["days", "hours", "minutes"], height=25, width=100)
         self.units['time'].on_change('value', self.parameter_selected)
 
 
     def parameter_distance(self):
 
-        self.parameters['cluster_distance'] = NumericInput(value=None, mode='float', title='Distance Param:', height=50, width=100)
+        self.parameters['cluster_distance'] = NumericInput(value=None, mode='float', title='Parameter:', height=50, width=100)
         self.parameters['cluster_distance'].on_change('value', self.parameter_selected)
 
     def parameter_time(self):
 
-        self.parameters['date_range'] = NumericInput(value=None, mode='float', title='Duration Param:', height=50, width=100)
+        self.parameters['date_range'] = NumericInput(value=None, mode='float', title='Parameter:', height=50, width=100)
         self.parameters['date_range'].on_change('value', self.parameter_selected)
 
 
     def set_options(self):
 
-        self.options['reset'] = Button(label="Reset Selections", button_type="default", width=120, height=30)
+        self.options['reset'] = Button(label="Reset All Inputs and Selections", button_type="default", width=200, height=30)
         self.options['reset'].on_click(self.reset_selected)
 
 
