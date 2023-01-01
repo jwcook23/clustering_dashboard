@@ -4,7 +4,7 @@ from bokeh.tile_providers import CARTODBPOSITRON, get_provider
 from bokeh.transform import linear_cmap
 from bokeh.models import (
     ColumnDataSource, DataTable, HoverTool, ColorBar, 
-    DatetimeTickFormatter, TableColumn, Dropdown, Select, 
+    DatetimeTickFormatter, TableColumn, Button, Select, 
     NumericInput, TableColumn, DateFormatter, StringFormatter, NumberFormatter
 )
 
@@ -29,7 +29,7 @@ class figures(data, selections):
         self.parameter_time()
 
         self.options = {}
-        self.related_clusters()
+        self.set_options()
 
         self.parameter_estimate()
         self.distance_evaluation()
@@ -54,24 +54,19 @@ class figures(data, selections):
 
     def parameter_distance(self):
 
-        self.parameters['cluster_distance'] = NumericInput(value=None, mode='float', title=f'Location Distance ({self.units["distance"].value}):', height=50, width=160)
+        self.parameters['cluster_distance'] = NumericInput(value=None, mode='float', title=f'Distance ({self.units["distance"].value}):', height=50, width=100)
         self.parameters['cluster_distance'].on_change('value', self.parameter_selected)
 
     def parameter_time(self):
 
-        self.parameters['date_range'] = NumericInput(value=None, mode='float', title=f'Time Duration ({self.units["time"].value}):', height=50, width=160)
+        self.parameters['date_range'] = NumericInput(value=None, mode='float', title=f'Duration ({self.units["time"].value}):', height=50, width=100)
         self.parameters['date_range'].on_change('value', self.parameter_selected)
 
 
-    def related_clusters(self):
+    def set_options(self):
 
-        menu = [
-            ("1) Reset display.", "reset display"),
-            ("2) Display clusters with same Location ID.", "same location"),
-            ("3) Display clusters with same Time ID.", "same time")
-        ]
-        self.options['display'] = Dropdown(label="related clusters", button_type="default", menu=menu, height=25, width=150)
-        self.options['display'].on_click(self.relation_selected)
+        self.options['reset'] = Button(label="Reset Selections", button_type="default", width=120, height=30)
+        self.options['reset'].on_click(self.reset_selected)
 
 
     def parameter_estimate(self):
@@ -128,7 +123,6 @@ class figures(data, selections):
             TableColumn(field=f"Nearest ({self.units['time'].value})", formatter=self.display_format['float'], width=80)
         ]
 
-        # TODO: id from actual index
         self.source_summary = ColumnDataSource(data=dict())
         self.table_summary = DataTable(
             source=self.source_summary, columns=columns, index_position=None,
@@ -312,6 +306,6 @@ class figures(data, selections):
         source = ColumnDataSource(data=dict())
         summary = DataTable(
             source=source, columns=columns, index_position=None,
-            autosize_mode='none', height=100, width=270
+            autosize_mode='none', height=100, width=280
         )
         return summary, source

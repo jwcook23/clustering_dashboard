@@ -70,19 +70,9 @@ class selections(updates):
         self.update_location()
 
 
-    def relation_selected(self, event):
+    def reset_selected(self, event):
         
-        if event.item=='reset display':
-            self.parameter_selected(None, None, None)
-            return None
-        elif event.item=='same location':
-            self._same_location()
-        elif event.item=='same time':
-            self._same_date()
-
-        self.update_summary()
-        self.update_map()
-        self.update_detail()
+        self.parameter_selected(None, None, None)
 
 
     def _select_details(self):
