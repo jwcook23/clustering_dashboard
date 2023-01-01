@@ -42,24 +42,24 @@ class figures(data, selections):
 
     def units_distance(self):
 
-        self.units['distance'] = Select(title='Distance:', value="miles", options=["miles", "feet", "kilometers"], height=25, width=75)
+        self.units['distance'] = Select(title='Distance Units:', value="miles", options=["miles", "feet", "kilometers"], height=25, width=100)
         self.units['distance'].on_change('value', self.parameter_selected)
 
 
     def units_time(self):
 
-        self.units['time'] = Select(title='Time:', value="hours", options=["days", "hours", "minutes"], height=25, width=75)
+        self.units['time'] = Select(title='Time Units:', value="hours", options=["days", "hours", "minutes"], height=25, width=100)
         self.units['time'].on_change('value', self.parameter_selected)
 
 
     def parameter_distance(self):
 
-        self.parameters['cluster_distance'] = NumericInput(value=None, mode='float', title=f'Distance ({self.units["distance"].value}):', height=50, width=100)
+        self.parameters['cluster_distance'] = NumericInput(value=None, mode='float', title='Distance Param:', height=50, width=100)
         self.parameters['cluster_distance'].on_change('value', self.parameter_selected)
 
     def parameter_time(self):
 
-        self.parameters['date_range'] = NumericInput(value=None, mode='float', title=f'Duration ({self.units["time"].value}):', height=50, width=100)
+        self.parameters['date_range'] = NumericInput(value=None, mode='float', title='Duration Param:', height=50, width=100)
         self.parameters['date_range'].on_change('value', self.parameter_selected)
 
 

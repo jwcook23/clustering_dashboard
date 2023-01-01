@@ -20,14 +20,11 @@ class dashboard(figures):
 
         title_main = Div(
             text='Clustering Dashboard',
-            style={'font-size': '150%', 'font-weight': 'bold'}, width=180
+            style={'font-size': '150%', 'font-weight': 'bold'}, width=210
         )
         
         style = {'font-weight': 'bold'}
         title_map = Div(text='Location and Time Clusters', style=style, width=625)
-        title_units = Div(text="Units", style=style, width=160)
-        title_parameter = Div(text="Parameters", style=style, width=160)
-        title_options = Div(text="Display Options")
 
         title_location = Div(text="Location Summary", style=style)
         self.count_location = Div()
@@ -45,11 +42,11 @@ class dashboard(figures):
                 row(
                     column(
                         title_main,
-                        title_units,
                         row(self.units['distance'], self.units['time']),
                         space,
-                        title_parameter,
-                        row(self.parameters['cluster_distance'], self.parameters['date_range'])
+                        row(self.parameters['cluster_distance'], self.parameters['date_range']),
+                        space,
+                        self.options['reset']
                     ),
                     Tabs(tabs=[
                         Panel(child=row(self.plot_estimate_distance, self.plot_estimate_time), title='Parameter Estimation'),
@@ -58,14 +55,8 @@ class dashboard(figures):
                     ])
                 ),
                 row(
-                    column(
-                        title_options,
-                        self.options['reset'],
-                    ),
-                    row(
-                        column(row(title_location, self.count_location), self.table_location), 
-                        column(row(title_time, self.count_time), self.table_time)
-                    )
+                    column(row(title_location, self.count_location), self.table_location), 
+                    column(row(title_time, self.count_time), self.table_time)
                 ),
                 column(row(title_summary, self.count_summary), self.table_summary)
             ),
