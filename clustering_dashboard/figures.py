@@ -65,7 +65,7 @@ class figures(data, selections):
 
     def set_options(self):
 
-        self.options['reset'] = Button(label="Reset All Inputs and Selections", button_type="default", width=200, height=30)
+        self.options['reset'] = Button(label="Reset Selections", button_type="default", width=200, height=30)
         self.options['reset'].on_click(self.reset_selected)
 
 

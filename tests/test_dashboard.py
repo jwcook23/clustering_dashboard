@@ -28,7 +28,7 @@ def test_steps(db):
 
     # TODO: how are they multiple Location IDs and Time IDs both of 0?
     db.source_location.selected.indices = [0]
-    db.source_time.selected.indices = [0]
+    # db.source_time.selected.indices = [0]
 
     # db.location_selected(None, None, [0])
     # db.time_selected(None, None, [0])

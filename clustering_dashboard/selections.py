@@ -35,13 +35,8 @@ class selections(updates):
             self.parameters['date_range'],
             self.additional_summary
         )
-        self.selected_details = self.details
-        self.update_evaluation()
-        self.update_summary()
-        self.update_location()
-        self.update_time()
-        self.update_map()
-        self.update_detail()
+
+        self._reset_all()
 
 
     def cluster_selected(self, attr, old, selected):
@@ -72,12 +67,12 @@ class selections(updates):
 
     def reset_selected(self, event):
         
-        self.parameter_selected(None, None, None)
+        # self.source_summary.selected.indices
+        # self.parameter_selected(None, None, None)
+        self._reset_all()
 
 
     def _select_details(self):
-
-        # TODO: add a reset button
 
         id_summary = self.source_summary.selected.indices
         id_location = self.source_location.selected.indices
@@ -98,6 +93,22 @@ class selections(updates):
             selected = pd.Series([True]*len(self.details))
 
         self.selected_details = self.details.loc[selected]
+
+
+    def _reset_all(self):
+
+        self.source_summary.selected.indices = []
+        self.source_location.selected.indices = []
+        self.source_time.selected.indices = []
+
+        self.selected_details = self.details
+
+        self.update_evaluation()
+        self.update_summary()
+        self.update_location()
+        self.update_time()
+        self.update_map()
+        self.update_detail()
 
 
     def _same_location(self):
