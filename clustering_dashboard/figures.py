@@ -108,8 +108,7 @@ class figures(data, selections):
         self.table_time, self.source_time = self._id_table('Time ID')
         self.source_time.selected.on_change('indices', self.time_selected)
 
-
-    def summary_table(self):
+    def summary_columns(self):
 
         columns = [
             TableColumn(field="Cluster ID", formatter=self.display_format['id'], width=70),
@@ -122,6 +121,13 @@ class figures(data, selections):
             TableColumn(field=f"Length ({self.units['time'].value})", formatter=self.display_format['float'], width=80),
             TableColumn(field=f"Nearest ({self.units['time'].value})", formatter=self.display_format['float'], width=80)
         ]
+
+        return columns
+
+
+    def summary_table(self):
+
+        columns = self.summary_columns()
 
         self.source_summary = ColumnDataSource(data=dict())
         self.table_summary = DataTable(

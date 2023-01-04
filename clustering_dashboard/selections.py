@@ -26,7 +26,11 @@ class selections(updates):
 
     def units_selected(self, attr, old, new):
 
-        self.summary_table()
+        self.plot_estimate_distance.yaxis.axis_label = self.units["distance"].value
+        self.plot_estimate_time.yaxis.axis_label = self.units["time"].value
+        self.update_parameter_estimation()
+
+        self.table_summary.columns = self.summary_columns()
         self.parameter_selected(None, None, None)
 
 
