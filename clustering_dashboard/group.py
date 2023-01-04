@@ -46,16 +46,16 @@ def get_clusters(details, cluster_distance, distance, column_time, units_time, u
     date_id, grouped = cluster_date(details, column_time, date_range, units_time)
     details = details.drop(columns=['Time ID']).merge(date_id, left_index=True, right_index=True)
 
-    # group on location without time aspect, to show other points near location potentially at different dates
+    # group on location without time aspect
     geo_id = cluster_geo(details, cluster_distance, distance, units_distance, 'Location')
     details = details.drop(columns=['Location ID']).merge(geo_id, left_index=True, right_index=True)
 
     # group on location with time to assign overall Cluster ID
-    geo_id = grouped.apply(lambda x:  cluster_geo(x, cluster_distance, distance, units_distance, 'LocationTime'))
-    details = details.drop(columns=['LocationTime ID']).merge(geo_id, left_index=True, right_index=True)
+    # geo_id = grouped.apply(lambda x:  cluster_geo(x, cluster_distance, distance, units_distance, 'LocationTime'))
+    # details = details.drop(columns=['LocationTime ID']).merge(geo_id, left_index=True, right_index=True)
 
     # assign an overall id desc with largest size
-    details = assign_id(details, ['Time ID','LocationTime ID'], 'Cluster')
+    details = assign_id(details, ['Time ID', 'Location ID'], 'Cluster')
 
     # determine distance of points to other points
     details = point_distance(details, distance, units_distance)
@@ -136,9 +136,9 @@ def get_boundary(group):
 
 def point_distance(details, distance, units_distance):
 
-    grouped = pd.DataFrame(details['LocationTime ID'])
+    grouped = pd.DataFrame(details['Cluster ID'])
     grouped['index'] = range(0, len(grouped))
-    grouped = grouped.groupby('LocationTime ID')
+    grouped = grouped.groupby('Cluster ID')
     grouped = grouped.agg({'index': list})
     grouped['index'] = grouped['index'].apply(lambda x: np.array(x))
     grouped['row'] = grouped['index'].apply(lambda x: x.repeat(len(x)))

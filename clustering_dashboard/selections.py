@@ -24,6 +24,12 @@ class selections(updates):
         # clear cluster evaluation
 
 
+    def units_selected(self, attr, old, new):
+
+        self.summary_table()
+        self.parameter_selected(None, None, None)
+
+
     def parameter_selected(self, attr, old, new):
 
         if self.parameters['cluster_distance'].value is None or self.parameters['date_range'].value is None:
@@ -63,13 +69,6 @@ class selections(updates):
         self.update_detail()
         self.update_summary()
         self.update_location()
-
-
-    def reset_selected(self, event):
-        
-        # self.source_summary.selected.indices
-        # self.parameter_selected(None, None, None)
-        self._reset_all()
 
 
     def _select_details(self):

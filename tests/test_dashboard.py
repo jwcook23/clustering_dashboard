@@ -26,13 +26,12 @@ def test_steps(db):
 
     # db.source_summary.selected.indices = [0]
 
-    # TODO: how are they multiple Location IDs and Time IDs both of 0?
-    db.source_location.selected.indices = [0]
+    db.parameters['cluster_distance'].value = 0.25
+    db.units['distance'].value = 'feet'
+    db.units_selected(None, None, None)
+
+    # db.source_location.selected.indices = [0]
     # db.source_time.selected.indices = [0]
-
-    # db.location_selected(None, None, [0])
-    # db.time_selected(None, None, [0])
-
 
 
 # plot second largest

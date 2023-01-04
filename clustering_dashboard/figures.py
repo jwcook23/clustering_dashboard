@@ -43,13 +43,13 @@ class figures(data, selections):
     def units_distance(self):
 
         self.units['distance'] = Select(title='Units:', value="miles", options=["miles", "feet", "kilometers"], height=25, width=100)
-        self.units['distance'].on_change('value', self.parameter_selected)
+        self.units['distance'].on_change('value', self.units_selected)
 
 
     def units_time(self):
 
         self.units['time'] = Select(title='Units:', value="hours", options=["days", "hours", "minutes"], height=25, width=100)
-        self.units['time'].on_change('value', self.parameter_selected)
+        self.units['time'].on_change('value', self.units_selected)
 
 
     def parameter_distance(self):
@@ -66,7 +66,7 @@ class figures(data, selections):
     def set_options(self):
 
         self.options['reset'] = Button(label="Reset Selections", button_type="default", width=200, height=30)
-        self.options['reset'].on_click(self.reset_selected)
+        self.options['reset'].on_click(self._reset_all)
 
 
     def parameter_estimate(self):
@@ -146,6 +146,7 @@ class figures(data, selections):
         self.default_zoom = self._zoom_window(points)
 
         # generate map
+        # TODO: use distance as axis type
         self.plot_map = figure(
             x_range=self.default_zoom.loc['x'], y_range=self.default_zoom.loc['y'],
             x_axis_type="mercator", y_axis_type="mercator", title=None,
@@ -297,6 +298,7 @@ class figures(data, selections):
 
     def _id_table(self, id_column):
 
+        # TODO: include summary of length and duration
         columns = [
             TableColumn(field=id_column, formatter=self.display_format['id'],width=70),
             TableColumn(field="# Clusters", formatter=self.display_format['int'], width=70),

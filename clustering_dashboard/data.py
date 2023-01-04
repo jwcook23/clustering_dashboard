@@ -13,7 +13,7 @@ class data():
         self.load_settings()
         self.load_data()
 
-        self.details[['Cluster ID', 'LocationTime ID', 'Location ID', 'Time ID']] = None
+        self.details[['Cluster ID', 'Location ID', 'Time ID']] = None
 
         self.details['_timestamp'] = self.details[self.columns['time']].apply(lambda x: int(x.timestamp()*1000))
 
