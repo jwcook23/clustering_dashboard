@@ -30,6 +30,11 @@ class selections(updates):
         self.plot_estimate_time.yaxis.axis_label = self.units["time"].value
         self.update_parameter_estimation()
 
+        self.plot_next_distance.xaxis.axis_label = self.units["distance"].value
+        self.plot_span_distance.xaxis.axis_label = self.units["distance"].value
+        self.plot_next_date.xaxis.axis_label = self.units["time"].value
+        self.plot_span_date.xaxis.axis_label = self.units["time"].value
+
         self.table_summary.columns = self.summary_columns()
         self.parameter_selected(None, None, None)
 

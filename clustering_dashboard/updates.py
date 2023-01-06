@@ -148,8 +148,8 @@ class updates():
             }
             target['renderer'].data_source.data = source
 
-            label = Label(text=outliers, x=len(values), y=values.max(), text_align='right', text_baseline='top')
-            target['fig'].add_layout(label)
+            title = target['fig'].title.text.split('\n')
+            target['fig'].title.text = f'{title[0]}\n{outliers}'
 
 
     def update_selected_count(self):
@@ -184,7 +184,7 @@ class updates():
         values = values[~values.index.isin(outliers.index)]
 
         if values.any():
-            outliers = f'excluding {len(outliers)} points\n> {values.max():.3f}'
+            outliers = f'excluding {len(outliers)} points > {values.max():.3f}'
         else:
             outliers = 'no data'
 
@@ -206,10 +206,5 @@ class updates():
                 bottom=[0]*len(hist),
             )
 
-        xpos = bins['right'].max()
-        if np.isnan(xpos):
-            xpos = 1
-        ypos = bins['top'].max()
-
-        renderer.data_source.data = bins
-        fig.add_layout(Label(text=outliers, x=xpos, y=ypos, text_align='right', text_baseline='top'))
+        title = fig.title.text.split('\n')
+        fig.title.text = f'{title[0]}\n{outliers}'
