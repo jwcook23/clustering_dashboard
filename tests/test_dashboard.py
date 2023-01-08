@@ -12,20 +12,15 @@ def db():
     output_file("test.html")
 
     page.units['distance'].value = 'miles'
-    page.units['time'].value = 'minutes'
     page.parameters['cluster_distance'].value = 0.25
-    page.parameters['cluster_time'].value = 5
+    page.units['time'].value = 'minutes'
+    page.parameters['cluster_time'].value = 30
 
     yield page
     show(page.layout)
 
 
 def test_steps(db):
-
-    db.units['distance'].value = 'miles'
-    db.parameters['cluster_distance'].value = 0.25
-    db.units['time'].value = 'minutes'
-    db.parameters['cluster_time'].value = 30
 
     db.source_summary.selected.indices = [0]
 

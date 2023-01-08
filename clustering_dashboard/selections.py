@@ -45,9 +45,9 @@ class selections(updates):
             return
 
         self.cluster_summary, self.location_summary, self.time_summary, self.cluster_boundary, self.details = group.get_clusters(
-            self.details, self.parameters['cluster_distance'],
+            self.details, self.parameters['cluster_distance'].value,
             self.distance, self.columns['time'], self.units["time"].value, self.units["distance"].value,
-            self.parameters['cluster_time'],
+            self.parameters['cluster_time'].value,
             self.additional_summary
         )
 
