@@ -48,7 +48,7 @@ class dashboard(figures):
                         title_main,
                         row(
                             column(title_distance_input, self.units['distance'], space, self.parameters['cluster_distance']),
-                            column(title_time_input, self.units['time'], space, self.parameters['date_range'])
+                            column(title_time_input, self.units['time'], space, self.parameters['cluster_time'])
                         ),
                         self.options['reset']
                     ),

@@ -12,9 +12,9 @@ def db():
     output_file("test.html")
 
     page.units['distance'].value = 'miles'
-    page.units['time'].value = 'hours'
+    page.units['time'].value = 'minutes'
     page.parameters['cluster_distance'].value = 0.25
-    page.parameters['date_range'].value = 6
+    page.parameters['cluster_time'].value = 5
 
     yield page
     show(page.layout)
@@ -22,16 +22,14 @@ def db():
 
 def test_steps(db):
 
-    # db.cluster_selected(None, None, [0])
-
-    # db.source_summary.selected.indices = [0]
-
+    db.units['distance'].value = 'miles'
     db.parameters['cluster_distance'].value = 0.25
-    db.units['distance'].value = 'feet'
-    db.units_selected(None, None, None)
+    db.units['time'].value = 'minutes'
+    db.parameters['cluster_time'].value = 30
 
-    # db.source_location.selected.indices = [0]
-    # db.source_time.selected.indices = [0]
+    db.source_summary.selected.indices = [0]
+
+    db.cluster_selected(None, None, None)
 
 
 # plot second largest

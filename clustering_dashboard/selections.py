@@ -41,13 +41,13 @@ class selections(updates):
 
     def parameter_selected(self, attr, old, new):
 
-        if self.parameters['cluster_distance'].value is None or self.parameters['date_range'].value is None:
+        if self.parameters['cluster_distance'].value is None or self.parameters['cluster_time'].value is None:
             return
 
         self.cluster_summary, self.location_summary, self.time_summary, self.cluster_boundary, self.details = group.get_clusters(
             self.details, self.parameters['cluster_distance'],
             self.distance, self.columns['time'], self.units["time"].value, self.units["distance"].value,
-            self.parameters['date_range'],
+            self.parameters['cluster_time'],
             self.additional_summary
         )
 

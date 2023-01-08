@@ -40,10 +40,10 @@ def assign_id(details, input_columns, output_name):
     return details
 
 
-def get_clusters(details, cluster_distance, distance, column_time, units_time, units_distance, date_range, additional_summary):
+def get_clusters(details, cluster_distance, distance, column_time, units_time, units_distance, cluster_time, additional_summary):
 
     # group dates
-    date_id, grouped = cluster_date(details, column_time, date_range, units_time)
+    date_id, grouped = cluster_date(details, column_time, cluster_time, units_time)
     details = details.drop(columns=['Time ID']).merge(date_id, left_index=True, right_index=True)
 
     # group on location without time aspect
@@ -60,6 +60,10 @@ def get_clusters(details, cluster_distance, distance, column_time, units_time, u
     # determine distance of points to other points
     details = point_distance(details, distance, units_distance)
 
+    # details.loc[
+    #     details['Cluster ID']==0, ['TripID', 'Latitude', 'Longitude', 'Pickup Time', 'Fare Amount']
+    # ].to_csv('Sample20Records.csv', index=False)
+
     # summerize cluster
     cluster_summary, location_summary, time_summary = summary.get_summary(details, column_time, units_time, units_distance, additional_summary)
 
@@ -70,7 +74,7 @@ def get_clusters(details, cluster_distance, distance, column_time, units_time, u
     return cluster_summary, location_summary, time_summary, cluster_boundary, details
 
 
-def cluster_date(details, column_time, date_range, units_time):
+def cluster_date(details, column_time, cluster_time, units_time):
 
     if units_time == 'days':
         offset = 'D'
@@ -78,7 +82,7 @@ def cluster_date(details, column_time, date_range, units_time):
         offset = 'H'
     elif units_time == 'minutes':
         offset = 'T'
-    grouped = details.groupby(pd.Grouper(key=column_time, freq=f'{date_range.value}{offset}'))
+    grouped = details.groupby(pd.Grouper(key=column_time, freq=f'{cluster_time.value}{offset}'))
     assigned_id = pd.DataFrame(grouped.ngroup(), columns=['Time ID'], index=details.index, dtype='Int64')
     assigned_id['Time ID'][assigned_id['Time ID']==-1] = None
 
@@ -96,6 +100,7 @@ def cluster_geo(df, cluster_distance, distance, units_distance, name):
     eps = convert.distance_to_radians(cluster_distance.value, units_distance)
 
     # identify geographic clusters from already clustered time values
+    # TODO: include core_sample_indices_ in plotting or summary
     clusters = DBSCAN(metric='precomputed', eps=eps, min_samples=2)
     if len(df)==0:
         assigned_id = None

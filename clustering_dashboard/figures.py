@@ -59,8 +59,8 @@ class figures(data, selections):
 
     def parameter_time(self):
 
-        self.parameters['date_range'] = NumericInput(value=None, mode='float', title='Parameter:', height=50, width=100)
-        self.parameters['date_range'].on_change('value', self.parameter_selected)
+        self.parameters['cluster_time'] = NumericInput(value=None, mode='float', title='Parameter:', height=50, width=100)
+        self.parameters['cluster_time'].on_change('value', self.parameter_selected)
 
 
     def set_options(self):
