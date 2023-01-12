@@ -14,6 +14,21 @@ def duration_to_numeric(dur, time_units):
     return dur
 
 
+def time_to_seconds(time, time_units):
+
+    if time_units == 'seconds':
+        return time
+    elif time_units == 'days':
+        time = time*60*60*24
+    elif time_units == 'hours':
+        time = time*60*60
+    elif time_units == 'minutes':
+        time = time*60
+    else:
+        raise RuntimeError('Invalid time units.')    
+
+    return time
+
 def radians_to_distance(rads, distance_units):
 
     if distance_units == 'miles':
@@ -26,6 +41,7 @@ def radians_to_distance(rads, distance_units):
         raise RuntimeError('Invalid distance units.')
 
     return dist
+
 
 def distance_to_radians(dist, distance_units):
 
