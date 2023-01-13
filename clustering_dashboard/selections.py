@@ -44,12 +44,23 @@ class selections(updates):
         if self.parameters['cluster_distance'].value is None or self.parameters['cluster_time'].value is None:
             return
 
-        self.cluster_summary, self.location_summary, self.time_summary, self.cluster_boundary, self.details = group.get_clusters(
-            self.details, self.parameters['cluster_distance'].value,
-            self.distance, self.columns['time'], self.units["time"].value, self.units["distance"].value,
-            self.parameters['cluster_time'].value,
-            self.additional_summary
+        location_id, time_id, cluster_id = group.get_clusters(
+            self.distance_radians, self.units['distance'].value, self.parameters['cluster_distance'].value,
+            self.duration_seconds, self.units['time'].value, self.parameters['cluster_time'].value
         )
+        self.details[['Location ID', 'Time ID', 'Cluster ID']] = pd.DataFrame({
+            'Location ID': location_id, 'Time ID': time_id, 'Cluster ID': cluster_id
+        })
+
+        # TODO: add summaries, boundaries
+
+        # self.cluster_summary, self.location_summary, self.time_summary, self.cluster_boundary, self.details = group.get_clusters(
+        #     self.details, self.parameters['cluster_distance'].value,
+        #     self.distance_radians, self.columns['time'], self.units["time"].value, self.units["distance"].value,
+        #     self.parameters['cluster_time'].value,
+        #     self.additional_summary
+        # )
+
 
         self._reset_all()
 
@@ -61,6 +72,7 @@ class selections(updates):
         self.update_detail()
         self.update_location()
         self.update_time()
+
 
     def location_selected(self, attr, old, selected):
 

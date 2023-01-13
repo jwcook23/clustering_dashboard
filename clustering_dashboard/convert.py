@@ -38,7 +38,7 @@ def radians_to_distance(rads, distance_units):
     elif distance_units == 'kilometers':
         dist = dist * 6371
     else:
-        raise RuntimeError('Invalid distance units.')
+        raise RuntimeError('Invalid distance_radians units.')
 
     return dist
 
@@ -52,7 +52,7 @@ def distance_to_radians(dist, distance_units):
     elif distance_units == 'kilometers':
         rads = dist / 6371
     else:
-        raise RuntimeError('Invalid distance units.')
+        raise RuntimeError('Invalid distance_radians units.')
 
     return rads
 

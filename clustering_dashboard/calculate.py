@@ -6,9 +6,12 @@ from sklearn.metrics import pairwise_distances
 
 from clustering_dashboard import convert
 
+# TODO: calculate sparse distance_radians and duration matrix for better performance
+# https://stackoverflow.com/questions/35296935/python-calculate-lots-of-distances-quickly
+
+
 def distance_matrix(df, column_latitude, column_longitude):
     
-    # TODO: calculate sparse matrix for better performance
     coords = np.radians(df[[column_latitude, column_longitude]].values)
     distance_radians = haversine_distances(coords, coords)
     distance_radians = ma.array(distance_radians)
@@ -17,20 +20,19 @@ def distance_matrix(df, column_latitude, column_longitude):
 
 def duration_matrix(df, column_time):
 
-    # TODO: calculate sparse matrix for better performance
     time = df[column_time].view('int64').to_numpy().reshape(-1,1)
     duration_seconds = pairwise_distances(time, metric='cityblock') / 10**9
 
     return duration_seconds
 
 
-def nearest_point(distance, units):
+def nearest_point(distance_radians, units):
 
-    distance.mask = np.eye(distance.shape[0], dtype=bool)
-    np.fill_diagonal(distance.mask, True)
-    nearest = distance.min(axis=0)
+    distance_radians.mask = np.eye(distance_radians.shape[0], dtype=bool)
+    np.fill_diagonal(distance_radians.mask, True)
+    nearest = distance_radians.min(axis=0)
     nearest = convert.radians_to_distance(nearest, units)
-    distance.mask = False
+    distance_radians.mask = False
 
     nearest = pd.Series(np.array(nearest))
 

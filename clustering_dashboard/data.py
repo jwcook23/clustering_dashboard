@@ -15,11 +15,20 @@ class data():
 
         self.details[['Cluster ID', 'Location ID', 'Time ID']] = None
 
+        # pre-calculate comparison of location and time
+        self.distance_radians = calculate.distance_matrix(self.details, self.columns['latitude'], self.columns['longitude'])
+        self.duration_seconds = calculate.duration_matrix(self.details, self.columns['time'])
+
+        # convert timestamp to integer for color bar heatmap
         self.details['_timestamp'] = self.details[self.columns['time']].apply(lambda x: int(x.timestamp()*1000))
 
-        self.distance = calculate.distance_matrix(self.details, self.columns['latitude'], self.columns['longitude'])
-
-        self.map_display()
+        # convert fo mercator for map display
+        latitude_mercator, longitude_mercator = convert.latlon_to_mercator(
+            self.details[self.columns['latitude']],
+            self.details[self.columns['longitude']]
+        )
+        self.details['_latitude_mercator'] = latitude_mercator
+        self.details['_longitude_mercator'] = longitude_mercator
 
 
     def load_settings(self):
@@ -38,13 +47,3 @@ class data():
         self.column_id = self.details.index.name
 
         self.details = self.details.reset_index()
-
-
-    def map_display(self):
-
-        latitude = self.details[self.columns['latitude']]
-        longitude = self.details[self.columns['longitude']]
-        
-        latitude_mercator, longitude_mercator = convert.latlon_to_mercator(latitude, longitude)
-        self.details['_latitude_mercator'] = latitude_mercator
-        self.details['_longitude_mercator'] = longitude_mercator

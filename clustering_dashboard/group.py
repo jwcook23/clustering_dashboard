@@ -41,25 +41,25 @@ def assign_id(details, input_columns, output_name):
     return details
 
 
-# def get_clusters(details, cluster_distance, distance, column_time, units_time, units_distance, cluster_time, additional_summary):
+# def get_clusters(details, cluster_distance, distance_radians, column_time, units_time, units_distance, cluster_time, additional_summary):
 
 #     # group dates
 #     date_id, grouped = cluster_date(details, column_time, cluster_time, units_time)
 #     details = details.drop(columns=['Time ID']).merge(date_id, left_index=True, right_index=True)
 
 #     # group on location without time aspect
-#     geo_id = cluster_geo(details, cluster_distance, distance, units_distance, 'Location')
+#     geo_id = cluster_geo(details, cluster_distance, distance_radians, units_distance, 'Location')
 #     details = details.drop(columns=['Location ID']).merge(geo_id, left_index=True, right_index=True)
 
 #     # group on location with time to assign overall Cluster ID
-#     # geo_id = grouped.apply(lambda x:  cluster_geo(x, cluster_distance, distance, units_distance, 'LocationTime'))
+#     # geo_id = grouped.apply(lambda x:  cluster_geo(x, cluster_distance, distance_radians, units_distance, 'LocationTime'))
 #     # details = details.drop(columns=['LocationTime ID']).merge(geo_id, left_index=True, right_index=True)
 
 #     # assign an overall id desc with largest size
 #     details = assign_id(details, ['Time ID', 'Location ID'], 'Cluster')
 
-#     # determine distance of points to other points
-#     details = point_distance(details, distance, units_distance)
+#     # determine distance_radians of points to other points
+#     details = point_distance(details, distance_radians, units_distance)
 
 #     # summerize cluster
 #     cluster_summary, location_summary, time_summary = summary.get_summary(details, column_time, units_time, units_distance, additional_summary)
@@ -71,25 +71,42 @@ def assign_id(details, input_columns, output_name):
 #     return cluster_summary, location_summary, time_summary, cluster_boundary, details
 
 
-def compare_distance(distance_radians, threshold_units, threshold_value):
+def get_clusters(distance_radians, distance_units, distance_threshold, duration_seconds, time_units, time_threshold):
 
-    threshold_converted = convert.distance_to_radians(threshold_value, threshold_units)
+    # label records for same location
+    distance_criteria = compare_distance(distance_radians, distance_units, distance_threshold)
+    _, location_id = assign_id(distance_criteria)
+
+    # label records for same time
+    time_criteria = compare_time(duration_seconds, time_units, time_threshold)
+    _, time_id = assign_id(time_criteria)
+
+    # label records for same location and time
+    # TODO: require multiple points?
+    _, cluster_id = assign_id([distance_criteria, time_criteria])
+
+    return location_id, time_id, cluster_id
+
+
+def compare_distance(distance_radians, distance_units, distance_threshold):
+
+    threshold_converted = convert.distance_to_radians(distance_threshold, distance_units)
 
     distance_criteria = (np.array(distance_radians) <= threshold_converted)
 
     return distance_criteria
 
 
-def compare_time(duration_seconds, threshold_units, threshold_value):
+def compare_time(duration_seconds, time_units, time_threshold):
 
-    threshold_converted = convert.time_to_seconds(threshold_value, threshold_units)
+    threshold_converted = convert.time_to_seconds(time_threshold, time_units)
 
     duration_criteria = duration_seconds <= threshold_converted
 
     return duration_criteria
 
 
-def get_clusters(comparison_criteria):
+def assign_id(comparison_criteria):
 
     if isinstance(comparison_criteria, list):
         comparison_criteria = np.array(comparison_criteria)
@@ -100,25 +117,25 @@ def get_clusters(comparison_criteria):
     return cluster_count, cluster_label
 
 
-def cluster_date(details, column_time, cluster_time, units_time):
+# def cluster_date(details, column_time, cluster_time, units_time):
 
-    if units_time == 'days':
-        offset = 'D'
-    elif units_time == 'hours':
-        offset = 'H'
-    elif units_time == 'minutes':
-        offset = 'T'
-    grouped = details.groupby(pd.Grouper(key=column_time, freq=f'{cluster_time}{offset}'))
-    assigned_id = pd.DataFrame(grouped.ngroup(), columns=['Time ID'], index=details.index, dtype='Int64')
-    assigned_id['Time ID'][assigned_id['Time ID']==-1] = None
+#     if units_time == 'days':
+#         offset = 'D'
+#     elif units_time == 'hours':
+#         offset = 'H'
+#     elif units_time == 'minutes':
+#         offset = 'T'
+#     grouped = details.groupby(pd.Grouper(key=column_time, freq=f'{cluster_time}{offset}'))
+#     assigned_id = pd.DataFrame(grouped.ngroup(), columns=['Time ID'], index=details.index, dtype='Int64')
+#     assigned_id['Time ID'][assigned_id['Time ID']==-1] = None
 
-    # assign ID based on size
-    assigned_id = assign_id(assigned_id, ['Time ID'], 'Time')
+#     # assign ID based on size
+#     assigned_id = assign_id(assigned_id, ['Time ID'], 'Time')
 
-    return assigned_id, grouped
+#     return assigned_id, grouped
 
 
-# def cluster_geo(df, cluster_distance, distance, units_distance, name):
+# def cluster_geo(df, cluster_distance, distance_radians, units_distance, name):
 
 #     id_name = f'{name} ID'
 
@@ -131,7 +148,7 @@ def cluster_date(details, column_time, cluster_time, units_time):
 #     if len(df)==0:
 #         assigned_id = None
 #     else:
-#         time_submatrix = distance[np.ix_(df.index, df.index)]
+#         time_submatrix = distance_radians[np.ix_(df.index, df.index)]
 #         clusters = clusters.fit(time_submatrix)
 #         assigned_id = pd.DataFrame(clusters.labels_, columns=[id_name], index=df.index, dtype='Int64')
 #         assigned_id[id_name][assigned_id[id_name]==-1] = None
@@ -165,7 +182,7 @@ def get_boundary(group):
     return boundary
 
 
-def point_distance(details, distance, units_distance):
+def point_distance(details, distance_radians, units_distance):
 
     grouped = pd.DataFrame(details['Cluster ID'])
     grouped['index'] = range(0, len(grouped))
@@ -177,18 +194,18 @@ def point_distance(details, distance, units_distance):
     row = np.concatenate(grouped['row'].values)
     col = np.concatenate(grouped['col'].values)
 
-    distance.mask = np.eye(distance.shape[0], dtype=bool)
-    distance[row, col] = ma.masked
-    nearest = distance.min(axis=0)
+    distance_radians.mask = np.eye(distance_radians.shape[0], dtype=bool)
+    distance_radians[row, col] = ma.masked
+    nearest = distance_radians.min(axis=0)
     nearest = convert.radians_to_distance(nearest, units_distance)
     details[f'Nearest ({units_distance})'] =  nearest
 
-    distance.mask = True
-    distance.mask[row, col] = False
-    length = distance.max(axis=0)
+    distance_radians.mask = True
+    distance_radians.mask[row, col] = False
+    length = distance_radians.max(axis=0)
     length = convert.radians_to_distance(length, units_distance)
     details[f'Length ({units_distance})'] =  length
 
-    distance.mask = False
+    distance_radians.mask = False
 
     return details

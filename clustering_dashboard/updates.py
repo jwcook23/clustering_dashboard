@@ -125,10 +125,10 @@ class updates():
     def update_parameter_estimation(self):
 
         parameters = {
-            'distance': {
+            'distance_radians': {
                 'fig': self.plot_estimate_distance,
                 'renderer': self.render_estimate_distance,
-                'data': calculate.nearest_point(self.distance, self.units["distance"].value)
+                'data': calculate.nearest_point(self.distance_radians, self.units["distance"].value)
             },
             'time': {
                 'fig': self.plot_estimate_time,

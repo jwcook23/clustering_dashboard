@@ -72,7 +72,7 @@ class figures(data, selections):
     def parameter_estimate(self):
 
         self.plot_estimate_distance, self.render_estimate_distance = self._plot_line(
-            'Distance between Clusters', 'Point', self.units["distance"].value
+            'distance_radians between Clusters', 'Point', self.units["distance"].value
         )
         self.plot_estimate_time, self.render_estimate_time = self._plot_line(
             'Time between Clusters', 'Point', self.units["time"].value
@@ -81,11 +81,11 @@ class figures(data, selections):
 
     def distance_evaluation(self):
         self.plot_next_distance, self.render_next_distance = self._plot_histogram(
-            'Distance between Clusters', self.units["distance"].value, '# Clusters'
+            'distance_radians between Clusters', self.units["distance"].value, '# Clusters'
         )
 
         self.plot_span_distance, self.render_span_distance = self._plot_histogram(
-            'Distance in Cluster', self.units["distance"].value, '# Clusters'
+            'distance_radians in Cluster', self.units["distance"].value, '# Clusters'
         )
 
 
@@ -152,7 +152,7 @@ class figures(data, selections):
         self.default_zoom = self._zoom_window(points)
 
         # generate map
-        # TODO: use distance as axis type
+        # TODO: use distance_radians as axis type
         self.plot_map = figure(
             x_range=self.default_zoom.loc['x'], y_range=self.default_zoom.loc['y'],
             x_axis_type="mercator", y_axis_type="mercator", title=None,
