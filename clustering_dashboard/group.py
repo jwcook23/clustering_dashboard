@@ -71,21 +71,25 @@ def assign_id(details, input_columns, output_name):
 #     return cluster_summary, location_summary, time_summary, cluster_boundary, details
 
 
-def get_clusters(distance_radians, distance_units, distance_threshold, duration_seconds, time_units, time_threshold):
+def get_clusters(df, distance_radians, distance_units, distance_threshold, duration_seconds, time_units, time_threshold):
 
     # label records for same location
     distance_criteria = compare_distance(distance_radians, distance_units, distance_threshold)
-    _, location_id = assign_id(distance_criteria)
+    location_id = assign_id(distance_criteria)
 
     # label records for same time
     time_criteria = compare_time(duration_seconds, time_units, time_threshold)
-    _, time_id = assign_id(time_criteria)
+    time_id = assign_id(time_criteria)
 
     # label records for same location and time
-    # TODO: require multiple points?
-    _, cluster_id = assign_id([distance_criteria, time_criteria])
+    cluster_id = assign_id([distance_criteria, time_criteria])
 
-    return location_id, time_id, cluster_id
+    # assign to original input
+    df[['Location ID', 'Time ID', 'Cluster ID']] = pd.DataFrame({
+        'Location ID': location_id, 'Time ID': time_id, 'Cluster ID': cluster_id
+    })
+
+    return df
 
 
 def compare_distance(distance_radians, distance_units, distance_threshold):
@@ -112,9 +116,18 @@ def assign_id(comparison_criteria):
         comparison_criteria = np.array(comparison_criteria)
         comparison_criteria = np.all(comparison_criteria, axis=0)
 
-    cluster_count, cluster_label = connected_components(comparison_criteria)
+    _, cluster_label = connected_components(comparison_criteria)
 
-    return cluster_count, cluster_label
+    # assign lower id values to larger sized groups and assign noise points
+    cluster_label = pd.DataFrame(cluster_label, columns=['Original'])
+    arranged = pd.DataFrame(cluster_label.value_counts(), columns=['Size'])
+    arranged['ID'] = range(0, len(arranged))
+    arranged['ID'] = arranged['ID'].astype('Int64')
+    arranged.loc[arranged['Size']==1, 'ID'] = pd.NA
+    cluster_label = cluster_label.merge(arranged[['ID']], left_on='Original', right_index=True)
+    cluster_label = cluster_label['ID'].sort_index()
+
+    return cluster_label
 
 
 # def cluster_date(details, column_time, cluster_time, units_time):

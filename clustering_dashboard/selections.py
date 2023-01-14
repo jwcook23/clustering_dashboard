@@ -44,13 +44,16 @@ class selections(updates):
         if self.parameters['cluster_distance'].value is None or self.parameters['cluster_time'].value is None:
             return
 
-        location_id, time_id, cluster_id = group.get_clusters(
+        self.details = group.get_clusters(
+            self.details,
             self.distance_radians, self.units['distance'].value, self.parameters['cluster_distance'].value,
             self.duration_seconds, self.units['time'].value, self.parameters['cluster_time'].value
         )
-        self.details[['Location ID', 'Time ID', 'Cluster ID']] = pd.DataFrame({
-            'Location ID': location_id, 'Time ID': time_id, 'Cluster ID': cluster_id
-        })
+
+        print(1)
+
+        #     # determine distance_radians of points to other points
+        #     details = point_distance(details, distance_radians, units_distance)
 
         # TODO: add summaries, boundaries
 

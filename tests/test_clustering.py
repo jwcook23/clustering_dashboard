@@ -24,9 +24,9 @@ def sample():
         'time': 5
     }
     labels = {
-        'Location ID': np.array([0,0,1,2,0,0,3,0,4,4]),
-        'Time ID': np.array([0,0,1,2,2,2,2,0,0,0]),
-        'Cluster ID': np.array([0,0,1,2,3,3,4,0,5,5])
+        'Location ID': pd.Series([0,0,pd.NA,pd.NA,0,0,pd.NA,0,1,1], dtype='Int64'),
+        'Time ID': pd.Series([0,0,pd.NA,1,1,1,1,0,0,0], dtype='Int64'),
+        'Cluster ID': pd.Series([0,0,pd.NA,pd.NA,1,1,pd.NA,0,2,2], dtype='Int64')
     }
 
     yield {'data': data, 'units': units, 'thresholds': thresholds, 'labels': labels}
@@ -37,13 +37,12 @@ def test_distance(sample):
     distance_radians = calculate.distance_matrix(sample['data'], 'Latitude', 'Longitude')
     distance_criteria = group.compare_distance(distance_radians, sample['units']['distance'], sample['thresholds']['distance'])
 
-    cluster_count, cluster_label =group.assign_id(distance_criteria)
+    cluster_label = group.assign_id(distance_criteria)
 
     # uncomment to manually verify the labels
     # from clustering_dashboard import convert
     # manual = convert.radians_to_distance(distance_radians, 'miles')
-    assert cluster_count == len(set(cluster_label))
-    assert np.array_equal(cluster_label, sample['labels']['Location ID'])
+    assert cluster_label.equals(sample['labels']['Location ID'])
 
 
 
@@ -52,10 +51,9 @@ def test_time(sample):
     duration_seconds = calculate.duration_matrix(sample['data'], 'Pickup Time')
     time_criteria = group.compare_time(duration_seconds, sample['units']['time'], sample['thresholds']['time'])
 
-    cluster_count, cluster_label =group.assign_id(time_criteria)    
+    cluster_label =group.assign_id(time_criteria)    
 
-    assert cluster_count == len(set(cluster_label))
-    assert np.array_equal(cluster_label, sample['labels']['Time ID'])
+    assert cluster_label.equals(sample['labels']['Time ID'])
 
 
 def test_multifeature(sample):
@@ -67,7 +65,6 @@ def test_multifeature(sample):
     duration_seconds = calculate.duration_matrix(sample['data'], 'Pickup Time')
     time_criteria = group.compare_time(duration_seconds, sample['units']['time'], sample['thresholds']['time'])
 
-    cluster_count, cluster_label = group.assign_id([distance_criteria, time_criteria])
+    cluster_label = group.assign_id([distance_criteria, time_criteria])
 
-    assert cluster_count == len(set(cluster_label))
-    assert np.array_equal(cluster_label, sample['labels']['Cluster ID'])
+    assert cluster_label.equals(sample['labels']['Cluster ID'])
