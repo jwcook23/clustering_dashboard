@@ -21,8 +21,8 @@ def get_summary(details, distance_radians, units_distance, duration_seconds, uni
     cluster_groups = details.reset_index().groupby('Cluster ID')
     plan = {
         'Location ID': 'first', 'Time ID': 'first', column_time: min,
-        f'Nearest ({units_distance})': min, f'Length ({units_distance})': max, 
-        f'Nearest ({units_time})': min, f'Length ({units_time})': max
+        f"Nearest ({units_distance})": min, f"Furthest ({units_distance})": max, 
+        f"Nearest ({units_time})": min, f"Furthest ({units_time})": max
     }
     cluster_summary = cluster_groups.agg(plan)
     cluster_summary = cluster_summary.rename(columns={column_time: 'Time (first)'})
@@ -33,8 +33,8 @@ def get_summary(details, distance_radians, units_distance, duration_seconds, uni
 
     cluster_summary = cluster_summary[[
         '# Points', 'Location ID', 'Time ID', 'Time (first)',
-        f'Nearest ({units_distance})', f'Length ({units_distance})', 
-        f'Nearest ({units_time})', f'Length ({units_time})'
+        f"Nearest ({units_distance})", f"Furthest ({units_distance})", 
+        f"Nearest ({units_time})", f"Furthest ({units_time})"
     ]]
 
     cluster_boundary = cluster_groups.apply(find_location_boundary)
@@ -101,7 +101,7 @@ def find_same_cluster_length(feature, matrix, units, row_id, col_id, details):
     elif feature == 'time':
         length = convert.seconds_to_time(length, units)
 
-    details[f'Length ({units})'] =  length
+    details[f"Furthest ({units})"] =  length
 
     matrix.mask = False
 

@@ -67,25 +67,25 @@ class updates():
     def update_evaluation(self):
 
         self._histogram_evaluation(
-            f'Nearest ({self.units["distance"].value})',
+            f"Nearest ({self.units['distance'].value})",
             self.plot_next_distance,
             self.render_next_distance
         )
         
         self._histogram_evaluation(
-            f'Length ({self.units["distance"].value})',
+            f"Furthest ({self.units['distance'].value})",
             self.plot_span_distance,
             self.render_span_distance
         )
 
         self._histogram_evaluation(
-            f'Nearest ({self.units["time"].value})',
+            f"Nearest ({self.units['time'].value})",
             self.plot_next_date,
             self.render_next_date
         )
 
         self._histogram_evaluation(
-            f'Length ({self.units["time"].value})',
+            f"Furthest ({self.units['time'].value})",
             self.plot_span_date,
             self.render_span_date
         )

@@ -25,7 +25,7 @@ class dashboard(figures):
 
         bold = {'font-weight': 'bold'}
 
-        title_distance_input = Div(text='distance_radians Length', style=bold)
+        title_distance_input = Div(text='Distance Length', style=bold)
         title_time_input = Div(text='Time Duration', style=bold)
         
         title_map = Div(text='Location and Time Clusters', style=bold, width=625)
@@ -54,7 +54,7 @@ class dashboard(figures):
                     ),
                     Tabs(tabs=[
                         Panel(child=row(self.plot_estimate_distance, self.plot_estimate_time), title='Parameter Estimation'),
-                        Panel(child=row(self.plot_next_distance, self.plot_span_distance), title='distance_radians Parameter Evaluation'),
+                        Panel(child=row(self.plot_next_distance, self.plot_span_distance), title='Distance Parameter Evaluation'),
                         Panel(child=row(self.plot_next_date, self.plot_span_date), title='Time Parameter Evalulation')
                     ])
                 ),

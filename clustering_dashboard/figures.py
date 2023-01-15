@@ -72,7 +72,7 @@ class figures(data, selections):
     def parameter_estimate(self):
 
         self.plot_estimate_distance, self.render_estimate_distance = self._plot_line(
-            'distance_radians between Clusters', 'Point', self.units["distance"].value
+            'Distance between Clusters', 'Point', self.units["distance"].value
         )
         self.plot_estimate_time, self.render_estimate_time = self._plot_line(
             'Time between Clusters', 'Point', self.units["time"].value
@@ -81,11 +81,11 @@ class figures(data, selections):
 
     def distance_evaluation(self):
         self.plot_next_distance, self.render_next_distance = self._plot_histogram(
-            'distance_radians between Clusters', self.units["distance"].value, '# Clusters'
+            'Distance between Clusters', self.units["distance"].value, '# Clusters'
         )
 
         self.plot_span_distance, self.render_span_distance = self._plot_histogram(
-            'distance_radians in Cluster', self.units["distance"].value, '# Clusters'
+            'Distance in Cluster', self.units["distance"].value, '# Clusters'
         )
 
 
@@ -116,9 +116,9 @@ class figures(data, selections):
             TableColumn(field="Location ID", formatter=self.display_format['id'], width=70),
             TableColumn(field="Time ID", formatter=self.display_format['id'], width=50),
             TableColumn(field=f"Nearest ({self.units['distance'].value})", formatter=self.display_format['float'], width=90),
-            TableColumn(field=f"Length ({self.units['distance'].value})", formatter=self.display_format['float'], width=80),
+            TableColumn(field=f"Furthest ({self.units['distance'].value})", formatter=self.display_format['float'], width=80),
             TableColumn(field='Time (first)', formatter=self.display_format['timestamp'], width=120),
-            TableColumn(field=f"Length ({self.units['time'].value})", formatter=self.display_format['float'], width=80),
+            TableColumn(field=f"Furthest ({self.units['time'].value})", formatter=self.display_format['float'], width=80),
             TableColumn(field=f"Nearest ({self.units['time'].value})", formatter=self.display_format['float'], width=80)
         ]
 
