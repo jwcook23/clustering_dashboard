@@ -18,10 +18,12 @@ def distance_matrix(df, column_latitude, column_longitude):
 
     return distance_radians
 
+
 def duration_matrix(df, column_time):
 
     time = df[column_time].view('int64').to_numpy().reshape(-1,1)
     duration_seconds = pairwise_distances(time, metric='cityblock') / 10**9
+    duration_seconds = ma.array(duration_seconds)
 
     return duration_seconds
 

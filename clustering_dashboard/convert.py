@@ -29,6 +29,23 @@ def time_to_seconds(time, time_units):
 
     return time
 
+
+def seconds_to_time(seconds, time_units):
+
+    if time_units == 'seconds':
+        converted = seconds
+    elif time_units == 'days':
+        converted = seconds/60/60/24
+    elif time_units == 'hours':
+        converted = seconds/60/60
+    elif time_units == 'minutes':
+        converted = seconds/60
+    else:
+        raise RuntimeError('Invalid time units.')    
+
+    return converted
+
+
 def radians_to_distance(rads, distance_units):
 
     if distance_units == 'miles':

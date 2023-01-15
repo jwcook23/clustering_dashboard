@@ -1,7 +1,5 @@
 import numpy as np
-import numpy.ma as ma
 import pandas as pd
-from scipy.spatial import ConvexHull
 from scipy.sparse.csgraph import connected_components
 
 
@@ -105,7 +103,7 @@ def compare_time(duration_seconds, time_units, time_threshold):
 
     threshold_converted = convert.time_to_seconds(time_threshold, time_units)
 
-    duration_criteria = duration_seconds <= threshold_converted
+    duration_criteria = (np.array(duration_seconds) <= threshold_converted)
 
     return duration_criteria
 
@@ -171,54 +169,3 @@ def assign_id(comparison_criteria):
 #             assigned_id = assign_id(assigned_id, [id_name], name)
 
 #     return assigned_id
-
-
-def get_boundary(group):
-    '''Calculate the boundary of latitude and longitude points using a convex hull.'''
-
-    points = group[['_latitude_mercator','_longitude_mercator']].values
-
-    # return a line for only 2 points
-    if points.shape[0]<=2:
-        boundary = points
-    # return hull for >2 points
-    else:
-        hull = ConvexHull(points)
-        boundary = points[hull.vertices]
-        # enclose the hull boundary
-        boundary = np.concatenate([boundary,boundary[[0],:]])
-
-    # reshape and format for multi_polygons
-    # ex) LAT_mercator = [[[[0, 0, 1, 1]]], [[[3,4,5]]]]
-    boundary = pd.Series({'_latitude_mercator': [[list(boundary[:,0])]], '_longitude_mercator': [[list(boundary[:,1])]]})
-
-    return boundary
-
-
-def point_distance(details, distance_radians, units_distance):
-
-    grouped = pd.DataFrame(details['Cluster ID'])
-    grouped['index'] = range(0, len(grouped))
-    grouped = grouped.groupby('Cluster ID')
-    grouped = grouped.agg({'index': list})
-    grouped['index'] = grouped['index'].apply(lambda x: np.array(x))
-    grouped['row'] = grouped['index'].apply(lambda x: x.repeat(len(x)))
-    grouped['col'] = grouped['index'].apply(lambda x: np.tile(x,len(x)))
-    row = np.concatenate(grouped['row'].values)
-    col = np.concatenate(grouped['col'].values)
-
-    distance_radians.mask = np.eye(distance_radians.shape[0], dtype=bool)
-    distance_radians[row, col] = ma.masked
-    nearest = distance_radians.min(axis=0)
-    nearest = convert.radians_to_distance(nearest, units_distance)
-    details[f'Nearest ({units_distance})'] =  nearest
-
-    distance_radians.mask = True
-    distance_radians.mask[row, col] = False
-    length = distance_radians.max(axis=0)
-    length = convert.radians_to_distance(length, units_distance)
-    details[f'Length ({units_distance})'] =  length
-
-    distance_radians.mask = False
-
-    return details

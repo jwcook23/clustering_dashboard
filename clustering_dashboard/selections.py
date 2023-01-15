@@ -1,7 +1,7 @@
 import pandas as pd
 
 from clustering_dashboard.updates import updates
-from clustering_dashboard import group
+from clustering_dashboard import group, summary
 
 class selections(updates):
 
@@ -50,20 +50,15 @@ class selections(updates):
             self.duration_seconds, self.units['time'].value, self.parameters['cluster_time'].value
         )
 
-        print(1)
+        self.cluster_summary, self.location_summary, self.time_summary, self.details, self.cluster_boundary = summary.get_summary(
+            self.details, 
+            self.distance_radians, self.units['distance'].value, 
+            self.duration_seconds, self.units['time'].value,
+            self.columns['time']
+        )
 
-        #     # determine distance_radians of points to other points
-        #     details = point_distance(details, distance_radians, units_distance)
-
-        # TODO: add summaries, boundaries
-
-        # self.cluster_summary, self.location_summary, self.time_summary, self.cluster_boundary, self.details = group.get_clusters(
-        #     self.details, self.parameters['cluster_distance'].value,
-        #     self.distance_radians, self.columns['time'], self.units["time"].value, self.units["distance"].value,
-        #     self.parameters['cluster_time'].value,
-        #     self.additional_summary
-        # )
-
+        # TODO: rename length to furthest in summary and where ever needed
+        # self.cluster_boundary = None
 
         self._reset_all()
 
