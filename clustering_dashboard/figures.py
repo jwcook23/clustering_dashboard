@@ -48,7 +48,7 @@ class figures(data, selections):
 
     def units_time(self):
 
-        self.units['time'] = Select(title='Units:', value="hours", options=["days", "hours", "minutes"], height=25, width=100)
+        self.units['time'] = Select(title='Units:', value="minutes", options=["days", "hours", "minutes"], height=25, width=100)
         self.units['time'].on_change('value', self.units_selected)
 
 
@@ -111,15 +111,13 @@ class figures(data, selections):
     def summary_columns(self):
 
         columns = [
-            TableColumn(field="Cluster ID", formatter=self.display_format['id'], width=70),
+            TableColumn(field="Cluster ID", formatter=self.display_format['id'], width=60),
             TableColumn(field="# Points", formatter=self.display_format['int'], width=50),
-            TableColumn(field="Location ID", formatter=self.display_format['id'], width=70),
-            TableColumn(field="Time ID", formatter=self.display_format['id'], width=50),
-            TableColumn(field=f"Nearest ({self.units['distance'].value})", formatter=self.display_format['float'], width=90),
-            TableColumn(field=f"Furthest ({self.units['distance'].value})", formatter=self.display_format['float'], width=80),
             TableColumn(field='Time (first)', formatter=self.display_format['timestamp'], width=120),
-            TableColumn(field=f"Furthest ({self.units['time'].value})", formatter=self.display_format['float'], width=80),
-            TableColumn(field=f"Nearest ({self.units['time'].value})", formatter=self.display_format['float'], width=80)
+            TableColumn(field=f"Distance ({self.units['distance'].value})", formatter=self.display_format['float'], width=90),
+            TableColumn(field=f"Duration ({self.units['time'].value})", formatter=self.display_format['float'], width=100),
+            TableColumn(field=f"Nearest Cluster ({self.units['distance'].value})", formatter=self.display_format['float'], width=130),
+            TableColumn(field=f"Nearest Cluster ({self.units['time'].value})", formatter=self.display_format['float'], width=130)
         ]
 
         return columns

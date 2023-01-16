@@ -67,25 +67,25 @@ class updates():
     def update_evaluation(self):
 
         self._histogram_evaluation(
-            f"Nearest ({self.units['distance'].value})",
+            f"Nearest Cluster ({self.units['distance'].value})",
             self.plot_next_distance,
             self.render_next_distance
         )
         
         self._histogram_evaluation(
-            f"Furthest ({self.units['distance'].value})",
+            f"Distance ({self.units['distance'].value})",
             self.plot_span_distance,
             self.render_span_distance
         )
 
         self._histogram_evaluation(
-            f"Nearest ({self.units['time'].value})",
+            f"Nearest Cluster ({self.units['time'].value})",
             self.plot_next_date,
             self.render_next_date
         )
 
         self._histogram_evaluation(
-            f"Furthest ({self.units['time'].value})",
+            f"Duration ({self.units['time'].value})",
             self.plot_span_date,
             self.render_span_date
         )
@@ -155,13 +155,13 @@ class updates():
     def update_selected_count(self):
 
         num_clusters = self.selected_details['Cluster ID'].dropna().nunique()
-        self.count_summary.text = f"({num_clusters} displayed)"
+        self.count_summary.text = f"({num_clusters} selected)"
 
         num_locations = self.selected_details['Location ID'].dropna().nunique()
-        self.count_location.text = f"({num_locations} displayed)"
+        self.count_location.text = f"({num_locations} selected)"
 
         num_times = self.selected_details['Time ID'].dropna().nunique()
-        self.count_time.text = f"({num_times} displayed)"
+        self.count_time.text = f"({num_times} selected)"
 
 
     def _zoom_window(self, df):
