@@ -30,11 +30,11 @@ class dashboard(figures):
         
         title_map = Div(text='Location and Time Clusters', style=bold, width=625)
 
-        title_location_summary = Div(text="Location Summary", style=bold)
+        title_location_summary = Div(text="Location Cluster Summary", style=bold)
         self.count_location = Div()
-        title_time_summary = Div(text="Time Summary", style=bold)
+        title_time_summary = Div(text="Time Cluster Summary", style=bold)
         self.count_time = Div()
-        title_summary = Div(text="Cluster Summary", style=bold)
+        title_summary = Div(text="Overall Cluster Summary", style=bold)
         self.count_summary = Div()
 
         self.update_selected_count()

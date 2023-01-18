@@ -6,35 +6,55 @@ from scipy.spatial import ConvexHull
 from clustering_dashboard import convert, aggregations
 
 
-def get_summary(details, distance_radians, units_distance, duration_seconds, units_time, column_time):
-
-    location_summary, time_summary = summerize_ids(details)
-
-    row_id, col_id = matrix_indices(details)
+def _calc_distance_features(distance_radians, units_distance, row_id, col_id):
 
     distance_nearest_column = f"Nearest Cluster ({units_distance})"
     distance_length_column = f"Distance ({units_distance})"
-    details = find_next_cluster_nearest(
-        'distance', distance_radians, units_distance, row_id, col_id, details, distance_nearest_column
+    distance_nearest = find_next_cluster_nearest(
+        'distance', distance_radians, units_distance, row_id, col_id, distance_nearest_column
     )
-    details = find_same_cluster_length(
-        'distance', distance_radians, units_distance, row_id, col_id, details, distance_length_column
+    distance_length = find_same_cluster_length(
+        'distance', distance_radians, units_distance, row_id, col_id, distance_length_column
     )
+
+    return distance_nearest, distance_length
+
+
+def _calc_time_features(duration_seconds, units_time, row_id, col_id, df):
 
     time_nearest_column = f"Nearest Cluster ({units_time})"
     time_length_column = f"Duration ({units_time})"
-    details = find_next_cluster_nearest(
-        'time', duration_seconds, units_time, row_id, col_id, details, time_nearest_column
+    time_nearest = find_next_cluster_nearest(
+        'time', duration_seconds, units_time, row_id, col_id, time_nearest_column
     )
-    details = find_same_cluster_length(
-        'time', duration_seconds, units_time, row_id, col_id, details, time_length_column
+    time_length = find_same_cluster_length(
+        'time', duration_seconds, units_time, row_id, col_id, time_length_column
     )
+
+    return time_nearest, time_length
+
+
+def get_cluster_summary(details, distance_radians, units_distance, duration_seconds, units_time, column_time):
+
+    row_id, col_id = matrix_indices(details, 'Cluster ID')
+
+    distance_nearest, distance_length = _calc_distance_features(
+        distance_radians, units_distance, row_id, col_id
+    )
+    details[distance_nearest.name] = distance_nearest
+    details[distance_length.name] = distance_length
+
+    time_nearest, time_length = _calc_time_features(
+        duration_seconds, units_time, row_id, col_id
+    )
+    details[time_nearest.name] = time_nearest
+    details[time_length.name] = time_length   
 
     cluster_groups = details.reset_index().groupby('Cluster ID')
     plan = {
         column_time: min,
-        distance_nearest_column: min, distance_length_column: max, 
-        time_nearest_column: min, time_length_column: max
+        distance_nearest.name: min, distance_length.name: max, 
+        time_nearest.name: min, time_length.name: max
     }
     cluster_summary = cluster_groups.agg(plan)
 
@@ -44,8 +64,8 @@ def get_summary(details, distance_radians, units_distance, duration_seconds, uni
 
     cluster_summary = cluster_summary[[
         '# Points', column_time,
-        distance_nearest_column, distance_length_column, 
-        time_nearest_column, time_length_column
+        distance_nearest.name, distance_length.name, 
+        time_nearest.name, time_length.name
     ]]
     cluster_summary = cluster_summary.rename(columns={
         column_time: "Time (first)"
@@ -53,31 +73,54 @@ def get_summary(details, distance_radians, units_distance, duration_seconds, uni
 
     cluster_boundary = cluster_groups.apply(find_location_boundary)
 
-    return cluster_summary, location_summary, time_summary, details, cluster_boundary
+    return cluster_summary, details, cluster_boundary
 
 
-def summerize_ids(details):
+def get_location_summary(details, distance_radians, units_distance):
 
-    # summarize location ids
-    location_summary = details.groupby('Location ID')
-    location_summary = location_summary.agg({'Cluster ID': [aggregations.UniqueCountNonNA, aggregations.CountNA]})
-    location_summary.columns = location_summary.columns.droplevel(0)
-    location_summary = location_summary.rename(columns={'UniqueCountNonNA': '# Clusters', 'CountNA': '# Unassigned Points'})
+    row_id, col_id = matrix_indices(details, 'Location ID')
 
-    # summerize time ids
-    time_summary = details.groupby('Time ID')
-    time_summary = time_summary.agg({'Cluster ID': [aggregations.UniqueCountNonNA, aggregations.CountNA]})
-    time_summary.columns = time_summary.columns.droplevel(0)
-    time_summary = time_summary.rename(columns={'UniqueCountNonNA': '# Clusters', 'CountNA': '# Unassigned Points'})
+    distance_nearest, distance_length = _calc_distance_features(
+        distance_radians, units_distance, row_id, col_id
+    )
+    location_summary = details[['Location ID']]
+    location_summary[distance_nearest.name] = distance_nearest
+    location_summary[distance_length.name] = distance_length
 
-    return location_summary, time_summary
+    location_summary = location_summary.groupby('Location ID')
+    location_summary = location_summary.agg({
+        distance_nearest.name: 'min',
+        distance_length.name: 'max'
+    })
+
+    return location_summary
 
 
-def matrix_indices(details):
+def get_time_summary(details, duration_seconds, units_time):
 
-    grouped = pd.DataFrame(details['Cluster ID'])
+    row_id, col_id = matrix_indices(details, 'Time ID')
+
+    time_nearest, time_length = _calc_time_features(
+        duration_seconds, units_time, row_id, col_id
+    )
+    time_summary = details[['Time ID']]
+    time_summary[time_nearest.name] = time_nearest
+    time_summary[time_length.name] = time_length
+
+    time_summary = time_summary.groupby('Time ID')
+    time_summary = time_summary.agg({
+        time_nearest.name: 'min',
+        time_length.name: 'max'
+    })
+
+    return time_summary
+
+
+def matrix_indices(df, id_column):
+
+    grouped = pd.DataFrame(df[id_column])
     grouped['index'] = range(0, len(grouped))
-    grouped = grouped.groupby('Cluster ID')
+    grouped = grouped.groupby(id_column)
     grouped = grouped.agg({'index': list})
     grouped['index'] = grouped['index'].apply(lambda x: np.array(x))
     grouped['row'] = grouped['index'].apply(lambda x: x.repeat(len(x)))
@@ -88,7 +131,7 @@ def matrix_indices(details):
     return row_id, col_id
 
 
-def find_next_cluster_nearest(feature, matrix, units, row_id, col_id, details, column_name):
+def find_next_cluster_nearest(feature, matrix, units, row_id, col_id, column_name):
 
     matrix.mask = np.eye(matrix.shape[0], dtype=bool)
     matrix[row_id, col_id] = ma.masked
@@ -98,14 +141,14 @@ def find_next_cluster_nearest(feature, matrix, units, row_id, col_id, details, c
     elif feature == 'time':
         nearest = convert.seconds_to_time(nearest, units)
 
-    details[column_name] =  nearest
+    nearest =  pd.Series(nearest, name=column_name)
 
     matrix.mask = False
 
-    return details
+    return nearest
 
 
-def find_same_cluster_length(feature, matrix, units, row_id, col_id, details, column_name):
+def find_same_cluster_length(feature, matrix, units, row_id, col_id, column_name):
 
     matrix.mask = True
     matrix.mask[row_id, col_id] = False
@@ -115,11 +158,11 @@ def find_same_cluster_length(feature, matrix, units, row_id, col_id, details, co
     elif feature == 'time':
         length = convert.seconds_to_time(length, units)
 
-    details[column_name] =  length
+    length = pd.Series(length, name=column_name)
 
     matrix.mask = False
 
-    return details
+    return length
 
 
 def find_location_boundary(group):

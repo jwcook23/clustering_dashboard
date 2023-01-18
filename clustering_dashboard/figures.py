@@ -34,8 +34,9 @@ class figures(data, selections):
         self.parameter_estimate()
         self.distance_evaluation()
         self.time_evaluation()
-        self.summary_id()
-        self.summary_table()
+        self.location_cluster_summary()
+        self.time_cluster_summary()
+        self.overall_cluster_summary()
         self.cluster_map()
         self.cluster_detail()
 
@@ -56,6 +57,7 @@ class figures(data, selections):
 
         self.parameters['cluster_distance'] = NumericInput(value=None, mode='float', title='Parameter:', height=50, width=100)
         self.parameters['cluster_distance'].on_change('value', self.parameter_selected)
+
 
     def parameter_time(self):
 
@@ -100,15 +102,65 @@ class figures(data, selections):
         )
 
 
-    def summary_id(self):
+    def location_cluster_columns(self):
 
-        self.table_location, self.source_location = self._id_table('Location ID')
+        columns = [
+            TableColumn(field="Location ID", formatter=self.display_format['id'],width=70),
+            TableColumn(field="# Clusters", formatter=self.display_format['int'], width=70),
+            TableColumn(field=f"Distance ({self.units['distance'].value})", 
+                formatter=self.display_format['float'], width=100
+            ),
+            TableColumn(field=f"Nearest Cluster ({self.units['distance'].value})", 
+                formatter=self.display_format['float'], width=100
+            )
+        ]
+
+        return columns
+
+
+    def location_cluster_summary(self):
+
+        columns = self.location_cluster_columns()
+
+        self.source_location = ColumnDataSource(data=dict())
+        self.table_location = DataTable(
+            source=self.source_location, columns=columns, index_position=None,
+            autosize_mode='none', height=100, width=280
+        )
+        
         self.source_location.selected.on_change('indices', self.location_selected)
         
-        self.table_time, self.source_time = self._id_table('Time ID')
+
+    def time_cluster_columns(self):
+
+        columns = [
+            TableColumn(field='Time ID', formatter=self.display_format['id'],width=70),
+            TableColumn(field="# Clusters", formatter=self.display_format['int'], width=70),
+            TableColumn(field=f"Duration ({self.units['time'].value})", 
+                formatter=self.display_format['float'], width=100
+            ),
+            TableColumn(field=f"Nearest Cluster ({self.units['time'].value})", 
+                formatter=self.display_format['float'], width=100
+            )         
+        ]
+
+        return columns
+
+
+    def time_cluster_summary(self):
+
+        columns = self.time_cluster_columns()
+
+        self.source_time = ColumnDataSource(data=dict())
+        self.table_time = DataTable(
+            source=self.source_time, columns=columns, index_position=None,
+            autosize_mode='none', height=100, width=280
+        )
+
         self.source_time.selected.on_change('indices', self.time_selected)
 
-    def summary_columns(self):
+
+    def overall_summary_columns(self):
 
         columns = [
             TableColumn(field="Cluster ID", formatter=self.display_format['id'], width=60),
@@ -123,9 +175,9 @@ class figures(data, selections):
         return columns
 
 
-    def summary_table(self):
+    def overall_cluster_summary(self):
 
-        columns = self.summary_columns()
+        columns = self.overall_summary_columns()
 
         self.source_summary = ColumnDataSource(data=dict())
         self.table_summary = DataTable(
@@ -298,20 +350,3 @@ class figures(data, selections):
         )
 
         return fig, renderer
-
-
-    def _id_table(self, id_column):
-
-        # TODO: include summary of length and duration
-        columns = [
-            TableColumn(field=id_column, formatter=self.display_format['id'],width=70),
-            TableColumn(field="# Clusters", formatter=self.display_format['int'], width=70),
-            TableColumn(field="# Unassigned Points", formatter=self.display_format['int'], width=120),            
-        ]
-
-        source = ColumnDataSource(data=dict())
-        summary = DataTable(
-            source=source, columns=columns, index_position=None,
-            autosize_mode='none', height=100, width=280
-        )
-        return summary, source

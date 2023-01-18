@@ -39,36 +39,6 @@ def assign_id(details, input_columns, output_name):
     return details
 
 
-# def get_clusters(details, cluster_distance, distance_radians, column_time, units_time, units_distance, cluster_time, additional_summary):
-
-#     # group dates
-#     date_id, grouped = cluster_date(details, column_time, cluster_time, units_time)
-#     details = details.drop(columns=['Time ID']).merge(date_id, left_index=True, right_index=True)
-
-#     # group on location without time aspect
-#     geo_id = cluster_geo(details, cluster_distance, distance_radians, units_distance, 'Location')
-#     details = details.drop(columns=['Location ID']).merge(geo_id, left_index=True, right_index=True)
-
-#     # group on location with time to assign overall Cluster ID
-#     # geo_id = grouped.apply(lambda x:  cluster_geo(x, cluster_distance, distance_radians, units_distance, 'LocationTime'))
-#     # details = details.drop(columns=['LocationTime ID']).merge(geo_id, left_index=True, right_index=True)
-
-#     # assign an overall id desc with largest size
-#     details = assign_id(details, ['Time ID', 'Location ID'], 'Cluster')
-
-#     # determine distance_radians of points to other points
-#     details = point_distance(details, distance_radians, units_distance)
-
-#     # summerize cluster
-#     cluster_summary, location_summary, time_summary = summary.get_summary(details, column_time, units_time, units_distance, additional_summary)
-
-#     # calculate cluster boundary for map zoom
-#     cluster_boundary = details.groupby('Cluster ID')
-#     cluster_boundary = cluster_boundary.apply(get_boundary)
-
-#     return cluster_summary, location_summary, time_summary, cluster_boundary, details
-
-
 def get_clusters(df, distance_radians, distance_units, distance_threshold, duration_seconds, time_units, time_threshold):
 
     # label records for same location

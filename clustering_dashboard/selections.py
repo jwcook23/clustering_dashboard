@@ -35,7 +35,9 @@ class selections(updates):
         self.plot_next_date.xaxis.axis_label = self.units["time"].value
         self.plot_span_date.xaxis.axis_label = self.units["time"].value
 
-        self.table_summary.columns = self.summary_columns()
+        self.location_summary.columns = self.location_summary_columns()
+        self.time_summary.columns = self.time_summary_columns()
+        self.table_summary.columns = self.overall_summary_columns()
         self.parameter_selected(None, None, None)
 
 
@@ -50,7 +52,15 @@ class selections(updates):
             self.duration_seconds, self.units['time'].value, self.parameters['cluster_time'].value
         )
 
-        self.cluster_summary, self.location_summary, self.time_summary, self.details, self.cluster_boundary = summary.get_summary(
+        self.location_summary = summary.get_location_summary(
+            self.details, self.distance_radians, self.units['distance'].value
+        )
+        
+        self.time_summary = summary.get_time_summary(
+            self.details, self.duration_seconds, self.units['time'].value
+        )
+
+        self.cluster_summary, self.details, self.cluster_boundary = summary.get_cluster_summary(
             self.details, 
             self.distance_radians, self.units['distance'].value, 
             self.duration_seconds, self.units['time'].value,
