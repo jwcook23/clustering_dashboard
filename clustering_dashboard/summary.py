@@ -20,7 +20,7 @@ def _calc_distance_features(distance_radians, units_distance, row_id, col_id):
     return distance_nearest, distance_length
 
 
-def _calc_time_features(duration_seconds, units_time, row_id, col_id, df):
+def _calc_time_features(duration_seconds, units_time, row_id, col_id):
 
     time_nearest_column = f"Nearest Cluster ({units_time})"
     time_length_column = f"Duration ({units_time})"
@@ -83,7 +83,7 @@ def get_location_summary(details, distance_radians, units_distance):
     distance_nearest, distance_length = _calc_distance_features(
         distance_radians, units_distance, row_id, col_id
     )
-    location_summary = details[['Location ID']]
+    location_summary = details[['Location ID']].copy()
     location_summary[distance_nearest.name] = distance_nearest
     location_summary[distance_length.name] = distance_length
 
@@ -103,7 +103,7 @@ def get_time_summary(details, duration_seconds, units_time):
     time_nearest, time_length = _calc_time_features(
         duration_seconds, units_time, row_id, col_id
     )
-    time_summary = details[['Time ID']]
+    time_summary = details[['Time ID']].copy()
     time_summary[time_nearest.name] = time_nearest
     time_summary[time_length.name] = time_length
 

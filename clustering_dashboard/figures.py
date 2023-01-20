@@ -111,7 +111,7 @@ class figures(data, selections):
                 formatter=self.display_format['float'], width=100
             ),
             TableColumn(field=f"Nearest Cluster ({self.units['distance'].value})", 
-                formatter=self.display_format['float'], width=100
+                formatter=self.display_format['float'], width=120
             )
         ]
 
@@ -125,7 +125,7 @@ class figures(data, selections):
         self.source_location = ColumnDataSource(data=dict())
         self.table_location = DataTable(
             source=self.source_location, columns=columns, index_position=None,
-            autosize_mode='none', height=100, width=280
+            autosize_mode='none', height=100, width=370
         )
         
         self.source_location.selected.on_change('indices', self.location_selected)
@@ -140,7 +140,7 @@ class figures(data, selections):
                 formatter=self.display_format['float'], width=100
             ),
             TableColumn(field=f"Nearest Cluster ({self.units['time'].value})", 
-                formatter=self.display_format['float'], width=100
+                formatter=self.display_format['float'], width=120
             )         
         ]
 
@@ -154,7 +154,7 @@ class figures(data, selections):
         self.source_time = ColumnDataSource(data=dict())
         self.table_time = DataTable(
             source=self.source_time, columns=columns, index_position=None,
-            autosize_mode='none', height=100, width=280
+            autosize_mode='none', height=100, width=370
         )
 
         self.source_time.selected.on_change('indices', self.time_selected)
