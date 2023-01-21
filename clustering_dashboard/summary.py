@@ -83,15 +83,17 @@ def get_location_summary(details, distance_radians, units_distance):
     distance_nearest, distance_length = _calc_distance_features(
         distance_radians, units_distance, row_id, col_id
     )
-    location_summary = details[['Location ID']].copy()
+    location_summary = details[['Location ID','Cluster ID']].copy()
     location_summary[distance_nearest.name] = distance_nearest
     location_summary[distance_length.name] = distance_length
 
     location_summary = location_summary.groupby('Location ID')
     location_summary = location_summary.agg({
+        'Cluster ID': aggregations.UniqueCountNonNA,
         distance_nearest.name: 'min',
         distance_length.name: 'max'
     })
+    location_summary = location_summary.rename(columns={'Cluster ID': '# Clusters'})
 
     return location_summary
 
@@ -103,15 +105,17 @@ def get_time_summary(details, duration_seconds, units_time):
     time_nearest, time_length = _calc_time_features(
         duration_seconds, units_time, row_id, col_id
     )
-    time_summary = details[['Time ID']].copy()
+    time_summary = details[['Time ID', 'Cluster ID']].copy()
     time_summary[time_nearest.name] = time_nearest
     time_summary[time_length.name] = time_length
 
     time_summary = time_summary.groupby('Time ID')
     time_summary = time_summary.agg({
+        'Cluster ID': aggregations.UniqueCountNonNA,
         time_nearest.name: 'min',
         time_length.name: 'max'
     })
+    time_summary = time_summary.rename(columns={'Cluster ID': '# Clusters'})
 
     return time_summary
 

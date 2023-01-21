@@ -2,15 +2,15 @@ import numpy as np
 
 def UniqueCountNonNA(series):
     
-    series = series.dropna()
-    count = series.nunique()
+    count = series.dropna()
+    count = count.nunique()
 
     return count
 
 def CountNA(series):
 
-    series = series[series.isna()]
-    count = len(series)
+    count = series[series.isna()]
+    count = len(count)
 
     return count
 

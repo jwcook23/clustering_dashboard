@@ -125,7 +125,7 @@ class figures(data, selections):
         self.source_location = ColumnDataSource(data=dict())
         self.table_location = DataTable(
             source=self.source_location, columns=columns, index_position=None,
-            autosize_mode='none', height=100, width=370
+            autosize_mode='none', height=100, width=380
         )
         
         self.source_location.selected.on_change('indices', self.location_selected)
@@ -134,13 +134,13 @@ class figures(data, selections):
     def time_cluster_columns(self):
 
         columns = [
-            TableColumn(field='Time ID', formatter=self.display_format['id'],width=70),
+            TableColumn(field='Time ID', formatter=self.display_format['id'],width=50),
             TableColumn(field="# Clusters", formatter=self.display_format['int'], width=70),
             TableColumn(field=f"Duration ({self.units['time'].value})", 
                 formatter=self.display_format['float'], width=100
             ),
             TableColumn(field=f"Nearest Cluster ({self.units['time'].value})", 
-                formatter=self.display_format['float'], width=120
+                formatter=self.display_format['float'], width=130
             )         
         ]
 
@@ -154,7 +154,7 @@ class figures(data, selections):
         self.source_time = ColumnDataSource(data=dict())
         self.table_time = DataTable(
             source=self.source_time, columns=columns, index_position=None,
-            autosize_mode='none', height=100, width=370
+            autosize_mode='none', height=100, width=380
         )
 
         self.source_time.selected.on_change('indices', self.time_selected)
@@ -182,7 +182,7 @@ class figures(data, selections):
         self.source_summary = ColumnDataSource(data=dict())
         self.table_summary = DataTable(
             source=self.source_summary, columns=columns, index_position=None,
-            autosize_mode='none', height=300, width=700)
+            autosize_mode='none', height=300, width=770)
         self.source_summary.selected.on_change('indices', self.cluster_selected)
 
 
