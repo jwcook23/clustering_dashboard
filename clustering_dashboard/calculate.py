@@ -4,12 +4,13 @@ import pandas as pd
 from sklearn.metrics.pairwise import haversine_distances
 from sklearn.metrics import pairwise_distances
 
-from clustering_dashboard import convert
+from clustering_dashboard import convert, performance
 
 # TODO: calculate sparse distance_radians and duration matrix for better performance
 # https://stackoverflow.com/questions/35296935/python-calculate-lots-of-distances-quickly
 
 
+@performance.timing
 def distance_matrix(df, column_latitude, column_longitude):
     
     coords = np.radians(df[[column_latitude, column_longitude]].values)
@@ -19,6 +20,7 @@ def distance_matrix(df, column_latitude, column_longitude):
     return distance_radians
 
 
+@performance.timing
 def duration_matrix(df, column_time):
 
     time = df[column_time].view('int64').to_numpy().reshape(-1,1)
@@ -28,6 +30,7 @@ def duration_matrix(df, column_time):
     return duration_seconds
 
 
+@performance.timing
 def nearest_point(distance_radians, units):
 
     distance_radians.mask = np.eye(distance_radians.shape[0], dtype=bool)
@@ -41,6 +44,7 @@ def nearest_point(distance_radians, units):
     return nearest
     
 
+@performance.timing
 def nearest_time(timestamps, units):
     
     timestamps = timestamps.sort_values()
