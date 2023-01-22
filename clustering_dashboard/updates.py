@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-from bokeh.models import Label
 
 from clustering_dashboard import calculate
 
@@ -114,7 +113,7 @@ class updates():
         ].reset_index().copy()
 
         # update summary table
-        # BUG: replace values of all empty to avoid ValueError: Out of range float values are not JSON compliant
+        # replace values of all empty to avoid ValueError: Out of range float values are not JSON compliant
         all_empty = cluster_summary.columns[cluster_summary.isna().all()]
         cluster_summary[all_empty] = '-'
         cols = [x.field for x in self.table_summary.columns]

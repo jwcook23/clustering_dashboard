@@ -190,6 +190,7 @@ def find_location_boundary(group):
 
     return boundary
 
+# TODO: additional summary in another tab, with it's own clustering
 # def summarize_additional(details, column_time, additional_summary):
 
     # agg_options = {
@@ -198,7 +199,6 @@ def find_location_boundary(group):
     #     'unique': _unique
     # }
 
-    # TODO: additional summary in another tab?
     # additional_summary = {key:agg_options[val] for key,val in additional_summary.items()}
     # plan = {**plan, **additional_summary}
 

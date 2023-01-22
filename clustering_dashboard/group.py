@@ -3,7 +3,7 @@ import pandas as pd
 from scipy.sparse.csgraph import connected_components
 
 
-from clustering_dashboard import summary, convert
+from clustering_dashboard import convert
 
 def assign_id(details, input_columns, output_name):
 
@@ -96,46 +96,3 @@ def assign_id(comparison_criteria):
     cluster_label = cluster_label['ID'].sort_index()
 
     return cluster_label
-
-
-# def cluster_date(details, column_time, cluster_time, units_time):
-
-#     if units_time == 'days':
-#         offset = 'D'
-#     elif units_time == 'hours':
-#         offset = 'H'
-#     elif units_time == 'minutes':
-#         offset = 'T'
-#     grouped = details.groupby(pd.Grouper(key=column_time, freq=f'{cluster_time}{offset}'))
-#     assigned_id = pd.DataFrame(grouped.ngroup(), columns=['Time ID'], index=details.index, dtype='Int64')
-#     assigned_id['Time ID'][assigned_id['Time ID']==-1] = None
-
-#     # assign ID based on size
-#     assigned_id = assign_id(assigned_id, ['Time ID'], 'Time')
-
-#     return assigned_id, grouped
-
-
-# def cluster_geo(df, cluster_distance, distance_radians, units_distance, name):
-
-#     id_name = f'{name} ID'
-
-#     # convert to radians
-#     eps = convert.distance_to_radians(cluster_distance, units_distance)
-
-#     # identify geographic clusters from already clustered time values
-#     # TODO: include core_sample_indices_ in plotting or summary
-#     clusters = DBSCAN(metric='precomputed', eps=eps, min_samples=2)
-#     if len(df)==0:
-#         assigned_id = None
-#     else:
-#         time_submatrix = distance_radians[np.ix_(df.index, df.index)]
-#         clusters = clusters.fit(time_submatrix)
-#         assigned_id = pd.DataFrame(clusters.labels_, columns=[id_name], index=df.index, dtype='Int64')
-#         assigned_id[id_name][assigned_id[id_name]==-1] = None
-
-#         # assign ID based on size if grouping by location only
-#         if name == 'Location':
-#             assigned_id = assign_id(assigned_id, [id_name], name)
-
-#     return assigned_id

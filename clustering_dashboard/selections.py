@@ -67,9 +67,6 @@ class selections(updates):
             self.columns['time']
         )
 
-        # TODO: rename length to furthest in summary and where ever needed
-        # self.cluster_boundary = None
-
         self._reset_all()
 
 

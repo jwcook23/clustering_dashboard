@@ -1,9 +1,4 @@
-# https://pypi.org/project/hdbscan/
-# https://medium.com/@sylvainma/multi-feature-geo-clustering-with-dbscan-4857c6b932e2
-
-
 import pandas as pd
-import numpy as np
 import pytest
 
 from clustering_dashboard import calculate, group
