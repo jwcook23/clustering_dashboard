@@ -208,3 +208,5 @@ class updates():
 
         title = fig.title.text.split('\n')
         fig.title.text = f'{title[0]}\n{outliers}'
+
+        renderer.data_source.data = bins
