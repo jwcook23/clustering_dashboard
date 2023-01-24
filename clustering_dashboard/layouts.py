@@ -57,12 +57,9 @@ class layouts(figures):
             self.column_options['time']
         )
 
+    def _load_data(self, buffer_or_path):
 
-    def _file_selected(self, attr, old, new):
-
-        decoded = base64.b64decode(new)
-        buffer = io.BytesIO(decoded)
-        self.details = pd.read_parquet(buffer)
+        self.details = pd.read_parquet(buffer_or_path)
 
         if self.details.index.name is not None:
             self.details = self.details.reset_index()
@@ -72,6 +69,14 @@ class layouts(figures):
 
         # TODO: allow creation of id column
         # self.column_options.menu['id'] += [None]
+
+
+    def _file_selected(self, attr, old, new):
+
+        decoded = base64.b64decode(new)
+        buffer = io.BytesIO(decoded)
+
+        self._load_data(buffer)
 
 
     def _id_selected(self, event):
@@ -102,15 +107,15 @@ class layouts(figures):
     def _columns_selected(self):
 
         if self.columns.notna().all():
-            
-            self.document.remove_root(self.layout_parameters)
 
             figures.__init__(self)
 
             self.generate_dashboard()
             self.landing_page()
 
-            self.document.add_root(self.layout_dashboard)
+            if self.document is not None:
+                self.document.remove_root(self.layout_parameters)
+                self.document.add_root(self.layout_dashboard)
 
 
     def generate_dashboard(self):

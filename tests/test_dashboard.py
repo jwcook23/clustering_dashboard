@@ -1,56 +1,29 @@
-from bokeh.events import Event
-from bokeh.plotting import output_file, show
-
-import pytest
+from bokeh.events import MenuItemClick
+from bokeh.plotting import show
 
 from clustering_dashboard.dashboard import dashboard
 
-@pytest.fixture(scope='module')
-def db():
 
-    page = dashboard()
-    output_file("test.html")
+def test_steps():
+
+    page = dashboard("tests/test.html")
+
+    page._load_data("tests/Sample10Records.parquet")
+    
+    page._id_selected(MenuItemClick(page.column_options['id'], item='TripID'))
+    page._latitude_selected(MenuItemClick(page.column_options['latitude'], item='Latitude'))
+    page._longitude_selected(MenuItemClick(page.column_options['id'], item='Longitude'))
+    page._time_selected(MenuItemClick(page.column_options['time'], item='Pickup Time'))
+
 
     page.units['distance'].value = 'miles'
     page.parameters['cluster_distance'].value = 0.25
     page.units['time'].value = 'minutes'
     page.parameters['cluster_time'].value = 30
+    page.parameter_selected(None, None, None)
 
-    yield page
-    show(page.dashboard_layout)
+    page.cluster_selected(None, None, [0])
 
+    show(page.layout_dashboard)
 
-def test_parameters():
-
-    page = dashboard()
-    output_file("test.html")
-    show(page.file_layout)
-
-
-def test_steps(db):
-
-    db.source_summary.selected.indices = [0]
-
-    db.cluster_selected(None, None, None)
-
-
-# plot second largest
-# page.cluster_selected(None, None, [0])
-
-
-# # display nearby points
-# dropdown = Event()
-# dropdown.item = 'same location'
-# page.relation_selected(dropdown)
-
-# # reset display
-# dropdown = Event()
-# dropdown.item = 'reset display'
-# page.relation_selected(dropdown)
-
-# adjuster parameter
-# page.parameters['cluster_distance'].value = 0.01
-# page.parameter_callback(None, None, None)
-
-# # plot second largest
-# page.cluster_selected(None, None, [1])
+    # TODO: add tests for all callbacks and clicks
