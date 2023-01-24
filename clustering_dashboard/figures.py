@@ -291,7 +291,7 @@ class figures(data, selections):
             ('Cluster ID', "@{Cluster ID}"),
             ('Location ID', "@{Location ID}"),
             ('Time ID', "@{Time ID}"),
-            (self.column_id, "@{"+self.column_id+"}"),
+            (self.columns['id'], "@{"+self.columns['id']+"}"),
             (f"({latitude}/{longitude})", "(@{"+latitude+"},@{"+longitude+"})"),
             (time, "@{"+time+"}{%F}")
         ]

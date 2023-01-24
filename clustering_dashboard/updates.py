@@ -34,7 +34,7 @@ class updates():
             'Time ID': self.selected_details['Time ID'].fillna(-1).values,
             'xs': self.selected_details['_longitude_mercator'].values,
             'ys': self.selected_details['_latitude_mercator'].values,
-            self.column_id: self.selected_details[self.column_id].values,
+            self.columns['id']: self.selected_details[self.columns['id']].values,
             longitude: self.selected_details[longitude].values,
             latitude: self.selected_details[latitude].values,
             time: self.selected_details[time].values,

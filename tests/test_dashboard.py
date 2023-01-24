@@ -17,7 +17,14 @@ def db():
     page.parameters['cluster_time'].value = 30
 
     yield page
-    show(page.layout)
+    show(page.dashboard_layout)
+
+
+def test_parameters():
+
+    page = dashboard()
+    output_file("test.html")
+    show(page.file_layout)
 
 
 def test_steps(db):

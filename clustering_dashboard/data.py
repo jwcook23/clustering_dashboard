@@ -10,8 +10,8 @@ class data():
 
     def __init__(self):
         
-        self.load_settings()
-        self.load_data()
+        # self.load_settings()
+        # self.load_data()
 
         self.details[['Cluster ID', 'Location ID', 'Time ID']] = None
 
@@ -30,20 +30,3 @@ class data():
         self.details['_latitude_mercator'] = latitude_mercator
         self.details['_longitude_mercator'] = longitude_mercator
 
-
-    def load_settings(self):
-
-        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)),'settings.json')) as fh:
-            settings = json.load(fh)
-
-        self.file_path = settings['file_path']
-        self.columns = pd.Series(settings['column_names'])
-        self.additional_summary = settings['additional_summary']
-
-
-    def load_data(self):
-
-        self.details = pd.read_parquet(self.file_path)
-        self.column_id = self.details.index.name
-
-        self.details = self.details.reset_index()

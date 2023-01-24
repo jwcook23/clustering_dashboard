@@ -21,3 +21,9 @@ def timing(f):
 #     sleep(3)
 #     print(1)
 # test()
+
+
+import pandas as pd
+data = pd.read_parquet('C:/Users/jacoo/Desktop/Code/python-lib/clustering_dashboard/tests/Sample10Records.parquet')
+
+data = pd.read_parquet('C:/Users/jacoo/Desktop/Temp/CabData.parquet')
