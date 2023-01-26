@@ -15,10 +15,11 @@ def test_steps():
     page._longitude_selected(MenuItemClick(page.column_options['id'], item='Longitude'))
     page._time_selected(MenuItemClick(page.column_options['time'], item='Pickup Time'))
 
+    page.units['time'].value = 'days'
 
-    page.units['distance'].value = 'miles'
+    # page.units['distance'].value = 'miles'
     page.parameters['cluster_distance'].value = 0.25
-    page.units['time'].value = 'minutes'
+    # page.units['time'].value = 'minutes'
     page.parameters['cluster_time'].value = 30
     page.parameter_selected(None, None, None)
 

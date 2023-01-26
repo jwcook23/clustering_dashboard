@@ -34,10 +34,7 @@ class selections(updates):
         self.plot_span_distance.xaxis.axis_label = self.units["distance"].value
         self.plot_next_date.xaxis.axis_label = self.units["time"].value
         self.plot_span_date.xaxis.axis_label = self.units["time"].value
-
-        self.location_summary.columns = self.location_summary_columns()
-        self.time_summary.columns = self.time_summary_columns()
-        self.table_summary.columns = self.overall_summary_columns()
+            
         self.parameter_selected(None, None, None)
 
 
@@ -66,6 +63,10 @@ class selections(updates):
             self.duration_seconds, self.units['time'].value,
             self.columns['time']
         )
+
+        self.table_location.columns = self.location_summary_columns()
+        self.table_time.columns = self.time_summary_columns()
+        self.table_summary.columns = self.overall_summary_columns()
 
         self._reset_all()
 

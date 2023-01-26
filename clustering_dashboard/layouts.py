@@ -143,6 +143,21 @@ class layouts(figures):
 
         space = Div(height=20, width=100)
 
+        paremeter_or_summary_tab = Tabs(tabs=[
+            Panel(child=column(
+                    column(row(title_location_summary, self.count_location), self.table_location), 
+                    column(row(title_time_summary, self.count_time), self.table_time)
+                ), title='Location and Time Summary'
+            ),
+            Panel(child=
+                Tabs(tabs=[
+                    Panel(child=row(self.plot_estimate_distance, self.plot_estimate_time), title='Parameter Estimation'),
+                    Panel(child=row(self.plot_next_distance, self.plot_span_distance), title='Distance Parameter Evaluation'),
+                    Panel(child=row(self.plot_next_date, self.plot_span_date), title='Time Parameter Evalulation')
+                ]), title='Parameter Estimation and Evaluation'
+            )
+        ])
+
         self.layout_dashboard = row(
             column(
                 row(
@@ -154,15 +169,7 @@ class layouts(figures):
                         ),
                         self.options['reset']
                     ),
-                    Tabs(tabs=[
-                        Panel(child=row(self.plot_estimate_distance, self.plot_estimate_time), title='Parameter Estimation'),
-                        Panel(child=row(self.plot_next_distance, self.plot_span_distance), title='Distance Parameter Evaluation'),
-                        Panel(child=row(self.plot_next_date, self.plot_span_date), title='Time Parameter Evalulation')
-                    ])
-                ),
-                row(
-                    column(row(title_location_summary, self.count_location), self.table_location), 
-                    column(row(title_time_summary, self.count_time), self.table_time)
+                    paremeter_or_summary_tab
                 ),
                 column(row(title_summary, self.count_summary), self.table_summary)
             ),

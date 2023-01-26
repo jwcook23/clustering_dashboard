@@ -102,7 +102,7 @@ class figures(data, selections):
         )
 
 
-    def location_cluster_columns(self):
+    def location_summary_columns(self):
 
         columns = [
             TableColumn(field="Location ID", formatter=self.display_format['id'],width=70),
@@ -120,7 +120,7 @@ class figures(data, selections):
 
     def location_cluster_summary(self):
 
-        columns = self.location_cluster_columns()
+        columns = self.location_summary_columns()
 
         self.source_location = ColumnDataSource(data=dict())
         self.table_location = DataTable(
@@ -131,7 +131,7 @@ class figures(data, selections):
         self.source_location.selected.on_change('indices', self.location_selected)
         
 
-    def time_cluster_columns(self):
+    def time_summary_columns(self):
 
         columns = [
             TableColumn(field='Time ID', formatter=self.display_format['id'],width=50),
@@ -149,7 +149,7 @@ class figures(data, selections):
 
     def time_cluster_summary(self):
 
-        columns = self.time_cluster_columns()
+        columns = self.time_summary_columns()
 
         self.source_time = ColumnDataSource(data=dict())
         self.table_time = DataTable(
@@ -193,7 +193,7 @@ class figures(data, selections):
         columns = self._format_table(self.details.drop(columns=ignore))
 
         self.source_detail = ColumnDataSource(data=dict())
-        self.table_detail = DataTable(source=self.source_detail, columns=columns, autosize_mode='fit_columns', height=625, width=625)        
+        self.table_detail = DataTable(source=self.source_detail, columns=columns, autosize_mode='none', height=625, width=625)        
 
 
     def cluster_map(self):
