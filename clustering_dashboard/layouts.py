@@ -59,11 +59,14 @@ class layouts(figures):
 
         self.details = pd.read_parquet(buffer_or_path)
 
-        if self.details.index.name is not None:
-            self.details = self.details.reset_index()
+        # if self.details.index.name is not None:
+        #     self.details = self.details.reset_index()
 
+        dropdown = ['']+list(self.details.columns)
+        if self.details.index.name is not None:
+            dropdown += [self.details.index.name]
         for col in self.column_options.values():
-            col.options = ['']+list(self.details.columns)
+            col.options = dropdown
 
         # TODO: allow creation of id column
         # self.column_options.menu['id'] += [None]
@@ -86,6 +89,9 @@ class layouts(figures):
         if (self.columns.str.len()>0).all():
 
             self.details[self.columns['time']] = pd.to_datetime(self.details[self.columns['time']])
+            self.details = self.details.sort_values(by=self.columns['time'])
+            if self.details.index.name == self.columns['id']:
+                self.details = self.details.reset_index()
 
             figures.__init__(self)
 

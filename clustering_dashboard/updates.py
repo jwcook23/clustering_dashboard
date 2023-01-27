@@ -67,43 +67,23 @@ class updates():
 
         self._histogram_evaluation(
             f"Nearest Cluster ({self.units['distance'].value})",
-            self.plot_next_distance,
             self.render_next_distance
         )
         
         self._histogram_evaluation(
             f"Distance ({self.units['distance'].value})",
-            self.plot_span_distance,
             self.render_span_distance
         )
 
         self._histogram_evaluation(
             f"Nearest Cluster ({self.units['time'].value})",
-            self.plot_next_date,
             self.render_next_date
         )
 
         self._histogram_evaluation(
             f"Duration ({self.units['time'].value})",
-            self.plot_span_date,
             self.render_span_date
         )
-
-
-    def update_time(self):
-        
-        time_summary = self.time_summary[
-            self.time_summary.index.isin(self.selected_details['Time ID'])
-        ].reset_index()
-        self.source_time.data = time_summary.to_dict(orient='list')
-
-
-    def update_location(self):
-
-        location_summary = self.location_summary[
-            self.location_summary.index.isin(self.selected_details['Location ID'])
-        ].reset_index()
-        self.source_location.data = location_summary.to_dict(orient='list')
 
 
     def update_summary(self, summary, source, id_name, indices=[]):
@@ -132,12 +112,10 @@ class updates():
 
         parameters = {
             'distance_radians': {
-                'fig': self.plot_estimate_distance,
                 'renderer': self.render_estimate_distance,
                 'data': calculate.nearest_point(self.distance_radians, self.units["distance"].value)
             },
             'time': {
-                'fig': self.plot_estimate_time,
                 'renderer': self.render_estimate_time,
                 'data': calculate.nearest_time(self.details[self.columns['time']], self.units["time"].value)
             }
@@ -146,16 +124,12 @@ class updates():
         for target in parameters.values():
 
             values = target['data'].sort_values()
-            values, outliers = self._filter_outliers(values)
             
             source = {
                 'x': range(0, len(values)),
                 'y': values.values
             }
             target['renderer'].data_source.data = source
-
-            title = target['fig'].title.text.split('\n')
-            target['fig'].title.text = f'{title[0]}\n{outliers}'
 
 
     def update_selected_count(self):
@@ -183,25 +157,9 @@ class updates():
         return zoom
 
 
-    def _filter_outliers(self, values):
-
-        outliers = values[values > values.mean() + 3 * values.std()]
-
-        values = values[~values.index.isin(outliers.index)]
-
-        if values.any():
-            outliers = f'excluding {len(outliers)} points > {values.max():.3f}'
-        else:
-            outliers = 'no data'
-
-        return values, outliers
-
-
-    def _histogram_evaluation(self, column, fig, renderer):
+    def _histogram_evaluation(self, column, renderer):
 
         data = self.cluster_summary[column]
-
-        data, outliers = self._filter_outliers(data)
 
         hist, edges = np.histogram(data.dropna(), bins='fd')
 
@@ -211,8 +169,5 @@ class updates():
                 top=hist,
                 bottom=[0]*len(hist),
             )
-
-        title = fig.title.text.split('\n')
-        fig.title.text = f'{title[0]}\n{outliers}'
 
         renderer.data_source.data = bins
