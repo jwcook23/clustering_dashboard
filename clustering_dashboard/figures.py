@@ -162,8 +162,16 @@ class figures(data, selections):
 
     def overall_summary_columns(self):
 
+        # template = """                
+        #     <div style="background:<%= _cell_color %>;">
+        #         &ensp;
+        #         <%= value %>
+        #     </div>
+        #     """
+        # formatter = HTMLTemplateFormatter(template=template)
+
         columns = [
-            TableColumn(field="Cluster ID", formatter=self.display_format['id'], width=60),
+            TableColumn(field="Cluster ID", width=60),
             TableColumn(field="# Points", formatter=self.display_format['int'], width=50),
             TableColumn(field='Time (first)', formatter=self.display_format['timestamp'], width=120),
             TableColumn(field=f"Distance ({self.units['distance'].value})", formatter=self.display_format['float'], width=90),

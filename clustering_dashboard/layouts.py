@@ -2,7 +2,7 @@ import base64
 import io
 
 import pandas as pd
-from bokeh.models import Div, FileInput, Dropdown, Panel, Tabs
+from bokeh.models import Div, FileInput, Select, Panel, Tabs
 from bokeh.layouts import row, column
 
 from clustering_dashboard.figures import figures
@@ -35,16 +35,14 @@ class layouts(figures):
         )
 
         self.column_options = {
-            'id': Dropdown(label="Select ID Column", width=200),
-            'latitude': Dropdown(label="Select Latitude Column", width=200),
-            'longitude': Dropdown(label="Select Longitude Column", width=200),
-            'time': Dropdown(label="Select Time Column", width=200)
+            'id': Select(title="Select ID Column", value='', options=[''], width=200),
+            'latitude': Select(title="Select Latitude Column", value='', options=[''], width=200),
+            'longitude': Select(title="Select Longitude Column", value='', options=[''], width=200),
+            'time': Select(title="Select Time Column", value='', options=[''], width=200)
         }
+        for opt in self.column_options.values():
+            opt.on_change('value', self._columns_selected)
         self.columns = pd.Series({col:None for col in self.column_options.keys()})
-        self.column_options['id'].on_click(self._id_selected)
-        self.column_options['latitude'].on_click(self._latitude_selected)
-        self.column_options['longitude'].on_click(self._longitude_selected)
-        self.column_options['time'].on_click(self._time_selected)
 
         self.layout_parameters = column(
             title_main,
@@ -65,7 +63,7 @@ class layouts(figures):
             self.details = self.details.reset_index()
 
         for col in self.column_options.values():
-            col.menu = list(self.details.columns)
+            col.options = ['']+list(self.details.columns)
 
         # TODO: allow creation of id column
         # self.column_options.menu['id'] += [None]
@@ -79,34 +77,15 @@ class layouts(figures):
         self._load_data(buffer)
 
 
-    def _id_selected(self, event):
+    def _columns_selected(self, attr, old, new):
 
-        self.columns.at['id'] = event.item
-        self._columns_selected()
-
-
-    def _latitude_selected(self, event):
-
-        self.columns.at['latitude'] = event.item
-        self._columns_selected()
+        for col in self.column_options.keys():
+            self.columns.at[col] = self.column_options[col].value
 
 
-    def _longitude_selected(self, event):
+        if (self.columns.str.len()>0).all():
 
-        self.columns.at['longitude'] = event.item
-        self._columns_selected()
-
-
-    def _time_selected(self, event):
-
-        self.columns.at['time'] = event.item
-        self.details[self.columns['time']] = pd.to_datetime(self.details[self.columns['time']])
-        self._columns_selected()
-
-
-    def _columns_selected(self):
-
-        if self.columns.notna().all():
+            self.details[self.columns['time']] = pd.to_datetime(self.details[self.columns['time']])
 
             figures.__init__(self)
 

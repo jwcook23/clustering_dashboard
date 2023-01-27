@@ -108,17 +108,17 @@ class updates():
 
     def update_summary(self):
 
+        # filter for selected clusters only
         cluster_summary = self.cluster_summary[
             self.cluster_summary.index.isin(self.selected_details['Cluster ID'])
         ].reset_index().copy()
 
-        # update summary table
         # replace values of all empty to avoid ValueError: Out of range float values are not JSON compliant
         all_empty = cluster_summary.columns[cluster_summary.isna().all()]
         cluster_summary[all_empty] = '-'
-        cols = [x.field for x in self.table_summary.columns]
-        data = cluster_summary[cols]
-        self.source_summary.data = data.to_dict(orient='list')
+
+        # update the table
+        self.source_summary.data = cluster_summary.to_dict(orient='list')
 
 
     def update_parameter_estimation(self):

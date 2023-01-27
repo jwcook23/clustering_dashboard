@@ -73,7 +73,7 @@ class selections(updates):
 
     def cluster_selected(self, attr, old, selected):
 
-        self._select_details()
+        self.table_row_selected()
         self.update_map()
         self.update_detail()
         self.update_location()
@@ -82,7 +82,7 @@ class selections(updates):
 
     def location_selected(self, attr, old, selected):
 
-        self._select_details()
+        self.table_row_selected()
         self.update_map()
         self.update_detail()
         self.update_summary()
@@ -91,14 +91,14 @@ class selections(updates):
 
     def time_selected(self, attr, old, selected):
 
-        self._select_details()
+        self.table_row_selected()
         self.update_map()
         self.update_detail()
         self.update_summary()
         self.update_location()
 
 
-    def _select_details(self):
+    def table_row_selected(self):
 
         id_summary = self.source_summary.selected.indices
         id_location = self.source_location.selected.indices
