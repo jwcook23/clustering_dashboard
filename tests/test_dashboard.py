@@ -21,7 +21,8 @@ def test_steps():
     page.parameters['cluster_time'].value = 30
     page.parameter_selected(None, None, None)
 
-    page.cluster_selected(None, None, [0])
+    page.source_summary.selected.indices = [0]
+    page.table_row_selected(None, None, None)
 
     show(page.layout_dashboard)
 

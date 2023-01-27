@@ -106,19 +106,26 @@ class updates():
         self.source_location.data = location_summary.to_dict(orient='list')
 
 
-    def update_summary(self):
+    def update_summary(self, summary, source, id_name, indices=[]):
 
-        # filter for selected clusters only
-        cluster_summary = self.cluster_summary[
-            self.cluster_summary.index.isin(self.selected_details['Cluster ID'])
-        ].reset_index().copy()
+        # filter for selected clusters only if needed
+        if len(indices)==0:
+            summary = summary[
+                summary.index.isin(self.selected_details[id_name])
+            ]
+        summary = summary.reset_index().copy()
 
         # replace values of all empty to avoid ValueError: Out of range float values are not JSON compliant
-        all_empty = cluster_summary.columns[cluster_summary.isna().all()]
-        cluster_summary[all_empty] = '-'
+        all_empty = summary.columns[summary.isna().all()]
+        summary[all_empty] = '-'
+
+        # highlight id of selected
+        summary['_selected_color'] = 'null'
+        if len(indices)>0:
+            summary.loc[indices, '_selected_color'] = '#ee4729'
 
         # update the table
-        self.source_summary.data = cluster_summary.to_dict(orient='list')
+        source.data = summary.to_dict(orient='list')
 
 
     def update_parameter_estimation(self):

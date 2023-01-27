@@ -5,7 +5,8 @@ from bokeh.transform import linear_cmap
 from bokeh.models import (
     ColumnDataSource, DataTable, HoverTool, ColorBar, 
     DatetimeTickFormatter, TableColumn, Button, Select, 
-    NumericInput, TableColumn, DateFormatter, StringFormatter, NumberFormatter
+    NumericInput, TableColumn, DateFormatter, StringFormatter, NumberFormatter,
+    HTMLTemplateFormatter
 )
 
 from clustering_dashboard.data import data
@@ -67,7 +68,7 @@ class figures(data, selections):
 
     def set_options(self):
 
-        self.options['reset'] = Button(label="Reset Selections", button_type="default", width=200, height=30)
+        self.options['reset'] = Button(label="Reset Table Selections", button_type="default", width=200, height=30)
         self.options['reset'].on_click(self._reset_all)
 
 
@@ -105,7 +106,7 @@ class figures(data, selections):
     def location_summary_columns(self):
 
         columns = [
-            TableColumn(field="Location ID", formatter=self.display_format['id'],width=70),
+            TableColumn(field="Location ID", formatter=self.highlight_cell, width=70),
             TableColumn(field="# Clusters", formatter=self.display_format['int'], width=70),
             TableColumn(field=f"Distance ({self.units['distance'].value})", 
                 formatter=self.display_format['float'], width=100
@@ -128,13 +129,13 @@ class figures(data, selections):
             autosize_mode='none', height=100, width=380
         )
         
-        self.source_location.selected.on_change('indices', self.location_selected)
+        self.source_location.selected.on_change('indices', self.table_row_selected)
         
 
     def time_summary_columns(self):
 
         columns = [
-            TableColumn(field='Time ID', formatter=self.display_format['id'],width=50),
+            TableColumn(field='Time ID', formatter=self.highlight_cell, width=50),
             TableColumn(field="# Clusters", formatter=self.display_format['int'], width=70),
             TableColumn(field=f"Duration ({self.units['time'].value})", 
                 formatter=self.display_format['float'], width=100
@@ -157,21 +158,13 @@ class figures(data, selections):
             autosize_mode='none', height=100, width=380
         )
 
-        self.source_time.selected.on_change('indices', self.time_selected)
+        self.source_time.selected.on_change('indices', self.table_row_selected)
 
 
     def overall_summary_columns(self):
 
-        # template = """                
-        #     <div style="background:<%= _cell_color %>;">
-        #         &ensp;
-        #         <%= value %>
-        #     </div>
-        #     """
-        # formatter = HTMLTemplateFormatter(template=template)
-
         columns = [
-            TableColumn(field="Cluster ID", width=60),
+            TableColumn(field="Cluster ID", formatter=self.highlight_cell, width=60),
             TableColumn(field="# Points", formatter=self.display_format['int'], width=50),
             TableColumn(field='Time (first)', formatter=self.display_format['timestamp'], width=120),
             TableColumn(field=f"Distance ({self.units['distance'].value})", formatter=self.display_format['float'], width=90),
@@ -191,7 +184,7 @@ class figures(data, selections):
         self.table_summary = DataTable(
             source=self.source_summary, columns=columns, index_position=None,
             autosize_mode='none', height=300, width=770)
-        self.source_summary.selected.on_change('indices', self.cluster_selected)
+        self.source_summary.selected.on_change('indices', self.table_row_selected)
 
 
     def cluster_detail(self):
@@ -248,6 +241,14 @@ class figures(data, selections):
 
 
     def _set_format(self):
+
+        template = """                
+            <div style="background:<%= _selected_color %>;">
+                &ensp;
+                <%= value %>
+            </div>
+            """
+        self.highlight_cell = HTMLTemplateFormatter(template=template)
 
         self.display_format = {
             'id': NumberFormatter(format='0'),

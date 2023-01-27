@@ -71,38 +71,11 @@ class selections(updates):
         self._reset_all()
 
 
-    def cluster_selected(self, attr, old, selected):
+    def table_row_selected(self, attr, old, new):
 
-        self.table_row_selected()
-        self.update_map()
-        self.update_detail()
-        self.update_location()
-        self.update_time()
-
-
-    def location_selected(self, attr, old, selected):
-
-        self.table_row_selected()
-        self.update_map()
-        self.update_detail()
-        self.update_summary()
-        self.update_time()
-
-
-    def time_selected(self, attr, old, selected):
-
-        self.table_row_selected()
-        self.update_map()
-        self.update_detail()
-        self.update_summary()
-        self.update_location()
-
-
-    def table_row_selected(self):
-
-        id_summary = self.source_summary.selected.indices
         id_location = self.source_location.selected.indices
         id_time = self.source_time.selected.indices
+        id_summary = self.source_summary.selected.indices
 
         if (len(id_location)>0) & (len(id_time)>0):
             selected = (
@@ -120,6 +93,12 @@ class selections(updates):
 
         self.selected_details = self.details.loc[selected]
 
+        self.update_map()
+        self.update_detail()
+        self.update_summary(self.location_summary, self.source_location, 'Location ID', indices=id_location)
+        self.update_summary(self.time_summary, self.source_time, 'Time ID', indices=id_time)
+        self.update_summary(self.cluster_summary, self.source_summary, 'Cluster ID', indices=id_summary)
+
 
     def _reset_all(self):
 
@@ -130,9 +109,9 @@ class selections(updates):
         self.selected_details = self.details
 
         self.update_evaluation()
-        self.update_summary()
-        self.update_location()
-        self.update_time()
+        self.update_summary(self.location_summary, self.source_location, 'Location ID')
+        self.update_summary(self.time_summary, self.source_time, 'Time ID')
+        self.update_summary(self.cluster_summary, self.source_summary, 'Cluster ID')
         self.update_map()
         self.update_detail()
 
