@@ -1,5 +1,9 @@
 # bokeh serve --show clustering_dashboard/dashboard.py
 
+# TODO: slider filter for cluster # Points
+# TODO: slider filter for cluster Time (first)
+# TODO: data cube for details to show nested features
+
 from bokeh.plotting import curdoc, output_file, show
 
 from clustering_dashboard.layouts import layouts

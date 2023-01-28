@@ -111,9 +111,6 @@ class layouts(figures):
         )
 
         bold = {'font-weight': 'bold'}
-
-        title_distance_input = Div(text='Distance Length', style=bold)
-        title_time_input = Div(text='Time Duration', style=bold)
         
         title_map = Div(text='Location and Time Clusters', style=bold, width=625)
 
@@ -121,12 +118,12 @@ class layouts(figures):
         self.count_location = Div()
         title_time_summary = Div(text="Time Cluster Summary", style=bold)
         self.count_time = Div()
-        title_summary = Div(text="Overall Cluster Summary", style=bold)
+        title_summary = Div(text="Overall Cluster Summary", style={'font-size': '125%', 'font-weight': 'bold'})
         self.count_summary = Div()
 
         self.update_selected_count()
 
-        space = Div(height=20, width=100)
+        space = Div(height=20, width=5)
 
         paremeter_or_summary_tab = Tabs(tabs=[
             Panel(child=column(
@@ -149,14 +146,20 @@ class layouts(figures):
                     column(
                         title_main,
                         row(
-                            column(title_distance_input, self.units['distance'], space, self.parameters['cluster_distance']),
-                            column(title_time_input, self.units['time'], space, self.parameters['cluster_time'])
+                            column(self.units['distance'], space, self.parameters['cluster_distance']),
+                            column(self.units['time'], space, self.parameters['cluster_time'])
                         ),
                         self.options['reset']
                     ),
                     paremeter_or_summary_tab
                 ),
-                column(row(title_summary, self.count_summary), self.table_summary)
+                column(
+                    row(
+                        column(title_summary, self.count_summary), 
+                        self.summary_points, space, self.summary_first
+                    ), 
+                    self.table_summary
+                )
             ),
             column(
                 title_map,

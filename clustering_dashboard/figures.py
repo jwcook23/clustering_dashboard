@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 import pandas as pd
 from bokeh.plotting import figure
 from bokeh.tile_providers import CARTODBPOSITRON, get_provider
@@ -6,7 +7,7 @@ from bokeh.models import (
     ColumnDataSource, DataTable, HoverTool, ColorBar, 
     DatetimeTickFormatter, TableColumn, Button, Select, 
     NumericInput, TableColumn, DateFormatter, StringFormatter, NumberFormatter,
-    HTMLTemplateFormatter
+    HTMLTemplateFormatter, Slider, DatetimeRangeSlider
 )
 
 from clustering_dashboard.data import data
@@ -35,34 +36,38 @@ class figures(data, selections):
         self.parameter_estimate()
         self.distance_evaluation()
         self.time_evaluation()
+
+        self.summary_sliders()
+
         self.location_cluster_summary()
         self.time_cluster_summary()
         self.overall_cluster_summary()
+
         self.cluster_map()
         self.cluster_detail()
 
 
     def units_distance(self):
 
-        self.units['distance'] = Select(title='Units:', value="miles", options=["miles", "feet", "kilometers"], height=25, width=100)
+        self.units['distance'] = Select(title=' Distance Units:', value="miles", options=["miles", "feet", "kilometers"], height=25, width=100)
         self.units['distance'].on_change('value', self.units_selected)
 
 
     def units_time(self):
 
-        self.units['time'] = Select(title='Units:', value="minutes", options=["days", "hours", "minutes"], height=25, width=100)
+        self.units['time'] = Select(title='Time Units:', value="minutes", options=["days", "hours", "minutes"], height=25, width=100)
         self.units['time'].on_change('value', self.units_selected)
 
 
     def parameter_distance(self):
 
-        self.parameters['cluster_distance'] = NumericInput(value=None, mode='float', title='Parameter:', height=50, width=100)
+        self.parameters['cluster_distance'] = NumericInput(value=None, mode='float', title='Distance Value:', height=50, width=100)
         self.parameters['cluster_distance'].on_change('value', self.parameter_selected)
 
 
     def parameter_time(self):
 
-        self.parameters['cluster_time'] = NumericInput(value=None, mode='float', title='Parameter:', height=50, width=100)
+        self.parameters['cluster_time'] = NumericInput(value=None, mode='float', title='Time Value:', height=50, width=100)
         self.parameters['cluster_time'].on_change('value', self.parameter_selected)
 
 
@@ -159,6 +164,15 @@ class figures(data, selections):
         )
 
         self.source_time.selected.on_change('indices', self.table_row_selected)
+
+
+    def summary_sliders(self):
+
+        self.summary_points = Slider(start=0, end=1, value=1, step=1, title="# Points", width=150)
+
+        end = datetime.now()
+        start = end-timedelta(days=1)
+        self.summary_first = DatetimeRangeSlider(value=(start, end), start=start, end=end, title='Time (first)')
 
 
     def overall_summary_columns(self):
