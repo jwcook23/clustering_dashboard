@@ -1,14 +1,11 @@
-import base64
-import io
-
 import pandas as pd
 from bokeh.models import Div, FileInput, Select, Panel, Tabs
 from bokeh.layouts import row, column
 
-from clustering_dashboard.figures import figures
+from clustering_dashboard.configuration import configuration
 
 
-class layouts(figures):
+class layouts(configuration):
 
     def __init__(self):
 
@@ -54,53 +51,6 @@ class layouts(figures):
             self.column_options['longitude'], 
             self.column_options['time']
         )
-
-    def _load_data(self, buffer_or_path):
-
-        self.details = pd.read_parquet(buffer_or_path)
-
-        # if self.details.index.name is not None:
-        #     self.details = self.details.reset_index()
-
-        dropdown = ['']+list(self.details.columns)
-        if self.details.index.name is not None:
-            dropdown += [self.details.index.name]
-        for col in self.column_options.values():
-            col.options = dropdown
-
-        # TODO: allow creation of id column
-        # self.column_options.menu['id'] += [None]
-
-
-    def _file_selected(self, attr, old, new):
-
-        decoded = base64.b64decode(new)
-        buffer = io.BytesIO(decoded)
-
-        self._load_data(buffer)
-
-
-    def _columns_selected(self, attr, old, new):
-
-        for col in self.column_options.keys():
-            self.columns.at[col] = self.column_options[col].value
-
-
-        if (self.columns.str.len()>0).all():
-
-            self.details[self.columns['time']] = pd.to_datetime(self.details[self.columns['time']])
-            self.details = self.details.sort_values(by=self.columns['time'])
-            if self.details.index.name == self.columns['id']:
-                self.details = self.details.reset_index()
-
-            figures.__init__(self)
-
-            self.generate_dashboard()
-            self.landing_page()
-
-            if self.document is not None:
-                self.document.remove_root(self.layout_parameters)
-                self.document.add_root(self.layout_dashboard)
 
 
     def generate_dashboard(self):

@@ -1,4 +1,3 @@
-from bokeh.events import Event
 from bokeh.plotting import show
 
 from clustering_dashboard.dashboard import dashboard

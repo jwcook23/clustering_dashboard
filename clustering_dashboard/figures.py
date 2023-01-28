@@ -10,16 +10,14 @@ from bokeh.models import (
     HTMLTemplateFormatter, Slider, DatetimeRangeSlider
 )
 
-from clustering_dashboard.data import data
 from clustering_dashboard.selections import selections
 
-class figures(data, selections):
+class figures(selections):
 
     def __init__(self):
 
         self._set_format()
 
-        data.__init__(self)
         selections.__init__(self)
 
         self.units = {}
@@ -170,6 +168,7 @@ class figures(data, selections):
 
         self.summary_points = Slider(start=0, end=1, value=1, step=1, title="# Points", width=150)
 
+        # TODO: use actual date values
         end = datetime.now()
         start = end-timedelta(days=1)
         self.summary_first = DatetimeRangeSlider(value=(start, end), start=start, end=end, title='Time (first)')
