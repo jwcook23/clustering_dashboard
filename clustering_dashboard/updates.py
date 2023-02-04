@@ -86,12 +86,12 @@ class updates():
         )
 
 
-    def update_summary(self, summary, source, id_name, indices=[]):
+    def update_summary(self, summary, source, id_name, indices_highlight=[], indices_filter=[]):
 
         # filter for selected clusters only if needed
-        if len(indices)==0:
+        if len(indices_filter)>0:
             summary = summary[
-                summary.index.isin(self.selected_details[id_name])
+                summary.index.isin(indices_filter)
             ]
         summary = summary.reset_index().copy()
 
@@ -101,8 +101,8 @@ class updates():
 
         # highlight id of selected
         summary['_selected_color'] = 'null'
-        if len(indices)>0:
-            summary.loc[indices, '_selected_color'] = '#ee4729'
+        if len(indices_highlight)>0:
+            summary.loc[indices_highlight, '_selected_color'] = '#ee4729'
 
         # update the table
         source.data = summary.to_dict(orient='list')

@@ -1,4 +1,3 @@
-from datetime import datetime, timedelta
 import pandas as pd
 from bokeh.plotting import figure
 from bokeh.tile_providers import CARTODBPOSITRON, get_provider
@@ -167,11 +166,12 @@ class figures(selections):
     def summary_sliders(self):
 
         self.summary_points = Slider(start=0, end=1, value=1, step=1, title="# Points", width=150)
+        self.summary_points.on_change('value_throttled', self.filter_cluster_summary)
 
-        # TODO: use actual date values
-        end = datetime.now()
-        start = end-timedelta(days=1)
+        start = self.details[self.columns['time']].min()
+        end = self.details[self.columns['time']].max()
         self.summary_first = DatetimeRangeSlider(value=(start, end), start=start, end=end, title='Time (first)')
+        self.summary_first.on_change('value_throttled', self.filter_cluster_summary)
 
 
     def overall_summary_columns(self):
