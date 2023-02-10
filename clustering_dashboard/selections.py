@@ -73,7 +73,8 @@ class selections(updates):
             self.duration_seconds, self.units['time'].value,
             self.columns['time']
         )
-        self.filter_cluster_values()
+        self.update_summary_points()
+        self.update_summary_first()
 
         self.table_location.columns = self.location_summary_columns()
         self.table_time.columns = self.time_summary_columns()
@@ -93,12 +94,15 @@ class selections(updates):
         self.update_detail()
 
 
-    def filter_cluster_values(self):
+    def update_summary_points(self):
 
         values = self.cluster_summary['# Points'].agg(['min','max'])
         self.summary_points.start = values['min']
         self.summary_points.end = values['max']
         self.summary_points.value = values['min']
+
+
+    def update_summary_first(self):
 
         values = self.cluster_summary['Time (first)'].agg(['min','max'])
         self.summary_first.value=(values['min'], values['max'])
@@ -119,6 +123,9 @@ class selections(updates):
         ]
 
         self.cluster_summary = self.update_summary(self.cluster_summary, self.source_summary, 'Cluster ID', indices_filter=indices)
+
+        self.update_summary_points()
+        self.update_summary_first()
 
 
     def table_row_selected(self, attr, old, new):
