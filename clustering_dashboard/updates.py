@@ -92,8 +92,7 @@ class updates():
         if len(indices_filter)>0:
             summary = summary[
                 summary.index.isin(indices_filter)
-            ]
-        summary = summary.reset_index().copy()
+            ].copy()
 
         # replace values of all empty to avoid ValueError: Out of range float values are not JSON compliant
         all_empty = summary.columns[summary.isna().all()]
@@ -102,10 +101,12 @@ class updates():
         # highlight id of selected
         summary['_selected_color'] = 'null'
         if len(indices_highlight)>0:
-            summary.loc[indices_highlight, '_selected_color'] = '#ee4729'
+            summary.iloc[indices_highlight, -1] = '#ee4729'
 
         # update the table
-        source.data = summary.to_dict(orient='list')
+        source.data = summary.reset_index().copy().to_dict(orient='list')
+
+        return summary
 
 
     def update_parameter_estimation(self):

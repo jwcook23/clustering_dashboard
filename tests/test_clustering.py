@@ -3,12 +3,13 @@ import pytest
 
 from clustering_dashboard import calculate, group
 
+import data
+
 
 @pytest.fixture(scope='module')
 def sample():
 
-    data = pd.read_csv('tests/Sample10Records.csv')
-    data['Pickup Time'] = pd.to_datetime(data['Pickup Time'])
+    df = data.df
 
     units = {
         'distance': 'miles',
@@ -24,7 +25,7 @@ def sample():
         'Cluster ID': pd.Series([0,0,pd.NA,pd.NA,1,1,pd.NA,0,2,2], dtype='Int64')
     }
 
-    yield {'data': data, 'units': units, 'thresholds': thresholds, 'labels': labels}
+    yield {'data': df, 'units': units, 'thresholds': thresholds, 'labels': labels}
 
 
 def test_distance(sample):

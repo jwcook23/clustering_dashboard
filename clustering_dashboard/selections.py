@@ -1,7 +1,7 @@
 import pandas as pd
 
 from clustering_dashboard.updates import updates
-from clustering_dashboard import group, summary
+from clustering_dashboard import group, summary, convert
 
 class selections(updates):
 
@@ -35,10 +35,20 @@ class selections(updates):
         self.plot_next_date.xaxis.axis_label = self.units["time"].value
         self.plot_span_date.xaxis.axis_label = self.units["time"].value
             
-        self.parameter_selected(None, None, None)
+        self.reset_all()
 
 
-    def parameter_selected(self, attr, old, new):
+    def reset_click(self, event):
+
+        self.reset_all()
+
+
+    def reset_change(self, attr, old, new):
+
+        self.reset_all()
+
+
+    def reset_all(self):
 
         if self.parameters['cluster_distance'].value is None or self.parameters['cluster_time'].value is None:
             return
@@ -69,7 +79,18 @@ class selections(updates):
         self.table_time.columns = self.time_summary_columns()
         self.table_summary.columns = self.overall_summary_columns()
 
-        self._reset_all()
+        self.source_summary.selected.indices = []
+        self.source_location.selected.indices = []
+        self.source_time.selected.indices = []
+
+        self.selected_details = self.details
+
+        self.update_evaluation()
+        self.location_summary = self.update_summary(self.location_summary, self.source_location, 'Location ID')
+        self.time_summary = self.update_summary(self.time_summary, self.source_time, 'Time ID')
+        self.cluster_summary = self.update_summary(self.cluster_summary, self.source_summary, 'Cluster ID')
+        self.update_map()
+        self.update_detail()
 
 
     def filter_cluster_values(self):
@@ -83,6 +104,7 @@ class selections(updates):
         self.summary_first.value=(values['min'], values['max'])
         self.summary_first.start = values['min']
         self.summary_first.end = values['max']
+        self.summary_first.step = int(convert.time_to_seconds(self.parameters['cluster_time'].value, self.units['time'].value)*1000)
 
 
     def filter_cluster_summary(self, attr, old, new):
@@ -96,7 +118,7 @@ class selections(updates):
             )
         ]
 
-        self.update_summary(self.cluster_summary, self.source_summary, 'Cluster ID', indices_filter=indices)
+        self.cluster_summary = self.update_summary(self.cluster_summary, self.source_summary, 'Cluster ID', indices_filter=indices)
 
 
     def table_row_selected(self, attr, old, new):
@@ -123,25 +145,9 @@ class selections(updates):
 
         self.update_map()
         self.update_detail()
-        self.update_summary(self.location_summary, self.source_location, 'Location ID', indices_highlight=id_location)
-        self.update_summary(self.time_summary, self.source_time, 'Time ID', indices_highlight=id_time)
-        self.update_summary(self.cluster_summary, self.source_summary, 'Cluster ID', indices_highlight=id_summary)
-
-
-    def _reset_all(self):
-
-        self.source_summary.selected.indices = []
-        self.source_location.selected.indices = []
-        self.source_time.selected.indices = []
-
-        self.selected_details = self.details
-
-        self.update_evaluation()
-        self.update_summary(self.location_summary, self.source_location, 'Location ID')
-        self.update_summary(self.time_summary, self.source_time, 'Time ID')
-        self.update_summary(self.cluster_summary, self.source_summary, 'Cluster ID')
-        self.update_map()
-        self.update_detail()
+        self.location_summary = self.update_summary(self.location_summary, self.source_location, 'Location ID', indices_highlight=id_location)
+        self.time_summary = self.update_summary(self.time_summary, self.source_time, 'Time ID', indices_highlight=id_time)
+        self.cluster_summary = self.update_summary(self.cluster_summary, self.source_summary, 'Cluster ID', indices_highlight=id_summary)
 
 
     def _same_location(self):

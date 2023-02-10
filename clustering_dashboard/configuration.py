@@ -17,9 +17,6 @@ class configuration(figures):
 
         self.details = pd.read_parquet(buffer_or_path)
 
-        # if self.details.index.name is not None:
-        #     self.details = self.details.reset_index()
-
         dropdown = ['']+list(self.details.columns)
         if self.details.index.name is not None:
             dropdown += [self.details.index.name]

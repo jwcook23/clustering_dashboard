@@ -59,19 +59,19 @@ class figures(selections):
     def parameter_distance(self):
 
         self.parameters['cluster_distance'] = NumericInput(value=None, mode='float', title='Distance Value:', height=50, width=100)
-        self.parameters['cluster_distance'].on_change('value', self.parameter_selected)
+        self.parameters['cluster_distance'].on_change('value', self.reset_change)
 
 
     def parameter_time(self):
 
         self.parameters['cluster_time'] = NumericInput(value=None, mode='float', title='Time Value:', height=50, width=100)
-        self.parameters['cluster_time'].on_change('value', self.parameter_selected)
+        self.parameters['cluster_time'].on_change('value', self.reset_change)
 
 
     def set_options(self):
 
         self.options['reset'] = Button(label="Reset Table Selections", button_type="default", width=200, height=30)
-        self.options['reset'].on_click(self._reset_all)
+        self.options['reset'].on_click(self.reset_click)
 
 
     def parameter_estimate(self):
