@@ -141,10 +141,17 @@ class selections(updates):
             )
         elif len(id_location)>0:
             selected = self.details['Location ID'].isin(id_location)
+            self.location_summary = self.update_summary(self.location_summary, self.source_location, 'Location ID', indices_highlight=id_location)
+            indices_filter = self.details.loc[selected,'Time ID'].dropna().unique()
+            self.time_summary = self.update_summary(self.time_summary, self.source_time, 'Time ID', indices_filter=indices_filter)
+            indices_filter = self.details.loc[selected,'Cluster ID'].dropna().unique()
+            self.time_summary = self.update_summary(self.cluster_summary, self.source_summary, 'Cluster ID', indices_filter=indices_filter)
         elif len(id_time)>0:
             selected = self.details['Time ID'].isin(id_time)
+            self.time_summary = self.update_summary(self.time_summary, self.source_time, 'Time ID', indices_highlight=id_time)
         elif len(id_summary)>0:
             selected = self.details['Cluster ID'].isin(id_summary)
+            self.cluster_summary = self.update_summary(self.cluster_summary, self.source_summary, 'Cluster ID', indices_highlight=id_summary)
         else:
             selected = pd.Series([True]*len(self.details))
 
@@ -152,9 +159,6 @@ class selections(updates):
 
         self.update_map()
         self.update_detail()
-        self.location_summary = self.update_summary(self.location_summary, self.source_location, 'Location ID', indices_highlight=id_location)
-        self.time_summary = self.update_summary(self.time_summary, self.source_time, 'Time ID', indices_highlight=id_time)
-        self.cluster_summary = self.update_summary(self.cluster_summary, self.source_summary, 'Cluster ID', indices_highlight=id_summary)
 
 
     def _same_location(self):

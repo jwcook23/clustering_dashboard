@@ -17,8 +17,11 @@ class updates():
         longitude = self.columns['longitude']
         latitude = self.columns['latitude']
 
+        # only plot clusters with assigned ID
+        assigned_clusters = self.selected_details.dropna(subset=['Cluster ID']).copy()
+
         # update boundary box of each cluster
-        unique_clusters = self.selected_details['Cluster ID'].dropna().drop_duplicates()
+        unique_clusters = assigned_clusters['Cluster ID'].drop_duplicates()
         if len(unique_clusters) > 0:
             self.render_boundary.data_source.data = {
                 'xs': self.cluster_boundary.loc[unique_clusters, '_longitude_mercator'].tolist(),
@@ -29,23 +32,23 @@ class updates():
 
         # update points
         self.render_points.data_source.data = {
-            'Cluster ID': self.selected_details['Cluster ID'].fillna(-1).values,
-            'Location ID': self.selected_details['Location ID'].fillna(-1).values,
-            'Time ID': self.selected_details['Time ID'].fillna(-1).values,
-            'xs': self.selected_details['_longitude_mercator'].values,
-            'ys': self.selected_details['_latitude_mercator'].values,
-            self.columns['id']: self.selected_details[self.columns['id']].values,
-            longitude: self.selected_details[longitude].values,
-            latitude: self.selected_details[latitude].values,
-            time: self.selected_details[time].values,
-            '_timestamp': self.selected_details['_timestamp'].values
+            'Cluster ID': assigned_clusters['Cluster ID'].fillna(-1).values,
+            'Location ID': assigned_clusters['Location ID'].fillna(-1).values,
+            'Time ID': assigned_clusters['Time ID'].fillna(-1).values,
+            'xs': assigned_clusters['_longitude_mercator'].values,
+            'ys': assigned_clusters['_latitude_mercator'].values,
+            self.columns['id']: assigned_clusters[self.columns['id']].values,
+            longitude: assigned_clusters[longitude].values,
+            latitude: assigned_clusters[latitude].values,
+            time: assigned_clusters[time].values,
+            '_timestamp': assigned_clusters['_timestamp'].values
         }
 
         # update map title
         self.update_selected_count()
 
         # zoom in on current selected data
-        zoom = self._zoom_window(self.selected_details[['_longitude_mercator','_latitude_mercator']])
+        zoom = self._zoom_window(assigned_clusters[['_longitude_mercator','_latitude_mercator']])
         self.plot_map.x_range.start = zoom.at['_longitude_mercator','min']
         self.plot_map.x_range.end = zoom.at['_longitude_mercator','max']
         self.plot_map.y_range.start = zoom.at['_latitude_mercator','min']

@@ -1,4 +1,4 @@
 /env/
 __pycache__/
 *.parquet
-test.html
+/tests/output/
