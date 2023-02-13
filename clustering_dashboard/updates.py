@@ -48,11 +48,12 @@ class updates():
         self.update_selected_count()
 
         # zoom in on current selected data
-        zoom = self._zoom_window(assigned_clusters[['_longitude_mercator','_latitude_mercator']])
-        self.plot_map.x_range.start = zoom.at['_longitude_mercator','min']
-        self.plot_map.x_range.end = zoom.at['_longitude_mercator','max']
-        self.plot_map.y_range.start = zoom.at['_latitude_mercator','min']
-        self.plot_map.y_range.end = zoom.at['_latitude_mercator','max']
+        if len(assigned_clusters)>0:
+            zoom = self._zoom_window(assigned_clusters[['_longitude_mercator','_latitude_mercator']])
+            self.plot_map.x_range.start = zoom.at['_longitude_mercator','min']
+            self.plot_map.x_range.end = zoom.at['_longitude_mercator','max']
+            self.plot_map.y_range.start = zoom.at['_latitude_mercator','min']
+            self.plot_map.y_range.end = zoom.at['_latitude_mercator','max']
 
 
     def update_detail(self):
