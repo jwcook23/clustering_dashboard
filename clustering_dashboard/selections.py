@@ -134,27 +134,42 @@ class selections(updates):
         id_time = self.source_time.selected.indices
         id_summary = self.source_summary.selected.indices
 
-        if (len(id_location)>0) & (len(id_time)>0):
-            selected = (
-                self.details['Location ID'].isin(id_location) &
-                self.details['Time ID'].isin(id_time)
-            )
-        elif len(id_location)>0:
-            selected = self.details['Location ID'].isin(id_location)
+        if len(id_location)>0:
+            # highlight location table
             self.location_summary = self.update_summary(self.location_summary, self.source_location, 'Location ID', indices_highlight=id_location)
+            selected = self.details['Location ID'].isin(id_location)
+            # cross filter time table
             indices_filter = self.details.loc[selected,'Time ID'].dropna().unique()
             self.time_summary = self.update_summary(self.time_summary, self.source_time, 'Time ID', indices_filter=indices_filter)
+            # cross filter summary table
             indices_filter = self.details.loc[selected,'Cluster ID'].dropna().unique()
             self.time_summary = self.update_summary(self.cluster_summary, self.source_summary, 'Cluster ID', indices_filter=indices_filter)
-        elif len(id_time)>0:
-            selected = self.details['Time ID'].isin(id_time)
+        if len(id_time)>0:
+            # highlight time table
             self.time_summary = self.update_summary(self.time_summary, self.source_time, 'Time ID', indices_highlight=id_time)
-        elif len(id_summary)>0:
-            selected = self.details['Cluster ID'].isin(id_summary)
+            selected = self.details['Time ID'].isin(id_time)
+            # cross filter location table
+            indices_filter = self.details.loc[selected,'Location ID'].dropna().unique()
+            self.location_summary = self.update_summary(self.location_summary, self.source_location, 'Location ID', indices_filter=indices_filter)
+            # cross filter summary table
+            indices_filter = self.details.loc[selected,'Cluster ID'].dropna().unique()
+            self.time_summary = self.update_summary(self.cluster_summary, self.source_summary, 'Cluster ID', indices_filter=indices_filter)
+        if len(id_summary)>0:
+            # highlight summary table
             self.cluster_summary = self.update_summary(self.cluster_summary, self.source_summary, 'Cluster ID', indices_highlight=id_summary)
-        else:
-            selected = pd.Series([True]*len(self.details))
+            selected = self.details['Cluster ID'].isin(id_summary)
+            # cross filter time table
+            indices_filter = self.details.loc[selected,'Time ID'].dropna().unique()
+            self.time_summary = self.update_summary(self.time_summary, self.source_time, 'Time ID', indices_filter=indices_filter)
+            # cross filter location table
+            indices_filter = self.details.loc[selected,'Location ID'].dropna().unique()
+            self.location_summary = self.update_summary(self.location_summary, self.source_location, 'Location ID', indices_filter=indices_filter)            
 
+        selected = (
+            self.details['Location ID'].isin(self.location_summary.iloc[id_location].index) |
+            self.details['Time ID'].isin(self.time_summary.iloc[id_time].index) |
+            self.details['Cluster ID'].isin(self.cluster_summary.iloc[id_summary].index)
+        )
         self.selected_details = self.details.loc[selected]
 
         self.update_map()
