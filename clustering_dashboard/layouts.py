@@ -56,8 +56,8 @@ class layouts(configuration):
     def generate_dashboard(self):
 
         title_main = Div(
-            text='Clustering Dashboard',
-            style={'font-size': '150%', 'font-weight': 'bold'}, width=210
+            text='Clustering<br>Dashboard',
+            style={'font-size': '150%', 'font-weight': 'bold'}, width=125
         )
 
         bold = {'font-weight': 'bold'}
@@ -73,7 +73,7 @@ class layouts(configuration):
 
         self.update_selected_count()
 
-        space = Div(height=20, width=5)
+        space = Div(height=10, width=5)
 
         paremeter_or_summary_tab = Tabs(tabs=[
             Panel(child=column(
@@ -95,9 +95,13 @@ class layouts(configuration):
                 row(
                     column(
                         title_main,
-                        row(
-                            column(self.units['distance'], space, self.parameters['cluster_distance']),
-                            column(self.units['time'], space, self.parameters['cluster_time'])
+                        column(
+                            self.units['distance'],
+                            space,
+                            self.parameters['cluster_distance'],
+                            self.units['time'],
+                            space,
+                            self.parameters['cluster_time']
                         ),
                         self.options['reset']
                     ),

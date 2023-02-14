@@ -70,7 +70,7 @@ class figures(selections):
 
     def set_options(self):
 
-        self.options['reset'] = Button(label="Reset Table Selections", button_type="default", width=200, height=30)
+        self.options['reset'] = Button(label="Reset Selections", button_type="default", width=100, height=30)
         self.options['reset'].on_click(self.reset_click)
 
 

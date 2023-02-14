@@ -1,7 +1,5 @@
 # bokeh serve --show clustering_dashboard/dashboard.py
 
-# TODO: slider filter for cluster # Points
-# TODO: slider filter for cluster Time (first)
 # TODO: data cube for details to show nested features
 
 from pathlib import Path
