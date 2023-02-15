@@ -86,7 +86,7 @@ class layouts(configuration):
                     Panel(child=row(self.plot_estimate_distance, self.plot_estimate_time), title='Parameter Estimation'),
                     Panel(child=row(self.plot_next_distance, self.plot_span_distance), title='Distance Parameter Evaluation'),
                     Panel(child=row(self.plot_next_date, self.plot_span_date), title='Time Parameter Evalulation')
-                ]), title='Parameter Estimation and Evaluation'
+                ]), title='Parameter Estimation'
             )
         ])
 

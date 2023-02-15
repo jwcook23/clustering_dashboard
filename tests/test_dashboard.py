@@ -8,30 +8,6 @@ import data
 
 
 @pytest.fixture(scope='module')
-def sample_allrecords(request):
-
-    file_name = request.param
-
-    db = dashboard(f"tests/output/{file_name}.html")
-
-    db._load_data("C:/Users/jacoo/Desktop/Temp/CabData.parquet")
-
-    db.column_options['id'].value = 'TripID'
-    db.column_options['latitude'].value = 'Latitude'
-    db.column_options['longitude'].value = 'Longitude'
-    db.column_options['time'].value = 'Pickup Time'
-    db._columns_selected(None, None, None)
-
-    db.units['distance'].value = 'miles'
-    db.units['time'].value = 'minutes'
-    db.parameters['cluster_distance'].value = 0.25
-    db.parameters['cluster_time'].value = 30
-    db.reset_all()
-
-    return db
-
-
-@pytest.fixture(scope='module')
 def sample_10records(request):
 
     data.df.to_parquet('tests/sample_10records.parquet')
@@ -55,6 +31,38 @@ def sample_10records(request):
     db.reset_all()
 
     return db
+
+
+@pytest.fixture(scope='module')
+def sample_allrecords(request):
+
+    file_name = request.param
+
+    db = dashboard(f"tests/output/{file_name}.html")
+
+    db._load_data("C:/Users/jacoo/Desktop/Temp/CabData.parquet")
+
+    db.column_options['id'].value = 'TripID'
+    db.column_options['latitude'].value = 'Latitude'
+    db.column_options['longitude'].value = 'Longitude'
+    db.column_options['time'].value = 'Pickup Time'
+    db._columns_selected(None, None, None)
+
+    db.units['distance'].value = 'miles'
+    db.units['time'].value = 'minutes'
+    db.parameters['cluster_distance'].value = 0.25
+    db.parameters['cluster_time'].value = 30
+    db.reset_all()
+
+    return db
+
+
+@pytest.mark.parametrize('sample_10records', [('test_generate_dashboard')], indirect=True)
+def test_generate_dashboard(sample_10records):
+    
+    sample = sample_10records
+
+    show(sample.layout_dashboard)
 
 
 @pytest.mark.parametrize('sample_10records', [('test_crossfilter_sliders')], indirect=True)
